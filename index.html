@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>7 O'CLOCK · Marketing-Entscheidungs-Cockpit</title>
+<style>
+:root{color-scheme:light;
+ --bg:#faf8f4; --card:#ffffff; --ink:#2a2620; --mut:#7a7266; --line:#e7e0d5;
+ --acc:#5F4A32; --sand:#f3ece1;
+ --green:#2e7d52; --greenbg:#e7f3ec; --teal:#2a7d7d; --tealbg:#e5f2f2;
+ --amber:#a9791b; --amberbg:#f7efdc; --red:#b23b34; --redbg:#f8e7e5; --grey:#8a8278; --greybg:#eee;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+ font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+ font-size:14px;line-height:1.45;padding:20px;}
+.wrap{max-width:1080px;margin:0 auto;}
+h1{font-size:22px;margin:0 0 2px;letter-spacing:.2px}
+.sub{color:var(--mut);font-size:13px;margin-bottom:4px}
+.brand{color:var(--acc);font-weight:700;letter-spacing:.5px;font-size:12px;text-transform:uppercase}
+.meta{color:var(--mut);font-size:12px;margin-top:6px}
+.filters{display:inline-flex;gap:0;background:var(--sand);border-radius:10px;padding:3px;margin:12px 0 2px}
+.filters button{border:none;background:transparent;padding:7px 16px;border-radius:8px;font-size:13px;color:var(--mut);cursor:pointer;font-weight:600;transition:all .12s}
+.filters button.on{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:14px 0;}
+h2{font-size:15px;margin:2px 0 12px;color:var(--acc);border-bottom:2px solid var(--sand);padding-bottom:6px}
+.anchor{display:flex;flex-wrap:wrap;gap:18px;align-items:center}
+.merbox{flex:0 0 auto;text-align:center;padding:10px 20px;border-radius:12px;background:var(--sand);min-width:150px}
+.merbox .big{font-size:34px;font-weight:800;line-height:1;color:var(--acc)}
+.merbox .lbl{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.5px;margin-top:4px}
+.anchor .txt{flex:1;min-width:240px;font-size:13px}
+.kpis{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px}
+.kpi{background:var(--sand);border-radius:8px;padding:7px 12px;font-size:12px}
+.kpi b{font-size:15px;display:block;color:var(--ink)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;color:var(--mut);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.4px;padding:6px 8px;border-bottom:1px solid var(--line)}
+td{padding:6px 8px;border-bottom:1px solid #f2ede4}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+tr:last-child td{border-bottom:none}
+.chip{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap}
+.c-green{background:var(--greenbg);color:var(--green)} .c-teal{background:var(--tealbg);color:var(--teal)}
+.c-amber{background:var(--amberbg);color:var(--amber)} .c-red{background:var(--redbg);color:var(--red)}
+.c-grey{background:var(--greybg);color:var(--grey)}
+.badge{font-size:10px;padding:1px 7px;border-radius:20px;font-weight:700;vertical-align:middle;margin-left:6px}
+.b-snap{background:var(--amberbg);color:var(--amber)}
+.bands{display:flex;flex-wrap:wrap;gap:8px}
+.band{flex:1;min-width:150px;border-radius:8px;padding:8px 10px;font-size:12px}
+.band .r{font-weight:800;font-size:13px}
+.foot{color:var(--mut);font-size:11.5px;line-height:1.5;margin-top:6px}
+.note{background:var(--amberbg);border-left:3px solid var(--amber);padding:8px 12px;border-radius:6px;font-size:12.5px;margin-top:10px}
+.muted{color:var(--mut)} .sm{font-size:11px}
+.ratio{font-weight:700}
+@media(max-width:620px){.merbox .big{font-size:28px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+ <div class="brand">7 O'CLOCK</div>
+ <h1>Marketing-Entscheidungs-Cockpit</h1>
+ <div class="sub">Meta skalieren &amp; Google-Agentur steuern</div>
+ <div class="filters" id="filters">
+   <button data-w="7">Letzte 7 Tage</button>
+   <button data-w="30" class="on">Letzte 30 Tage</button>
+   <button data-w="90">Letzte 90 Tage</button>
+ </div>
+ <div class="meta" id="updated"></div>
+
+ <div class="card">
+  <h2>Realit&auml;ts-Anker &mdash; Account-MER</h2>
+  <div class="anchor">
+   <div class="merbox"><div class="big" id="mer-val">&middot;&middot;</div><div class="lbl">Blended MER (netto)</div></div>
+   <div class="merbox" style="background:#fff;border:1px dashed var(--line)"><div class="big" style="color:var(--mut);font-size:26px">1,96</div><div class="lbl">Break-even-MER</div></div>
+   <div class="txt">
+     <div id="mer-verdict" style="font-weight:700;margin-bottom:4px">&hellip;</div>
+     <div class="muted sm">Die einzige attributions-freie Wahrheit: Shopify-Nettoumsatz &divide; gesamter Ad-Spend. Sagt, ob die ganze Maschine gesund ist &mdash; unabh&auml;ngig davon, was Meta/Google sich einzeln zuschreiben. <b>MER sagt, ob du Gas geben darfst; ROAS&divide;BE sagt, auf welche Kampagne.</b></div>
+     <div class="kpis">
+       <div class="kpi">Shopify Netto<b id="k-net">&middot;</b></div>
+       <div class="kpi">Ad-Spend gesamt<b id="k-spend">&middot;</b></div>
+       <div class="kpi">Meta / Google<b id="k-split">&middot;</b></div>
+       <div class="kpi">Bestellungen<b id="k-ord">&middot;</b></div>
+     </div>
+   </div>
+  </div>
+  <div class="note">Plattform-Warnung: Meta + Google beanspruchen zusammen mehr Umsatz, als der Shop insgesamt macht (Doppelz&auml;hlung). <b>Plattform-ROAS niemals summieren</b> &mdash; nur der Account-MER hier oben ist die absolute Wahrheit. Die Einzel-ROAS unten dienen dem <b>relativen</b> Vergleich.</div>
+ </div>
+
+ <div class="card">
+  <h2>Regelwerk &mdash; Verh&auml;ltnis ROAS &divide; Break-even</h2>
+  <div class="bands">
+   <div class="band c-green"><span class="r">&ge; 1,5</span> &middot; SKALIEREN<br><span class="sm">+20&ndash;30 % Budget</span></div>
+   <div class="band c-teal"><span class="r">1,2&ndash;1,5</span> &middot; HALTEN<br><span class="sm">+0&ndash;10 %</span></div>
+   <div class="band c-amber"><span class="r">1,0&ndash;1,2</span> &middot; BEOBACHTEN<br><span class="sm">halten / optimieren</span></div>
+   <div class="band c-red"><span class="r">&lt; 1,0</span> &middot; K&Uuml;RZEN<br><span class="sm">senken / stop</span></div>
+  </div>
+  <div class="foot">Der 50%-Puffer (Skalieren erst ab 1,5, nicht 1,0) ist der bewusste Abschlag f&uuml;r Metas &Uuml;ber-Attribution. Nach jedem Skalier-Schritt den MER oben nachmessen: bleibt er stabil &rarr; das Budget war inkrementell, weiter; f&auml;llt er &rarr; zur&uuml;ck.</div>
+ </div>
+
+ <div class="card">
+  <h2>Meta &mdash; Kampagnen-Entscheidungen</h2>
+  <table><thead><tr>
+    <th>Kampagne</th><th>Kategorie</th><th class="n">Spend</th><th class="n">ROAS</th><th class="n">BE</th><th class="n">Ratio</th><th>Aktion</th>
+  </tr></thead><tbody id="meta-body"></tbody></table>
+  <div class="foot" id="meta-foot"></div>
+ </div>
+
+ <div class="card">
+  <h2>Google &mdash; Gespr&auml;chsliste f&uuml;r den Agentur-Call</h2>
+  <table><thead><tr>
+    <th>Kampagne</th><th class="n">ROAS</th><th class="n">BE</th><th>Ma&szlig;nahme / Gespr&auml;chspunkt</th>
+  </tr></thead><tbody id="g-body"></tbody></table>
+  <div class="foot">Feed-only-PMax ist sauber produkt-attribuiert &rarr; dort Budget hoch. Brand/Search (hohe ROAS) erntet v.a. bestehende Marken-Nachfrage &rarr; Inkrementalit&auml;t per Holdout pr&uuml;fen. <b>Bloom-Feed l&auml;uft</b> (Kunstblumen Feed-only &uuml;ber BE), aber die <b>Kunstblumen Asset-only</b>-Kampagne verbrennt Geld (ROAS 0,22) &rarr; pausieren/pr&uuml;fen.</div>
+ </div>
+
+ <div class="card">
+  <h2>Alle 17 Kategorien &mdash; DB-Wahrheit &amp; Break-even</h2>
+  <table><thead><tr>
+    <th>Kategorie</th><th class="n">Netto (Mai)</th><th class="n">DB %</th><th class="n">BE-MER</th><th class="n">BE-ROAS</th>
+  </tr></thead><tbody id="cat-body"></tbody></table>
+  <div class="foot">BE-MER = 1 &divide; Deckungsbeitrag vor Werbung (netto). BE-ROAS = 1,19 &divide; Marge (Vergleichsbasis f&uuml;r Metas Brutto-ROAS). Varianten-korrigierte COGS, echte Versandeinnahme aus Shopify (entdoppelt). Diese Werte sind zeitraum-unabh&auml;ngig (Stand Mai) &mdash; <b>Geschirr</b> mit temp. hohem EK, normalisiert BE-MER ~2,2.</div>
+ </div>
+
+ <div class="foot" style="text-align:center;margin:18px 0">
+   &Ouml;ffentliche Snapshot-Version &middot; Zeitr&auml;ume vorberechnet zum angegebenen Stand &middot; die interaktive Live-Version l&auml;uft intern in Cowork.
+ </div>
+</div>
+
+<script>
+// ==== Monats-Snapshot (Stand 6. Juli 2026) · alle Fenster vorberechnet ====
+const WIN={
+ "7":{net:139241.53,gross:155807.46,orders:1915,metaTotal:18580,googleTotal:5337,
+   meta:[["BW25_SocialVideo","Broad",3366,4.99],["EU_Summersale_26","Broad",2402,3.6],["CreativeTesting_ABO","Broad",2109,4.93],["TOFU_Bettwäsche_ABO","Bettwäsche",1817,3.38],["EG_Geschirrsets","Geschirr",1675,6.3],["TOFU_GESCHIRR_Bestperformer","Geschirr",1374,6.93],["Summersale_26","Broad",1267,4.17],["Summersale_26_Geschirr","Geschirr",961,7.34],["BW25_Posttip","Broad",596,3.77],["BestsellerBundle_25","Gläser",437,4.82],["Summersale_ASC","Broad",433,3.34],["Gläser_ASC","Gläser",362,6.34],["Bloom","Bloom",351,5.33],["Brooklyn","Broad",300,5.82],["Bloom_ABO","Bloom",266,2.31],["Wunschset_Launch","Gläser",185,2.96],["NeueVasen_Testing","Vasen",138,5.52]],
+   google:[["DE & AT | PMax | Feed-only | Gläser",6.55],["DE & AT | PMax | Asset-only | Bettwäsche, Gläser, Geschirr-Sets",3.64],["DE & AT | PMax | Feed-only | Geschirr",9.27],["DE & AT | PMax | Tassen & Kannen | Feed-only",2.69],["DE & AT | Brand-Shopping | Alle Produkte",10.52],["DE & AT | PMax | Bettwäsche | Feed-only",6.15],["DE & AT | PMax | Feed-only | Sonstiges",3.76],["DE & AT | PMax | Vorratsgläser | Feed-only",4.13],["DACH | Search | Branding",152.54],["DE & AT | PMax | Accessoires | Feed-only",3.59],["DACH | Search | Brand + Combination",38.35],["DE & AT | PMax | Kunstblumen | Feed-only",3.85],["DE & AT | PMax | Kunstblumen | Asset-only",0.22]]},
+ "30":{net:479031.55,gross:543470.2,orders:6521,metaTotal:87785,googleTotal:23391,
+   meta:[["BW25_SocialVideo","Broad",14566,3.83],["CreativeTesting_ABO","Broad",8608,4.07],["TOFU_Bettwäsche_ABO","Bettwäsche",7646,3.42],["EG_Geschirrsets","Geschirr",5766,4.81],["Gläser_ASC","Gläser",2903,2.85],["BestsellerBundle_25","Gläser",2822,3.7],["Bloom","Bloom",1768,4.55],["Bloom_ABO","Bloom",730,1.55],["EU_TOFU_ALL_CBO","Broad",537,2.04],["Evergreen_Bettwäsche_Test","Bettwäsche",372,2.6],["Wunschset_Launch","Gläser",185,2.96],["NeueVasen_Testing","Vasen",138,5.52]],
+   google:[["DE & AT | PMax | Feed-only | Geschirr",9.30],["DE & AT | PMax | Feed-only | Gläser",7.30],["DE & AT | PMax | Bettwäsche | Feed-only",5.66],["DE & AT | PMax | Vorratsgläser | Feed-only",4.42],["DE & AT | PMax | Tassen & Kannen | Feed-only",4.01],["DE & AT | PMax | Kunstblumen | Feed-only",3.85],["DE & AT | PMax | Accessoires | Feed-only",3.57],["DE & AT | PMax | Asset-only | Bettwäsche, Gläser, Geschirr-Sets",4.79],["DE & AT | PMax | Feed-only | Sonstiges",4.06],["DE & AT | Brand-Shopping | Alle Produkte",8.02],["DACH | Search | Brand + Combination",36.74],["DACH | Search | Branding",113.73],["DE & AT | PMax | Kunstblumen | Asset-only",0.22]]},
+ "90":{net:1334136.07,gross:1531024.08,orders:18283,metaTotal:251416,googleTotal:68741,
+   meta:[["TOFU_GESCHIRR_Bestperformer","Geschirr",50449,3.67],["BW25_SocialVideo","Broad",32605,3.77],["CreativeTesting_ABO","Broad",27779,3.63],["EU_TOFU_ALL_CBO","Broad",21026,3.51],["TOFU_Bettwäsche_ABO","Bettwäsche",16917,3.03],["BW25_Posttip","Broad",13879,3.14],["Gläser_ASC","Gläser",12701,3.41],["EU_Summersale_26","Broad",12685,3.76],["EG_Geschirrsets","Geschirr",11823,4.44],["Summersale_26","Broad",9610,3.9],["BestsellerBundle_25","Gläser",9051,3.33],["Summersale_26_Geschirr","Geschirr",6022,4.53],["Mo_NiaSparset_Geschirr","Geschirr",4761,4.46],["Evergreen_Bettwäsche_Test","Bettwäsche",4303,2.42],["Summersale_ASC","Broad",3854,3.79],["EG_Geschirrset_Gerillt","Geschirr",3581,3.41],["Bloom","Bloom",1792,4.49],["Bloom_ABO","Bloom",730,1.55],["Bettwäsche_26","Bettwäsche",824,1.47],["Spring","Broad",638,2.3]],
+   google:[["DE & AT | PMax | Feed-only | Gläser",8.50],["DE & AT | PMax | Feed-only | Geschirr",8.02],["DE & AT | PMax | Asset-only | Bettwäsche, Gläser, Geschirr-Sets",4.18],["DE & AT | PMax | Tassen & Kannen | Feed-only",5.16],["DE & AT | PMax | Bettwäsche | Feed-only",6.19],["DE & AT | Brand-Shopping | Alle Produkte",9.09],["DE & AT | PMax | Feed-only | Sonstiges",5.30],["DE & AT | PMax | Vorratsgläser | Feed-only",3.53],["DE & AT | PMax | Accessoires | Feed-only",3.97],["DACH | Search | Branding",145.97],["DACH | Search | Brand + Combination",40.99],["DE & AT | PMax | Kunstblumen | Feed-only",3.85],["DE & AT | PMax | Kunstblumen | Asset-only",0.22]]},
+};
+const LABEL={"7":"Letzte 7 Tage","30":"Letzte 30 Tage","90":"Letzte 90 Tage"};
+
+const CATS=[
+ ["Gläser",171382,42.9,1.66,1.97],["Geschirr",113416,1.1,2.92,3.47],
+ ["Keramikbecher",52356,41.7,1.79,2.13],["Bettwäsche",46357,20.7,1.84,2.19],
+ ["Accessoires",17354,14.6,3.26,3.88],["Aufbewahrungsgläser",8149,36.6,1.70,2.03],
+ ["Salatbowl",6708,49.5,1.68,2.00],["Dipschale",5150,45.3,1.82,2.17],
+ ["Servierbretter",5062,43.0,1.85,2.20],["Regale",4486,38.4,1.69,2.01],
+ ["Vasen",4220,25.9,2.35,2.80],["Alaska Dipschale",4081,47.6,1.67,1.99],
+ ["Gewürzmühlen",3622,47.6,1.70,2.02],["Servietten",3426,58.0,1.46,1.74],
+ ["Matcha Sets",1524,52.6,1.61,1.91],["Spiegel",1456,25.9,2.28,2.71],
+ ["Besteck",1153,47.0,1.75,2.08]];
+const BEROAS={"Gläser":1.97,"Geschirr":3.47,"Keramikbecher":2.13,"Bettwäsche":2.19,
+ "Accessoires":3.88,"Vasen":2.80,"Bloom":1.75,"Broad":2.30};
+
+const eur=n=>"€"+Math.round(n).toLocaleString("de-DE");
+const de=n=>n.toLocaleString("de-DE",{minimumFractionDigits:2,maximumFractionDigits:2});
+function decide(r){if(r==null||isNaN(r))return["PRÜFEN","grey"];
+ if(r>=1.5)return["SKALIEREN","green"];if(r>=1.2)return["HALTEN","teal"];
+ if(r>=1.0)return["BEOBACHTEN","amber"];return["KÜRZEN","red"];}
+function chip(t,c){return '<span class="chip c-'+c+'">'+t+'</span>';}
+function gBE(n){n=(n||"").toLowerCase();
+ if(n.includes("brand")||n.includes("search"))return null;
+ if(n.includes("asset-only")&&(n.includes("bettw")||n.includes("sonstiges")))return null;
+ if(n.includes("sonstiges"))return null;
+ if(n.includes("geschirr"))return 3.47;
+ if(n.includes("bettw"))return 2.19;
+ if(n.includes("tassen")||n.includes("kannen"))return 2.13;
+ if(n.includes("vorratsgläser")||n.includes("vorratsglaeser"))return 2.03;
+ if(n.includes("accessoires"))return 3.88;
+ if(n.includes("kunstblume")||n.includes("bloom"))return 1.75;
+ if(n.includes("gläser")||n.includes("glaeser"))return 1.97;
+ return null;}
+function gNote(n,be,ratio){n=(n||"").toLowerCase();
+ if(n.includes("brand")||n.includes("search"))return "erntet Marken-Nachfrage — Inkrementalität per Holdout prüfen";
+ if(be==null)return "gemischt/unsauber — aufsplitten";
+ if(ratio<1.0)return "unter BE — kappen / optimieren";
+ if(ratio>=1.5)return "über BE — Budget hoch";
+ return "knapp über BE — halten";}
+
+// Kategorien (zeitraum-unabhängig)
+document.getElementById("cat-body").innerHTML=CATS.map(c=>
+ '<tr><td>'+c[0]+'</td><td class="n">'+eur(c[1])+'</td><td class="n">'+de(c[2])+' %</td>'+
+ '<td class="n"><b>'+de(c[3])+'</b></td><td class="n">'+de(c[4])+'</td></tr>').join("");
+
+function renderMeta(rows){
+ document.getElementById("meta-body").innerHTML=rows.slice().sort((a,b)=>b[2]-a[2]).map(r=>{
+  const be=BEROAS[r[1]]!=null?BEROAS[r[1]]:2.30;const ratio=r[3]/be;const[act,cls]=decide(ratio);
+  return '<tr><td>'+r[0]+'</td><td class="muted">'+r[1]+'</td><td class="n">'+eur(r[2])+'</td>'+
+   '<td class="n">'+de(r[3])+'</td><td class="n muted">'+de(be)+'</td>'+
+   '<td class="n ratio">'+de(ratio)+'</td><td>'+chip(act,cls)+'</td></tr>';}).join("");
+ document.getElementById("meta-foot").innerHTML='Ratio = ROAS &divide; Break-even-ROAS der Kategorie. Broad/Sale gegen Portfolio-BE 2,30. <b>Bloom_ABO</b> nicht komplett killen &mdash; gezielt die Verlierer-Ad-Sets stoppen. <b>Geschirr</b> nur wegen temp. EK an der Grenze; bei normalisiertem EK klarer Skalierer.';}
+
+function renderGoogle(rows){
+ document.getElementById("g-body").innerHTML=rows.map(g=>{
+  const nm=g[0],roas=g[1],be=gBE(nm);const ratio=be!=null?roas/be:null;const note=gNote(nm,be,ratio);
+  let act;if(be==null)act='<span class="muted">'+note+'</span>';
+  else{const[a,cls]=decide(ratio);act=chip(a,cls)+' <span class="muted sm">'+note+'</span>';}
+  return '<tr><td>'+nm+'</td><td class="n">'+de(roas)+'</td><td class="n muted">'+(be==null?"–":de(be))+'</td><td>'+act+'</td></tr>';}).join("");}
+
+function renderAnchor(w){
+ const spend=w.metaTotal+w.googleTotal;const mer=w.net/spend;
+ document.getElementById("mer-val").textContent=de(mer);
+ document.getElementById("k-net").textContent=eur(w.net);
+ document.getElementById("k-spend").textContent=eur(spend);
+ document.getElementById("k-split").textContent=eur(w.metaTotal)+" / "+eur(w.googleTotal);
+ document.getElementById("k-ord").textContent=w.orders.toLocaleString("de-DE");
+ let verdict,col;
+ if(mer>=2.5){verdict="Grün — komfortabel über Break-even (~1,96). Gas geben erlaubt.";col="green";}
+ else if(mer>=1.96){verdict="Gelb — über Break-even, aber Puffer schrumpft. Vorsichtig skalieren.";col="amber";}
+ else{verdict="Rot — unter Break-even-MER. Bremsen, Budget umschichten.";col="red";}
+ const mv=document.getElementById("mer-verdict");mv.textContent=verdict;mv.style.color="var(--"+col+")";}
+
+function render(k){
+ const w=WIN[k];renderAnchor(w);renderMeta(w.meta);renderGoogle(w.google);
+ document.getElementById("updated").innerHTML="Stand: 6. Juli 2026 &middot; "+LABEL[k]+" &middot; <span class=\"badge b-snap\">Monats-Snapshot</span>";}
+
+document.querySelectorAll("#filters button").forEach(b=>{
+ b.addEventListener("click",()=>{
+  document.querySelectorAll("#filters button").forEach(x=>x.classList.remove("on"));
+  b.classList.add("on");render(b.dataset.w);});});
+
+render("30");
+</script>
+</body>
+</html>

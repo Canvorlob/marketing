@@ -69,7 +69,7 @@ tr:last-child td{border-bottom:none}
   <h2>Realit&auml;ts-Anker &mdash; Account-MER</h2>
   <div class="anchor">
    <div class="merbox"><div class="big" id="mer-val">&middot;&middot;</div><div class="lbl">Blended MER (netto)</div></div>
-   <div class="merbox" style="background:#fff;border:1px dashed var(--line)"><div class="big" style="color:var(--mut);font-size:26px">1,96</div><div class="lbl">Break-even-MER</div></div>
+   <div class="merbox" style="background:#fff;border:1px dashed var(--line)"><div class="big" style="color:var(--mut);font-size:26px">2,10</div><div class="lbl">Break-even-MER</div></div>
    <div class="txt">
      <div id="mer-verdict" style="font-weight:700;margin-bottom:4px">&hellip;</div>
      <div class="muted sm">Die einzige attributions-freie Wahrheit: Shopify-Nettoumsatz &divide; gesamter Ad-Spend. Sagt, ob die ganze Maschine gesund ist &mdash; unabh&auml;ngig davon, was Meta/Google sich einzeln zuschreiben. <b>MER sagt, ob du Gas geben darfst; ROAS&divide;BE sagt, auf welche Kampagne.</b></div>
@@ -120,9 +120,9 @@ tr:last-child td{border-bottom:none}
  <div class="card">
   <h2>Alle 17 Kategorien &mdash; DB-Wahrheit &amp; Break-even</h2>
   <table><thead><tr>
-    <th>Kategorie</th><th class="n">Netto (Mai)</th><th class="n">DB %</th><th class="n">BE-MER</th><th class="n">BE-ROAS</th>
+    <th>Kategorie</th><th class="n">Netto (Juni)</th><th class="n">COGS %</th><th class="n">BE-MER</th><th class="n">BE-ROAS</th>
   </tr></thead><tbody id="cat-body"></tbody></table>
-  <div class="foot">BE-MER = 1 &divide; Deckungsbeitrag vor Werbung (netto). BE-ROAS = 1,19 &divide; Marge (Vergleichsbasis f&uuml;r Metas Brutto-ROAS). Varianten-korrigierte COGS, echte Versandeinnahme aus Shopify (entdoppelt). Diese Werte sind zeitraum-unabh&auml;ngig (Stand Mai) &mdash; <b>Geschirr</b> mit temp. hohem EK, normalisiert BE-MER ~2,2.</div>
+  <div class="foot"><b>Letzter voller Monat (Juni).</b> COGS = echte Warenkosten aus Shopify je Kategorie. BE-MER = 1 &divide; Marge vor Werbung; BE-ROAS = 1,19 &divide; Marge. Strukturelle Kosten (Versand, Payment, Verpackung, Affiliate, Bruch) aus dem Kostenmodell. <b>Auff&auml;llig: Geschirr-COGS 61% (Mai 57%)</b> &rarr; BE-MER 2,92&rarr;3,63, BE-ROAS bis 4,32. EK-Verhandlung dringend. Servietten-COGS-Sprung ist mengenbedingt (Kleinkategorie).</div>
  </div>
 
  <div class="foot" style="text-align:center;margin:18px 0">
@@ -154,17 +154,25 @@ const DATA_END="6. Juli 2026";   // letzter enthaltener Datentag (Fenster-Ende)
 const GEN_DATE="7. Juli 2026";   // wann die Seite erzeugt wurde
 
 const CATS=[
- ["Gläser",171382,42.9,1.66,1.97],["Geschirr",113416,1.1,2.92,3.47],
- ["Keramikbecher",52356,41.7,1.79,2.13],["Bettwäsche",46357,20.7,1.84,2.19],
- ["Accessoires",17354,14.6,3.26,3.88],["Aufbewahrungsgläser",8149,36.6,1.70,2.03],
- ["Salatbowl",6708,49.5,1.68,2.00],["Dipschale",5150,45.3,1.82,2.17],
- ["Servierbretter",5062,43.0,1.85,2.20],["Regale",4486,38.4,1.69,2.01],
- ["Vasen",4220,25.9,2.35,2.80],["Alaska Dipschale",4081,47.6,1.67,1.99],
- ["Gewürzmühlen",3622,47.6,1.70,2.02],["Servietten",3426,58.0,1.46,1.74],
- ["Matcha Sets",1524,52.6,1.61,1.91],["Spiegel",1456,25.9,2.28,2.71],
- ["Besteck",1153,47.0,1.75,2.08]];
-const BEROAS={"Gläser":1.97,"Geschirr":3.47,"Keramikbecher":2.13,"Bettwäsche":2.19,
- "Accessoires":3.88,"Vasen":2.80,"Bloom":1.75,"Broad":2.30};
+ ["Gläser",151524,23.4,1.69,2.02],
+ ["Geschirr",138932,61.3,3.63,4.32],
+ ["Keramikbecher",42609,27.1,1.81,2.15],
+ ["Bettwäsche",38212,32.6,1.78,2.12],
+ ["Accessoires",19984,29.6,2.17,2.59],
+ ["Aufbewahrungsgläser",7613,30.4,1.7,2.03],
+ ["Salatbowl",7395,22.8,1.69,2.01],
+ ["Dipschale",7296,25.8,1.79,2.13],
+ ["Bloom (Kunstblume)",6036,17.5,1.41,1.67],
+ ["Servierbretter",3538,26.6,1.83,2.18],
+ ["Vasen",3462,24.3,2.01,2.4],
+ ["Besteck",3102,32.8,1.79,2.13],
+ ["Gewürzmühlen",3099,27.2,1.67,1.98],
+ ["Regale",2743,28.1,1.72,2.05],
+ ["Servietten",2195,46.3,2.52,3.0],
+ ["Spiegel",1625,39.8,2.26,2.68],
+ ["Matcha Sets",709,28.6,1.71,2.03],
+];
+const BEROAS={"Gläser":2.02,"Geschirr":4.32,"Keramikbecher":2.15,"Bettwäsche":2.12,"Accessoires":2.59,"Vasen":2.4,"Bloom":1.67,"Broad":2.49};
 
 const eur=n=>"€"+Math.round(n).toLocaleString("de-DE");
 const de=n=>n.toLocaleString("de-DE",{minimumFractionDigits:2,maximumFractionDigits:2});
@@ -211,7 +219,7 @@ function renderMeta(rows,catrev){
    '<td class="n">'+de(r[3])+'</td><td class="n muted">'+de(be)+'</td>'+
    '<td class="n ratio">'+de(ratio)+'</td><td>'+chip(act,cls)+'</td>'+
    '<td class="n"><b style="color:var(--'+pc+')">'+pt+'</b></td><td class="n">'+rev+'</td></tr>';}).join("");
- document.getElementById("meta-foot").innerHTML='Ratio = ROAS &divide; Break-even-ROAS der Kategorie. Broad/Sale gegen Portfolio-BE 2,30. <b>&Delta; Budget</b> = konkreter Zielschritt f&uuml;rs Meta-Budget je Kampagne (Richtwert): &ge;2,0&rarr;+30% &middot; 1,5&ndash;2,0&rarr;+20% &middot; 1,2&ndash;1,5&rarr;+10% &middot; 1,0&ndash;1,2&rarr;0% &middot; 0,8&ndash;1,0&rarr;&minus;20% &middot; 0,5&ndash;0,8&rarr;&minus;40% &middot; &lt;0,5&rarr;Stop. Gedeckelt bei &plusmn;30&ndash;40%/Schritt (Meta-Lernphase); pro Kampagne max. ~1&times;/Woche &auml;ndern, danach MER nachmessen. <b>Umsatz Kat. (Shopify)</b> = echter Kategorie-Umsatz im Fenster (nicht pro Kampagne attribuierbar); Broad = kategorie&uuml;bergreifend (&ndash;).';}
+ document.getElementById("meta-foot").innerHTML='Ratio = ROAS &divide; Break-even-ROAS der Kategorie. Broad/Sale gegen Portfolio-BE 2,49. <b>&Delta; Budget</b> = konkreter Zielschritt f&uuml;rs Meta-Budget je Kampagne (Richtwert): &ge;2,0&rarr;+30% &middot; 1,5&ndash;2,0&rarr;+20% &middot; 1,2&ndash;1,5&rarr;+10% &middot; 1,0&ndash;1,2&rarr;0% &middot; 0,8&ndash;1,0&rarr;&minus;20% &middot; 0,5&ndash;0,8&rarr;&minus;40% &middot; &lt;0,5&rarr;Stop. Gedeckelt bei &plusmn;30&ndash;40%/Schritt (Meta-Lernphase); pro Kampagne max. ~1&times;/Woche &auml;ndern, danach MER nachmessen. <b>Umsatz Kat. (Shopify)</b> = echter Kategorie-Umsatz im Fenster (nicht pro Kampagne attribuierbar); Broad = kategorie&uuml;bergreifend (&ndash;).';}
 
 function renderGoogle(rows){
  document.getElementById("g-body").innerHTML=rows.map(g=>{
@@ -228,20 +236,20 @@ function renderAnchor(w){
  document.getElementById("k-split").textContent=eur(w.metaTotal)+" / "+eur(w.googleTotal);
  document.getElementById("k-ord").textContent=w.orders.toLocaleString("de-DE");
  let verdict,col;
- if(mer>=2.5){verdict="Grün — komfortabel über Break-even (~1,96). Gas geben erlaubt.";col="green";}
- else if(mer>=1.96){verdict="Gelb — über Break-even, aber Puffer schrumpft. Vorsichtig skalieren.";col="amber";}
+ if(mer>=2.7){verdict="Grün — komfortabel über Break-even (~2,10). Gas geben erlaubt.";col="green";}
+ else if(mer>=2.10){verdict="Gelb — über Break-even, aber Puffer schrumpft. Vorsichtig skalieren.";col="amber";}
  else{verdict="Rot — unter Break-even-MER. Bremsen, Budget umschichten.";col="red";}
  const mv=document.getElementById("mer-verdict");mv.textContent=verdict;mv.style.color="var(--"+col+")";}
 
 function renderRegion(w){
  const r=w.region||{};const dach=r.dach||0,eu=r.eu||0,tot=dach+eu;
  const dp=tot?dach/tot*100:0,ep=tot?eu/tot*100:0;
- const merhtml=(m)=>{if(m==null)return '<b>&mdash;</b>';const c=m>=2.5?'green':(m>=1.96?'amber':'red');return '<b style="color:var(--'+c+')">'+de(m)+'</b>';};
- const tile=(val,lbl,pct,merlbl,mer,dashed)=>'<div class="merbox" style="min-width:200px;'+(dashed?'background:#fff;border:1px dashed var(--line)':'')+'"><div class="big" style="font-size:23px">'+eur(val)+'</div><div class="lbl">'+lbl+' &middot; '+de(pct)+' %</div><div class="sm muted" style="margin-top:5px">'+merlbl+': '+merhtml(mer)+' <span class="muted">(BE 1,96)</span></div></div>';
+ const merhtml=(m)=>{if(m==null)return '<b>&mdash;</b>';const c=m>=2.7?'green':(m>=2.10?'amber':'red');return '<b style="color:var(--'+c+')">'+de(m)+'</b>';};
+ const tile=(val,lbl,pct,merlbl,mer,dashed)=>'<div class="merbox" style="min-width:200px;'+(dashed?'background:#fff;border:1px dashed var(--line)':'')+'"><div class="big" style="font-size:23px">'+eur(val)+'</div><div class="lbl">'+lbl+' &middot; '+de(pct)+' %</div><div class="sm muted" style="margin-top:5px">'+merlbl+': '+merhtml(mer)+' <span class="muted">(BE 2,10)</span></div></div>';
  document.getElementById("region-body").innerHTML=
   tile(dach,"DACH-Umsatz",dp,"DACH-MER",r.dachMer,false)+
   tile(eu,"EU o. DACH",ep,"EU-MER",r.euMer,true)+
-  '<div class="txt muted sm">DACH-MER = DACH-Umsatz &divide; (DE-AT-CH-Meta + gesamter Google). EU-MER = EU-Umsatz &divide; EU_-Meta-Spend (kein EU-Google). Beide klar &uuml;ber Break-even (1,96) &rarr; die Europa-Expansion tr&auml;gt sich, ist aber etwas weniger effizient als DACH.</div>';}
+  '<div class="txt muted sm">DACH-MER = DACH-Umsatz &divide; (DE-AT-CH-Meta + gesamter Google). EU-MER = EU-Umsatz &divide; EU_-Meta-Spend (kein EU-Google). Beide klar &uuml;ber Break-even (2,10) &rarr; die Europa-Expansion tr&auml;gt sich, ist aber etwas weniger effizient als DACH.</div>';}
 function render(k){
  const w=WIN[k];renderAnchor(w);renderRegion(w);renderMeta(w.meta,w.catrev);renderGoogle(w.google);
  document.getElementById("updated").innerHTML="<b>Daten bis "+DATA_END+"</b> &middot; "+LABEL[k]+" &middot; <span class=\"muted\">Seite erzeugt "+GEN_DATE+"</span>";}

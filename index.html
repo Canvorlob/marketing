@@ -98,7 +98,7 @@ tr:last-child td{border-bottom:none}
  <div class="card">
   <h2>Meta &mdash; Kampagnen-Entscheidungen</h2>
   <table><thead><tr>
-    <th>Kampagne</th><th>Kategorie</th><th class="n">Spend</th><th class="n">ROAS</th><th class="n">BE</th><th class="n">Ratio</th><th>Aktion</th><th class="n">Umsatz Kat. (Shopify)</th>
+    <th>Kampagne</th><th>Kategorie</th><th class="n">Spend</th><th class="n">ROAS</th><th class="n">BE</th><th class="n">Ratio</th><th>Aktion</th><th class="n">&Delta; Budget</th><th class="n">Umsatz Kat. (Shopify)</th>
   </tr></thead><tbody id="meta-body"></tbody></table>
   <div class="foot" id="meta-foot"></div>
  </div>
@@ -141,6 +141,8 @@ const WIN={
    google:[["DE & AT | PMax | Feed-only | Gläser",8.50],["DE & AT | PMax | Feed-only | Geschirr",8.02],["DE & AT | PMax | Asset-only | Bettwäsche, Gläser, Geschirr-Sets",4.18],["DE & AT | PMax | Tassen & Kannen | Feed-only",5.16],["DE & AT | PMax | Bettwäsche | Feed-only",6.19],["DE & AT | Brand-Shopping | Alle Produkte",9.09],["DE & AT | PMax | Feed-only | Sonstiges",5.30],["DE & AT | PMax | Vorratsgläser | Feed-only",3.53],["DE & AT | PMax | Accessoires | Feed-only",3.97],["DACH | Search | Branding",145.97],["DACH | Search | Brand + Combination",40.99],["DE & AT | PMax | Kunstblumen | Feed-only",3.85],["DE & AT | PMax | Kunstblumen | Asset-only",0.22]]},
 };
 const LABEL={"7":"Letzte 7 Tage","30":"Letzte 30 Tage","90":"Letzte 90 Tage"};
+const DATA_END="5. Juli 2026";   // letzter enthaltener Datentag (Fenster-Ende)
+const GEN_DATE="6. Juli 2026";   // wann die Seite erzeugt wurde
 
 const CATS=[
  ["Gläser",171382,42.9,1.66,1.97],["Geschirr",113416,1.1,2.92,3.47],
@@ -160,6 +162,11 @@ const de=n=>n.toLocaleString("de-DE",{minimumFractionDigits:2,maximumFractionDig
 function decide(r){if(r==null||isNaN(r))return["PRÜFEN","grey"];
  if(r>=1.5)return["SKALIEREN","green"];if(r>=1.2)return["HALTEN","teal"];
  if(r>=1.0)return["BEOBACHTEN","amber"];return["KÜRZEN","red"];}
+function pctStep(r){if(r==null||isNaN(r))return["&ndash;","mut"];
+ if(r>=2.0)return["+30 %","green"];if(r>=1.5)return["+20 %","green"];
+ if(r>=1.2)return["+10 %","teal"];if(r>=1.0)return["0 %","mut"];
+ if(r>=0.8)return["&minus;20 %","red"];if(r>=0.5)return["&minus;40 %","red"];
+ return["Stop","red"];}
 function chip(t,c){return '<span class="chip c-'+c+'">'+t+'</span>';}
 function gBE(n){n=(n||"").toLowerCase();
  if(n.includes("brand")||n.includes("search"))return null;
@@ -190,10 +197,12 @@ function renderMeta(rows,catrev){
  document.getElementById("meta-body").innerHTML=rows.slice().sort((a,b)=>b[2]-a[2]).map(r=>{
   const be=BEROAS[r[1]]!=null?BEROAS[r[1]]:2.30;const ratio=r[3]/be;const[act,cls]=decide(ratio);
   const rev=catrev[r[1]]!=null?eur(catrev[r[1]]):'<span class="muted">&ndash;</span>';
+  const[pt,pc]=pctStep(ratio);
   return '<tr><td>'+r[0]+'</td><td class="muted">'+r[1]+'</td><td class="n">'+eur(r[2])+'</td>'+
    '<td class="n">'+de(r[3])+'</td><td class="n muted">'+de(be)+'</td>'+
-   '<td class="n ratio">'+de(ratio)+'</td><td>'+chip(act,cls)+'</td><td class="n">'+rev+'</td></tr>';}).join("");
- document.getElementById("meta-foot").innerHTML='Ratio = ROAS &divide; Break-even-ROAS der Kategorie. Broad/Sale gegen Portfolio-BE 2,30. <b>Umsatz Kat. (Shopify)</b> = echter Shopify-Umsatz der Kategorie im gew&auml;hlten Fenster &mdash; nicht pro Kampagne attribuierbar, daher teilen sich Kampagnen derselben Kategorie den Wert; Broad = kategorie&uuml;bergreifend (&ndash;). <b>Bloom_ABO</b> nicht komplett killen &mdash; gezielt die Verlierer-Ad-Sets stoppen. <b>Geschirr</b> nur wegen temp. EK an der Grenze.';}
+   '<td class="n ratio">'+de(ratio)+'</td><td>'+chip(act,cls)+'</td>'+
+   '<td class="n"><b style="color:var(--'+pc+')">'+pt+'</b></td><td class="n">'+rev+'</td></tr>';}).join("");
+ document.getElementById("meta-foot").innerHTML='Ratio = ROAS &divide; Break-even-ROAS der Kategorie. Broad/Sale gegen Portfolio-BE 2,30. <b>&Delta; Budget</b> = konkreter Zielschritt f&uuml;rs Meta-Budget je Kampagne (Richtwert): &ge;2,0&rarr;+30% &middot; 1,5&ndash;2,0&rarr;+20% &middot; 1,2&ndash;1,5&rarr;+10% &middot; 1,0&ndash;1,2&rarr;0% &middot; 0,8&ndash;1,0&rarr;&minus;20% &middot; 0,5&ndash;0,8&rarr;&minus;40% &middot; &lt;0,5&rarr;Stop. Gedeckelt bei &plusmn;30&ndash;40%/Schritt (Meta-Lernphase); pro Kampagne max. ~1&times;/Woche &auml;ndern, danach MER nachmessen. <b>Umsatz Kat. (Shopify)</b> = echter Kategorie-Umsatz im Fenster (nicht pro Kampagne attribuierbar); Broad = kategorie&uuml;bergreifend (&ndash;).';}
 
 function renderGoogle(rows){
  document.getElementById("g-body").innerHTML=rows.map(g=>{
@@ -217,7 +226,7 @@ function renderAnchor(w){
 
 function render(k){
  const w=WIN[k];renderAnchor(w);renderMeta(w.meta,w.catrev);renderGoogle(w.google);
- document.getElementById("updated").innerHTML="Stand: 6. Juli 2026 &middot; "+LABEL[k]+" &middot; <span class=\"badge b-snap\">Monats-Snapshot</span>";}
+ document.getElementById("updated").innerHTML="<b>Daten bis "+DATA_END+"</b> &middot; "+LABEL[k]+" &middot; <span class=\"muted\">Seite erzeugt "+GEN_DATE+"</span>";}
 
 document.querySelectorAll("#filters button").forEach(b=>{
  b.addEventListener("click",()=>{

@@ -87,7 +87,7 @@ tr:last-child td{border-bottom:none}
  <div class="card">
   <h2>Regional-Split &mdash; DACH vs. Europa (ohne DACH)</h2>
   <div class="anchor" id="region-body"></div>
-  <div class="foot">DACH = DE + AT + CH, EU = alle anderen L&auml;nder (nach Bestellland). <b>DACH-MER</b> (DACH-Umsatz &divide; DE-AT-CH-Meta + Google) und <b>EU-MER</b> (EU-Umsatz &divide; EU_-Meta-Spend) folgen, sobald der Meta-Connector wieder verbindet (aktuell gest&ouml;rt). Die Frage dahinter: <b>tr&auml;gt sich die Europa-Expansion?</b> Da EU nur ~9&ndash;10 % vom Umsatz ist, lohnt der Blick.</div>
+  <div class="foot">DACH = DE + AT + CH, EU = alle anderen L&auml;nder (nach Bestellland). Die Kampagnen sind per Naming sauber getrennt (<code>DE-AT-CH_</code> vs. <code>EU_</code>), daher l&auml;sst sich der MER regional trennen. Die Frage dahinter: <b>tr&auml;gt sich die Europa-Expansion?</b> Da EU nur ~9&ndash;10 % vom Umsatz ausmacht, lohnt der Blick.</div>
  </div>
 
  <div class="card">
@@ -133,25 +133,25 @@ tr:last-child td{border-bottom:none}
 <script>
 // ==== Monats-Snapshot (Stand 6. Juli 2026) · alle Fenster vorberechnet ====
 const WIN={
- "7":{net:139241.53,gross:155807.46,orders:1915,metaTotal:18580,googleTotal:5337,
-   catrev:{"Geschirr":41970,"Gläser":48800,"Bettwäsche":8785,"Keramikbecher":13294,"Vasen":3063,"Bloom":1962},
-   region:{dach:127524,eu:11717},
-   meta:[["BW25_SocialVideo","Broad",3366,4.99],["EU_Summersale_26","Broad",2402,3.6],["CreativeTesting_ABO","Broad",2109,4.93],["TOFU_Bettwäsche_ABO","Bettwäsche",1817,3.38],["EG_Geschirrsets","Geschirr",1675,6.3],["TOFU_GESCHIRR_Bestperformer","Geschirr",1374,6.93],["Summersale_26","Broad",1267,4.17],["Summersale_26_Geschirr","Geschirr",961,7.34],["BW25_Posttip","Broad",596,3.77],["BestsellerBundle_25","Gläser",437,4.82],["Summersale_ASC","Broad",433,3.34],["Gläser_ASC","Gläser",362,6.34],["Bloom","Bloom",351,5.33],["Brooklyn","Broad",300,5.82],["Bloom_ABO","Bloom",266,2.31],["Wunschset_Launch","Gläser",185,2.96],["NeueVasen_Testing","Vasen",138,5.52]],
-   google:[["DE & AT | PMax | Feed-only | Gläser",6.55],["DE & AT | PMax | Asset-only | Bettwäsche, Gläser, Geschirr-Sets",3.64],["DE & AT | PMax | Feed-only | Geschirr",9.27],["DE & AT | PMax | Tassen & Kannen | Feed-only",2.69],["DE & AT | Brand-Shopping | Alle Produkte",10.52],["DE & AT | PMax | Bettwäsche | Feed-only",6.15],["DE & AT | PMax | Feed-only | Sonstiges",3.76],["DE & AT | PMax | Vorratsgläser | Feed-only",4.13],["DACH | Search | Branding",152.54],["DE & AT | PMax | Accessoires | Feed-only",3.59],["DACH | Search | Brand + Combination",38.35],["DE & AT | PMax | Kunstblumen | Feed-only",3.85],["DE & AT | PMax | Kunstblumen | Asset-only",0.22]]},
- "30":{net:479031.55,gross:543470.2,orders:6521,metaTotal:87785,googleTotal:23391,
-   catrev:{"Geschirr":146487,"Gläser":165175,"Bettwäsche":38735,"Keramikbecher":46163,"Vasen":5734,"Bloom":7129},
-   region:{dach:433552,eu:45480},
-   meta:[["BW25_SocialVideo","Broad",14566,3.83],["CreativeTesting_ABO","Broad",8608,4.07],["TOFU_Bettwäsche_ABO","Bettwäsche",7646,3.42],["EG_Geschirrsets","Geschirr",5766,4.81],["Gläser_ASC","Gläser",2903,2.85],["BestsellerBundle_25","Gläser",2822,3.7],["Bloom","Bloom",1768,4.55],["Bloom_ABO","Bloom",730,1.55],["EU_TOFU_ALL_CBO","Broad",537,2.04],["Evergreen_Bettwäsche_Test","Bettwäsche",372,2.6],["Wunschset_Launch","Gläser",185,2.96],["NeueVasen_Testing","Vasen",138,5.52]],
-   google:[["DE & AT | PMax | Feed-only | Geschirr",9.30],["DE & AT | PMax | Feed-only | Gläser",7.30],["DE & AT | PMax | Bettwäsche | Feed-only",5.66],["DE & AT | PMax | Vorratsgläser | Feed-only",4.42],["DE & AT | PMax | Tassen & Kannen | Feed-only",4.01],["DE & AT | PMax | Kunstblumen | Feed-only",3.85],["DE & AT | PMax | Accessoires | Feed-only",3.57],["DE & AT | PMax | Asset-only | Bettwäsche, Gläser, Geschirr-Sets",4.79],["DE & AT | PMax | Feed-only | Sonstiges",4.06],["DE & AT | Brand-Shopping | Alle Produkte",8.02],["DACH | Search | Brand + Combination",36.74],["DACH | Search | Branding",113.73],["DE & AT | PMax | Kunstblumen | Asset-only",0.22]]},
- "90":{net:1334136.07,gross:1531024.08,orders:18283,metaTotal:251416,googleTotal:68741,
-   catrev:{"Geschirr":366815,"Gläser":461426,"Bettwäsche":117134,"Keramikbecher":165686,"Vasen":18382,"Bloom":7552},
-   region:{dach:1200982,eu:133154},
-   meta:[["TOFU_GESCHIRR_Bestperformer","Geschirr",50449,3.67],["BW25_SocialVideo","Broad",32605,3.77],["CreativeTesting_ABO","Broad",27779,3.63],["EU_TOFU_ALL_CBO","Broad",21026,3.51],["TOFU_Bettwäsche_ABO","Bettwäsche",16917,3.03],["BW25_Posttip","Broad",13879,3.14],["Gläser_ASC","Gläser",12701,3.41],["EU_Summersale_26","Broad",12685,3.76],["EG_Geschirrsets","Geschirr",11823,4.44],["Summersale_26","Broad",9610,3.9],["BestsellerBundle_25","Gläser",9051,3.33],["Summersale_26_Geschirr","Geschirr",6022,4.53],["Mo_NiaSparset_Geschirr","Geschirr",4761,4.46],["Evergreen_Bettwäsche_Test","Bettwäsche",4303,2.42],["Summersale_ASC","Broad",3854,3.79],["EG_Geschirrset_Gerillt","Geschirr",3581,3.41],["Bloom","Bloom",1792,4.49],["Bloom_ABO","Bloom",730,1.55],["Bettwäsche_26","Bettwäsche",824,1.47],["Spring","Broad",638,2.3]],
-   google:[["DE & AT | PMax | Feed-only | Gläser",8.50],["DE & AT | PMax | Feed-only | Geschirr",8.02],["DE & AT | PMax | Asset-only | Bettwäsche, Gläser, Geschirr-Sets",4.18],["DE & AT | PMax | Tassen & Kannen | Feed-only",5.16],["DE & AT | PMax | Bettwäsche | Feed-only",6.19],["DE & AT | Brand-Shopping | Alle Produkte",9.09],["DE & AT | PMax | Feed-only | Sonstiges",5.30],["DE & AT | PMax | Vorratsgläser | Feed-only",3.53],["DE & AT | PMax | Accessoires | Feed-only",3.97],["DACH | Search | Branding",145.97],["DACH | Search | Brand + Combination",40.99],["DE & AT | PMax | Kunstblumen | Feed-only",3.85],["DE & AT | PMax | Kunstblumen | Asset-only",0.22]]},
+ "7":{net:134984.94,gross:151514.98,orders:1878,metaTotal:18469,googleTotal:5458,
+   catrev:{"Geschirr":39012,"Gläser":48175,"Bettwäsche":8851,"Keramikbecher":13626,"Vasen":3064,"Bloom":1530},
+   region:{dach:122437,eu:12548,dachMer:5.76,euMer:4.68},
+   meta:[["BW25_SocialVideo","Broad",3420,4.67],["EU_26","Broad",2444,3.82],["CreativeTesting_ABO","Broad",2083,5.51],["TOFU_Bettwäsche_ABO","Bettwäsche",1805,3.19],["EG_Geschirrsets","Geschirr",1690,5.96],["TOFU_GESCHIRR_Bestperformer","Geschirr",1224,7.33],["Summersale_26","Broad",1202,4.5],["Summersale_26_Geschirr","Geschirr",962,6.42],["BW25_Posttip","Broad",609,3.28],["Summersale_ASC","Broad",409,3.57],["BestsellerBundle_25","Gläser",409,3.51],["Bloom","Bloom",379,4.61],["Gläser_ASC","Gläser",377,5.41],["Brooklyn","Broad",349,6.07],["Summersale_NewCreatives","Broad",311,6.86],["EU_SocialVideo","Broad",237,6.37],["Wunschset_Launch","Gläser",231,4.13],["NeueVasen_Testing","Vasen",167,4.55],["Bloom_ABO","Bloom",157,0.74]],
+   google:[["DE & AT | PMax | Feed-only | Gläser",6.45],["DE & AT | PMax | Asset-only mix",3.55],["DE & AT | PMax | Feed-only | Geschirr",8.67],["DE & AT | PMax | Tassen & Kannen | Feed-only",3.85],["DE & AT | PMax | Brand-Shopping",9.96],["DE & AT | PMax | Bettwäsche | Feed-only",5.70],["DE & AT | PMax | Feed-only | Sonstiges",4.11],["DE & AT | PMax | Vorratsgläser | Feed-only",5.71],["DE & AT | PMax | Search | Branding",137.45],["DE & AT | PMax | Search | Brand+Comb",39.34],["DE & AT | PMax | Accessoires | Feed-only",3.36],["DE & AT | PMax | Kunstblumen | Feed-only",2.98],["DE & AT | PMax | Kunstblumen | Asset-only",1.77]]},
+ "30":{net:480536.04,gross:547060.39,orders:6573,metaTotal:87706,googleTotal:23345,
+   catrev:{"Geschirr":145315,"Gläser":166017,"Bettwäsche":38967,"Keramikbecher":47149,"Vasen":5929,"Bloom":6965},
+   region:{dach:434875,eu:45661,dachMer:4.41,euMer:3.68},
+   meta:[["BW25_SocialVideo","Broad",14662,3.84],["TOFU_GESCHIRR_Bestperformer","Geschirr",11278,3.59],["EU_26","Broad",10272,3.7],["CreativeTesting_ABO","Broad",8682,4.23],["Summersale_26","Broad",7806,3.54],["TOFU_Bettwäsche_ABO","Bettwäsche",7656,3.33],["EG_Geschirrsets","Geschirr",5850,4.81],["Summersale_26_Geschirr","Geschirr",4843,4.36],["Gläser_ASC","Gläser",2838,2.95],["BestsellerBundle_25","Gläser",2784,3.66],["Summersale_ASC","Broad",2769,3.8],["BW25_Posttip","Broad",2031,3.42],["Bloom","Bloom",1756,4.54],["EU_SocialVideo","Broad",1703,3.23],["Bloom_ABO","Bloom",730,1.55],["Summersale_NewCreatives","Broad",527,4.59],["EU_TOFU_ALL","Broad",443,2.47],["Brooklyn","Broad",349,6.07],["Evergreen_Bettwäsche_Test","Bettwäsche",329,2.28],["Wunschset_Launch","Gläser",231,4.13],["NeueVasen_Testing","Vasen",167,4.55]],
+   google:[["DE & AT | PMax | Feed-only | Gläser",7.37],["DE & AT | PMax | Feed-only | Geschirr",9.06],["DE & AT | PMax | Asset-only mix",5.12],["DE & AT | PMax | Tassen & Kannen | Feed-only",4.26],["DE & AT | PMax | Brand-Shopping",8.46],["DE & AT | PMax | Bettwäsche | Feed-only",5.52],["DE & AT | PMax | Feed-only | Sonstiges",4.15],["DE & AT | PMax | Vorratsgläser | Feed-only",4.78],["DE & AT | PMax | Search | Branding",110.65],["DE & AT | PMax | Accessoires | Feed-only",3.83],["DE & AT | PMax | Search | Brand+Comb",36.92],["DE & AT | PMax | Kunstblumen | Feed-only",2.98],["DE & AT | PMax | Kunstblumen | Asset-only",1.77]]},
+ "90":{net:1329291.73,gross:1526189.36,orders:18216,metaTotal:251328,googleTotal:69050,
+   catrev:{"Geschirr":367588,"Gläser":460003,"Bettwäsche":117510,"Keramikbecher":163380,"Vasen":18293,"Bloom":7506},
+   region:{dach:1196585,eu:132707,dachMer:4.2,euMer:3.74},
+   meta:[["TOFU_GESCHIRR_Bestperformer","Geschirr",49812,3.64],["BW25_SocialVideo","Broad",32984,3.76],["CreativeTesting_ABO","Broad",27843,3.65],["EU_TOFU_ALL","Broad",20738,3.48],["TOFU_Bettwäsche_ABO","Bettwäsche",17078,3.01],["BW25_Posttip","Broad",13713,3.12],["EU_26","Broad",13036,3.76],["Gläser_ASC","Gläser",12605,3.43],["EG_Geschirrsets","Geschirr",11937,4.4],["Summersale_26","Broad",9758,3.9],["BestsellerBundle_25","Gläser",8985,3.36],["Summersale_26_Geschirr","Geschirr",6153,4.59],["Mo_NiaSparset_Geschirr","Geschirr",4761,4.46],["Evergreen_Bettwäsche_Test","Bettwäsche",4222,2.4],["Summersale_ASC","Broad",3902,3.75],["EG_Geschirrset_Gerillt","Geschirr",3491,3.32],["Bloom","Bloom",1853,4.43],["EU_SocialVideo","Broad",1703,3.23],["Bloom_ABO","Bloom",730,1.55],["Bettwäsche_26","Bettwäsche",824,1.47]],
+   google:[["DE & AT | PMax | Asset-only mix",4.26],["DE & AT | PMax | Feed-only | Gläser",8.51],["DE & AT | PMax | Feed-only | Geschirr",8.01],["DE & AT | PMax | Tassen & Kannen | Feed-only",5.13],["DE & AT | PMax | Bettwäsche | Feed-only",6.19],["DE & AT | PMax | Brand-Shopping",9.07],["DE & AT | PMax | Feed-only | Sonstiges",5.29],["DE & AT | PMax | Vorratsgläser | Feed-only",3.61],["DE & AT | PMax | Accessoires | Feed-only",3.93],["DE & AT | PMax | Search | Branding",144.91],["DE & AT | PMax | Search | Brand+Comb",40.44],["DE & AT | PMax | Kunstblumen | Feed-only",2.98],["DE & AT | PMax | Kunstblumen | Asset-only",1.77]]},
 };
 const LABEL={"7":"Letzte 7 Tage","30":"Letzte 30 Tage","90":"Letzte 90 Tage"};
-const DATA_END="5. Juli 2026";   // letzter enthaltener Datentag (Fenster-Ende)
-const GEN_DATE="6. Juli 2026";   // wann die Seite erzeugt wurde
+const DATA_END="6. Juli 2026";   // letzter enthaltener Datentag (Fenster-Ende)
+const GEN_DATE="7. Juli 2026";   // wann die Seite erzeugt wurde
 
 const CATS=[
  ["Gläser",171382,42.9,1.66,1.97],["Geschirr",113416,1.1,2.92,3.47],
@@ -236,11 +236,12 @@ function renderAnchor(w){
 function renderRegion(w){
  const r=w.region||{};const dach=r.dach||0,eu=r.eu||0,tot=dach+eu;
  const dp=tot?dach/tot*100:0,ep=tot?eu/tot*100:0;
- const tile=(val,lbl,pct,merlbl,dashed)=>'<div class="merbox" style="min-width:200px;'+(dashed?'background:#fff;border:1px dashed var(--line)':'')+'"><div class="big" style="font-size:23px">'+eur(val)+'</div><div class="lbl">'+lbl+' &middot; '+de(pct)+' %</div><div class="sm muted" style="margin-top:5px">'+merlbl+': <b>&mdash;</b> <span class="badge b-snap">Meta pending</span></div></div>';
+ const merhtml=(m)=>{if(m==null)return '<b>&mdash;</b>';const c=m>=2.5?'green':(m>=1.96?'amber':'red');return '<b style="color:var(--'+c+')">'+de(m)+'</b>';};
+ const tile=(val,lbl,pct,merlbl,mer,dashed)=>'<div class="merbox" style="min-width:200px;'+(dashed?'background:#fff;border:1px dashed var(--line)':'')+'"><div class="big" style="font-size:23px">'+eur(val)+'</div><div class="lbl">'+lbl+' &middot; '+de(pct)+' %</div><div class="sm muted" style="margin-top:5px">'+merlbl+': '+merhtml(mer)+' <span class="muted">(BE 1,96)</span></div></div>';
  document.getElementById("region-body").innerHTML=
-  tile(dach,"DACH-Umsatz",dp,"DACH-MER",false)+
-  tile(eu,"EU o. DACH",ep,"EU-MER",true)+
-  '<div class="txt muted sm">Umsatz nach Bestellland. Sobald Meta liefert: <b>DACH-MER</b> = DACH-Umsatz &divide; (DE-AT-CH-Meta + Google), <b>EU-MER</b> = EU-Umsatz &divide; EU_-Meta-Spend &mdash; direkt die Antwort, ob die Europa-Kampagnen sich rechnen.</div>';}
+  tile(dach,"DACH-Umsatz",dp,"DACH-MER",r.dachMer,false)+
+  tile(eu,"EU o. DACH",ep,"EU-MER",r.euMer,true)+
+  '<div class="txt muted sm">DACH-MER = DACH-Umsatz &divide; (DE-AT-CH-Meta + gesamter Google). EU-MER = EU-Umsatz &divide; EU_-Meta-Spend (kein EU-Google). Beide klar &uuml;ber Break-even (1,96) &rarr; die Europa-Expansion tr&auml;gt sich, ist aber etwas weniger effizient als DACH.</div>';}
 function render(k){
  const w=WIN[k];renderAnchor(w);renderRegion(w);renderMeta(w.meta,w.catrev);renderGoogle(w.google);
  document.getElementById("updated").innerHTML="<b>Daten bis "+DATA_END+"</b> &middot; "+LABEL[k]+" &middot; <span class=\"muted\">Seite erzeugt "+GEN_DATE+"</span>";}

@@ -183,7 +183,7 @@ function decide(r){if(r==null||isNaN(r))return["PRÜFEN","grey"];
  if(r>=1.5)return["SKALIEREN","green"];if(r>=1.2)return["HALTEN","teal"];
  if(r>=1.0)return["BEOBACHTEN","amber"];return["KÜRZEN","red"];}
 function pctStep(r){if(r==null||isNaN(r))return["&ndash;","mut"];
- if(r>=2.0)return["+30 %","green"];if(r>=1.5)return["+20 %","green"];
+ if(r>=2.2)return["+30 %","green"];if(r>=1.5)return["+20 %","green"];
  if(r>=1.2)return["+10 %","teal"];if(r>=1.0)return["0 %","mut"];
  if(r>=0.8)return["&minus;20 %","red"];if(r>=0.5)return["&minus;40 %","red"];
  return["Stop","red"];}
@@ -224,7 +224,7 @@ function renderMeta(rows,catrev,catoaf){
    '<td class="n">'+roascell+'</td><td class="n muted">'+de(be)+'</td>'+
    '<td class="n ratio">'+de(ratio)+'</td><td>'+chip(act,cls)+'</td>'+
    '<td class="n"><b style="color:var(--'+pc+')">'+pt+'</b></td><td class="n">'+rev+'</td></tr>';}).join("");
- document.getElementById("meta-foot").innerHTML='Ratio = ROAS &divide; Break-even-ROAS. <b>* attributions-bereinigt:</b> Wo Meta+Google zusammen mehr Umsatz beanspruchen als die Kategorie real macht, wird der ROAS auf die Kategorie-Realit&auml;t heruntergerechnet (ROAS&rarr;bereinigt) &mdash; verhindert &Uuml;ber-Skalierung auf aufgebl&auml;hten Zahlen (v.a. kleine Kategorien wie Bloom). Broad gegen Portfolio-BE 2,49. <b>&Delta; Budget</b>: &ge;2,0&rarr;+30% &middot; 1,5&ndash;2,0&rarr;+20% &middot; 1,2&ndash;1,5&rarr;+10% &middot; 1,0&ndash;1,2&rarr;0% &middot; 0,8&ndash;1,0&rarr;&minus;20% &middot; 0,5&ndash;0,8&rarr;&minus;40% &middot; &lt;0,5&rarr;Stop. Max &plusmn;30&ndash;40%/Schritt (Lernphase); danach MER nachmessen.';}
+ document.getElementById("meta-foot").innerHTML='Ratio = ROAS &divide; Break-even-ROAS. <b>* attributions-bereinigt:</b> Wo Meta+Google zusammen mehr Umsatz beanspruchen als die Kategorie real macht, wird der ROAS auf die Kategorie-Realit&auml;t heruntergerechnet (ROAS&rarr;bereinigt) &mdash; verhindert &Uuml;ber-Skalierung auf aufgebl&auml;hten Zahlen (v.a. kleine Kategorien wie Bloom). Broad gegen Portfolio-BE 2,49. <b>&Delta; Budget</b>: &ge;2,2&rarr;+30% &middot; 1,5&ndash;2,2&rarr;+20% &middot; 1,2&ndash;1,5&rarr;+10% &middot; 1,0&ndash;1,2&rarr;0% &middot; 0,8&ndash;1,0&rarr;&minus;20% &middot; 0,5&ndash;0,8&rarr;&minus;40% &middot; &lt;0,5&rarr;Stop. Max &plusmn;30&ndash;40%/Schritt (Lernphase); danach MER nachmessen.';}
 function renderGoogle(rows){
  document.getElementById("g-body").innerHTML=rows.map(g=>{
   const nm=g[0],roas=g[1],be=gBE(nm);const ratio=be!=null?roas/be:null;const note=gNote(nm,be,ratio);

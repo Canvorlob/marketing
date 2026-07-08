@@ -70,6 +70,7 @@ tr:last-child td{border-bottom:none}
   <div class="anchor">
    <div class="merbox"><div class="big" id="mer-val">&middot;&middot;</div><div class="lbl">Blended MER (netto)</div></div>
    <div class="merbox" style="background:#fff;border:1px dashed var(--line)"><div class="big" style="color:var(--mut);font-size:26px">2,10</div><div class="lbl">Break-even-MER</div></div>
+   <div class="merbox"><div class="big" id="db-val" style="font-size:26px;color:var(--green)">&middot;</div><div class="lbl">&euro; DB nach Werbung</div><div class="sm muted" style="margin-top:4px">Netto &times; 47,6 % &minus; gesamter Ad-Spend &middot; vor Fixkosten</div></div>
    <div class="txt">
      <div id="mer-verdict" style="font-weight:700;margin-bottom:4px">&hellip;</div>
      <div class="muted sm">Die einzige attributions-freie Wahrheit: Shopify-Nettoumsatz &divide; gesamter Ad-Spend. Sagt, ob die ganze Maschine gesund ist &mdash; unabh&auml;ngig davon, was Meta/Google sich einzeln zuschreiben. <b>MER sagt, ob du Gas geben darfst; ROAS&divide;BE sagt, auf welche Kampagne.</b></div>
@@ -252,6 +253,8 @@ function renderGoogle(rows,catoaf){
 function renderAnchor(w){
  const spend=w.metaTotal+w.googleTotal;const mer=w.net/spend;
  document.getElementById("mer-val").textContent=de(mer);
+ const marge=1/2.10;const db=w.net*marge-spend;
+ const dbEl=document.getElementById("db-val");if(dbEl){dbEl.textContent=eur(db);dbEl.style.color=db>=0?"var(--green)":"var(--red)";}
  document.getElementById("k-net").textContent=eur(w.net);
  document.getElementById("k-spend").textContent=eur(spend);
  document.getElementById("k-split").textContent=eur(w.metaTotal)+" / "+eur(w.googleTotal);

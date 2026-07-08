@@ -122,7 +122,7 @@ tr:last-child td{border-bottom:none}
   <table><thead><tr>
     <th>Kategorie</th><th class="n">Netto (Juni)</th><th class="n">COGS %</th><th class="n">BE-MER</th><th class="n">BE-ROAS</th>
   </tr></thead><tbody id="cat-body"></tbody></table>
-  <div class="foot"><b>Letzter voller Monat (Juni).</b> COGS = echte Warenkosten aus Shopify je Kategorie. BE-MER = 1 &divide; Marge vor Werbung; BE-ROAS = 1,19 &divide; Marge. Strukturelle Kosten (Versand, Payment, Verpackung, Affiliate, Bruch) aus dem Kostenmodell. <b>Auff&auml;llig: Geschirr-COGS 61% (Mai 57%)</b> &rarr; BE-MER 2,92&rarr;3,63, BE-ROAS bis 4,32. EK-Verhandlung dringend. Servietten-COGS-Sprung ist mengenbedingt (Kleinkategorie).</div>
+  <div class="foot"><b>Letzter voller Monat (Juni).</b> COGS = echte Warenkosten aus Shopify je Kategorie. BE-MER = 1 &divide; Marge vor Werbung; BE-ROAS = 1,19 &divide; Marge. Strukturelle Kosten (Versand, Payment, Verpackung, Affiliate, Bruch) aus dem Kostenmodell. <b>Auff&auml;llig: Geschirr-COGS 61% (Mai 57%)</b> &rarr; BE-MER 2,92&rarr;3,63, BE-ROAS bis 4,32. EK-Verhandlung dringend. Servietten-COGS-Sprung ist mengenbedingt (Kleinkategorie). <b>Bloom</b> COGS manuell korrigiert &mdash; Hortensien-EK 2,46 € fehlt in Shopify im Kosten-Feld (steht im Vergleichspreis) &rarr; bitte nachtragen.</div>
  </div>
 
  <div class="foot" style="text-align:center;margin:18px 0">
@@ -165,7 +165,7 @@ const CATS=[
  ["Aufbewahrungsgläser",7613,30.4,1.7,2.03],
  ["Salatbowl",7395,22.8,1.69,2.01],
  ["Dipschale",7296,25.8,1.79,2.13],
- ["Bloom (Kunstblume)",6036,17.5,1.41,1.67],
+ ["Bloom (Kunstblume)",6036,24.8,1.57,1.86],
  ["Servierbretter",3538,26.6,1.83,2.18],
  ["Vasen",3462,24.3,2.01,2.4],
  ["Besteck",3102,32.8,1.79,2.13],
@@ -175,7 +175,7 @@ const CATS=[
  ["Spiegel",1625,39.8,2.26,2.68],
  ["Matcha Sets",709,28.6,1.71,2.03],
 ];
-const BEROAS={"Gläser":2.02,"Geschirr":4.32,"Keramikbecher":2.15,"Bettwäsche":2.12,"Accessoires":2.59,"Vasen":2.4,"Bloom":1.67,"Broad":2.49};
+const BEROAS={"Gläser":2.02,"Geschirr":4.32,"Keramikbecher":2.15,"Bettwäsche":2.12,"Accessoires":2.59,"Vasen":2.4,"Bloom":1.86,"Broad":2.49};
 
 const eur=n=>"€"+Math.round(n).toLocaleString("de-DE");
 const de=n=>n.toLocaleString("de-DE",{minimumFractionDigits:2,maximumFractionDigits:2});

@@ -112,9 +112,9 @@ tr:last-child td{border-bottom:none}
  <div class="card">
   <h2>Google &mdash; Gespr&auml;chsliste f&uuml;r den Agentur-Call</h2>
   <table><thead><tr>
-    <th>Kampagne</th><th class="n">ROAS</th><th class="n">BE</th><th>Ma&szlig;nahme / Gespr&auml;chspunkt</th>
+    <th>Kampagne</th><th class="n">ROAS</th><th class="n">BE</th><th class="n">Ratio</th><th>Aktion</th><th class="n">&Delta; Budget</th><th>Gespr&auml;chspunkt</th>
   </tr></thead><tbody id="g-body"></tbody></table>
-  <div class="foot">Feed-only-PMax ist sauber produkt-attribuiert &rarr; dort Budget hoch. Brand/Search (hohe ROAS) erntet v.a. bestehende Marken-Nachfrage &rarr; Inkrementalit&auml;t per Holdout pr&uuml;fen. <b>Bloom-Feed l&auml;uft</b> (Kunstblumen Feed-only &uuml;ber BE), aber die <b>Kunstblumen Asset-only</b>-Kampagne verbrennt Geld (ROAS 0,22) &rarr; pausieren/pr&uuml;fen.</div>
+  <div class="foot"><b>&Delta; Budget = Empfehlung f&uuml;r den Agentur-Call</b> (die Agentur steuert Google-Budgets, nicht du selbst) &mdash; sonst gleiche Logik wie Meta: Ratio = ROAS &divide; Kategorie-BE, gleiche B&auml;nder. <b>*</b> = attributions-bereinigt (v.a. Kunstblumen). <b>Brand/Search</b> (hohe ROAS, kein BE) erntet Marken-Nachfrage &rarr; Inkrementalit&auml;t per Holdout pr&uuml;fen. Feed-only-PMax ist sauber produkt-attribuiert.</div>
  </div>
 
  <div class="card">
@@ -225,12 +225,29 @@ function renderMeta(rows,catrev,catoaf){
    '<td class="n ratio">'+de(ratio)+'</td><td>'+chip(act,cls)+'</td>'+
    '<td class="n"><b style="color:var(--'+pc+')">'+pt+'</b></td><td class="n">'+rev+'</td></tr>';}).join("");
  document.getElementById("meta-foot").innerHTML='Ratio = ROAS &divide; Break-even-ROAS. <b>* attributions-bereinigt:</b> Wo Meta+Google zusammen mehr Umsatz beanspruchen als die Kategorie real macht, wird der ROAS auf die Kategorie-Realit&auml;t heruntergerechnet (ROAS&rarr;bereinigt) &mdash; verhindert &Uuml;ber-Skalierung auf aufgebl&auml;hten Zahlen (v.a. kleine Kategorien wie Bloom). Broad gegen Portfolio-BE 2,49. <b>&Delta; Budget</b>: &ge;2,2&rarr;+30% &middot; 1,5&ndash;2,2&rarr;+20% &middot; 1,2&ndash;1,5&rarr;+10% &middot; 1,0&ndash;1,2&rarr;0% &middot; 0,8&ndash;1,0&rarr;&minus;20% &middot; 0,5&ndash;0,8&rarr;&minus;40% &middot; &lt;0,5&rarr;Stop. Max &plusmn;30&ndash;40%/Schritt (Lernphase); danach MER nachmessen.';}
-function renderGoogle(rows){
+function gCat(n){n=(n||"").toLowerCase();
+ if(n.includes("brand")||n.includes("search"))return null;
+ if(n.includes("asset-only")&&(n.includes("bettw")||n.includes("sonstiges")))return null;
+ if(n.includes("sonstiges"))return null;
+ if(n.includes("geschirr"))return "Geschirr";
+ if(n.includes("bettw"))return "Bettwäsche";
+ if(n.includes("tassen")||n.includes("kannen"))return "Keramikbecher";
+ if(n.includes("vorratsgläser"))return "Aufbewahrungsgläser";
+ if(n.includes("accessoires"))return "Accessoires";
+ if(n.includes("kunstblume"))return "Bloom";
+ if(n.includes("gläser")||n.includes("glaeser"))return "Gläser";
+ return null;}
+function renderGoogle(rows,catoaf){
+ catoaf=catoaf||{};
  document.getElementById("g-body").innerHTML=rows.map(g=>{
-  const nm=g[0],roas=g[1],be=gBE(nm);const ratio=be!=null?roas/be:null;const note=gNote(nm,be,ratio);
-  let act;if(be==null)act='<span class="muted">'+note+'</span>';
-  else{const[a,cls]=decide(ratio);act=chip(a,cls)+' <span class="muted sm">'+note+'</span>';}
-  return '<tr><td>'+nm+'</td><td class="n">'+de(roas)+'</td><td class="n muted">'+(be==null?"–":de(be))+'</td><td>'+act+'</td></tr>';}).join("");}
+  const nm=g[0],roas=g[1],be=gBE(nm),gc=gCat(nm);
+  if(be==null){
+   return '<tr><td>'+nm+'</td><td class="n">'+de(roas)+'</td><td class="n muted">&ndash;</td><td class="n muted">&ndash;</td><td><span class="chip c-grey">PR&Uuml;FEN</span></td><td class="n muted">&ndash;</td><td class="muted sm">'+gNote(nm,null,null)+'</td></tr>';}
+  const oaf=(gc&&catoaf[gc]&&catoaf[gc]>1.05)?catoaf[gc]:1;
+  const adj=roas/oaf;const ratio=adj/be;const[a,cls]=decide(ratio);const[pt,pc]=pctStep(ratio);
+  const roascell=oaf>1?de(roas)+'<span class="muted sm">&rarr;'+de(adj)+'</span><sup style="color:var(--amber)">*</sup>':de(roas);
+  return '<tr><td>'+nm+'</td><td class="n">'+roascell+'</td><td class="n muted">'+de(be)+'</td><td class="n ratio">'+de(ratio)+'</td><td>'+chip(a,cls)+'</td><td class="n"><b style="color:var(--'+pc+')">'+pt+'</b></td><td class="muted sm">'+gNote(nm,be,ratio)+'</td></tr>';
+ }).join("");}
 
 function renderAnchor(w){
  const spend=w.metaTotal+w.googleTotal;const mer=w.net/spend;
@@ -255,7 +272,7 @@ function renderRegion(w){
   tile(eu,"EU o. DACH",ep,"EU-MER",r.euMer,true)+
   '<div class="txt muted sm">DACH-MER = DACH-Umsatz &divide; (DE-AT-CH-Meta + gesamter Google). EU-MER = EU-Umsatz &divide; EU_-Meta-Spend (kein EU-Google). Beide klar &uuml;ber Break-even (2,10) &rarr; die Europa-Expansion tr&auml;gt sich, ist aber etwas weniger effizient als DACH.</div>';}
 function render(k){
- const w=WIN[k];renderAnchor(w);renderRegion(w);renderMeta(w.meta,w.catrev,w.catoaf);renderGoogle(w.google);
+ const w=WIN[k];renderAnchor(w);renderRegion(w);renderMeta(w.meta,w.catrev,w.catoaf);renderGoogle(w.google,w.catoaf);
  document.getElementById("updated").innerHTML="<b>Daten bis "+DATA_END+"</b> &middot; "+LABEL[k]+" &middot; <span class=\"muted\">Seite erzeugt "+GEN_DATE+"</span>";}
 
 document.querySelectorAll("#filters button").forEach(b=>{

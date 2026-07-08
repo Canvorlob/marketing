@@ -59,10 +59,12 @@ tr:last-child td{border-bottom:none}
  <h1>Marketing-Entscheidungs-Cockpit</h1>
  <div class="sub">Meta skalieren &amp; Google-Agentur steuern</div>
  <div class="filters" id="filters">
+   <button data-w="2">Letzte 2 Tage</button>
    <button data-w="7">Letzte 7 Tage</button>
    <button data-w="30" class="on">Letzte 30 Tage</button>
    <button data-w="90">Letzte 90 Tage</button>
  </div>
+ <div id="mon-note" class="note" style="display:none;background:#eaecff;border-left-color:#5b6ee0;margin-top:8px"></div>
  <div class="meta" id="updated"></div>
 
  <div class="card">
@@ -134,6 +136,12 @@ tr:last-child td{border-bottom:none}
 <script>
 // ==== Monats-Snapshot (Stand 8. Juli 2026) · alle Fenster vorberechnet ====
 const WIN={
+ "2":{net:31627.99,gross:37587.31,orders:454,metaTotal:5136,googleTotal:1691,
+   catrev:{"Geschirr":9644,"Gläser":10569,"Keramikbecher":3910,"Bettwäsche":2414,"Vasen":309,"Bloom":101},
+   region:{"dach":28717,"eu":2911,"dachMer":4.75,"euMer":3.73},
+   catoaf:{"Bloom":6.81},
+   meta:[["BW25_SocialVideo","Broad",983,3.93],["EU_26","Broad",715,3.79],["CreativeTesting_ABO","Broad",565,7.88],["TOFU_Bettwäsche_ABO","Bettwäsche",558,1.9],["EG_Geschirrsets","Geschirr",450,4.02],["Summersale_26","Broad",297,3.64],["TOFU_GESCHIRR_Bestperformer","Geschirr",286,5.33],["Summersale_26_Geschirr","Geschirr",263,4.26],["BW25_Posttip","Broad",171,0.9],["Gläser_ASC","Gläser",119,3.23],["Bloom","Bloom",119,4.87],["Summersale_NewCreatives","Broad",100,1.28],["Summersale_ASC","Broad",99,4.68],["BestsellerBundle_25","Gläser",98,4.05],["Wunschset_Launch","Gläser",96,5.08],["Brooklyn","Broad",94,6.26],["EU_SocialVideo","Broad",66,1.28]],
+   google:[["DE & AT | PMax | Feed-only | Gläser",5.83],["DE & AT | PMax | Asset-only | Bettwäsche, Gläser, Geschirr-Sets",2.8],["DE & AT | PMax | Feed-only | Geschirr",8.54],["DE & AT | PMax | Tassen & Kannen | Feed-only",3.9],["DE & AT | Brand-Shopping | Alle Produkte",5.75],["DE & AT | PMax | Bettwäsche | Feed-only",3.16],["DE & AT | PMax | Kunstblumen | Asset-only",2.04],["DE & AT | PMax | Kunstblumen | Feed-only",0.0],["DACH | Search | Brand + Combination",31.69],["DE & AT | PMax | Feed-only | Sonstiges",2.77],["DE & AT | PMax | Vorratsgläser | Feed-only",9.95],["DACH | Search | Branding",70.84],["DE & AT | PMax | Accessoires | Feed-only",4.3]]},
  "7":{net:135407.5,gross:151896.85,orders:1864,metaTotal:18272,googleTotal:5664,
    catrev:{"Geschirr":39613,"Gläser":48645,"Bettwäsche":8380,"Keramikbecher":13780,"Vasen":2884,"Bloom":1617},
    region:{"dach":122822,"eu":12585,"dachMer":5.78,"euMer":4.67},
@@ -153,7 +161,7 @@ const WIN={
    meta:[["TOFU_GESCHIRR_Bestperformer","Geschirr",49176,3.65],["BW25_SocialVideo","Broad",33377,3.77],["CreativeTesting_ABO","Broad",27939,3.68],["EU_TOFU_ALL","Broad",20458,3.48],["TOFU_Bettwäsche_ABO","Bettwäsche",17295,3],["BW25_Posttip","Broad",13561,3.1],["EU_26","Broad",13400,3.76],["Gläser_ASC","Gläser",12520,3.39],["EG_Geschirrsets","Geschirr",12058,4.41],["Summersale_26","Broad",9907,3.9],["BestsellerBundle_25","Gläser",8882,3.39],["Summersale_26_Geschirr","Geschirr",6284,4.52],["Mo_NiaSparset_Geschirr","Geschirr",4761,4.46],["Evergreen_Bettwäsche_Test","Bettwäsche",4143,2.44],["Summersale_ASC","Broad",3952,3.81],["EG_Geschirrset_Gerillt","Geschirr",3397,3.29],["Bloom","Bloom",1911,4.52],["EU_SocialVideo","Broad",1736,3.22],["Bloom_ABO","Bloom",730,1.55],["Bettwäsche_26","Bettwäsche",824,1.47]],
    google:[["DE & AT | PMax | Asset-only | Bettwäsche, Gläser, Geschirr-Sets",4.32],["DE & AT | PMax | Feed-only | Gläser",8.55],["DE & AT | PMax | Feed-only | Geschirr",8.19],["DE & AT | PMax | Tassen & Kannen | Feed-only",5.24],["DE & AT | PMax | Bettwäsche | Feed-only",6.16],["DE & AT | Brand-Shopping | Alle Produkte",9.12],["DE & AT | PMax | Feed-only | Sonstiges",5.27],["DE & AT | PMax | Vorratsgläser | Feed-only",3.79],["DE & AT | PMax | Accessoires | Feed-only",3.93],["DACH | Search | Branding",144.83],["DACH | Search | Brand + Combination",40.71],["DE & AT | PMax | Keramik Becher | Asset Only",1.87],["DE & AT | PMax | Kunstblumen | Feed-only",3.18],["DE & AT | PMax | Kunstblumen | Asset-only",1.07]]},
 };
-const LABEL={"7":"Letzte 7 Tage","30":"Letzte 30 Tage","90":"Letzte 90 Tage"};
+const LABEL={"2":"Letzte 2 Tage","7":"Letzte 7 Tage","30":"Letzte 30 Tage","90":"Letzte 90 Tage"};
 const DATA_END="7. Juli 2026";   // letzter enthaltener Datentag (Fenster-Ende)
 const GEN_DATE="8. Juli 2026";   // wann die Seite erzeugt wurde
 
@@ -276,6 +284,7 @@ function renderRegion(w){
   '<div class="txt muted sm">DACH-MER = DACH-Umsatz &divide; (DE-AT-CH-Meta + gesamter Google). EU-MER = EU-Umsatz &divide; EU_-Meta-Spend (kein EU-Google). Beide klar &uuml;ber Break-even (2,10) &rarr; die Europa-Expansion tr&auml;gt sich, ist aber etwas weniger effizient als DACH.</div>';}
 function render(k){
  const w=WIN[k];renderAnchor(w);renderRegion(w);renderMeta(w.meta,w.catrev,w.catoaf);renderGoogle(w.google,w.catoaf);
+ var mn=document.getElementById("mon-note");if(k=="2"){mn.style.display="block";mn.innerHTML="<b>&#9888; Monitoring-Fenster &mdash; nicht zum Skalieren.</b> 2 Tage sind statistisch zu kurz f&uuml;r Budget-Entscheidungen (Tagesrauschen, z.B. Bloom hier stark ged&auml;mpft). Nutze es zum <b>Beobachten</b>: Spikes, Einbr&uuml;che, Ausrei&szlig;er fr&uuml;h sehen. Budget-Entscheidungen bleiben auf 7 Tagen.";}else{mn.style.display="none";}
  document.getElementById("updated").innerHTML="<b>Daten bis "+DATA_END+"</b> &middot; "+LABEL[k]+" &middot; <span class=\"muted\">Seite erzeugt "+GEN_DATE+"</span>";}
 
 document.querySelectorAll("#filters button").forEach(b=>{

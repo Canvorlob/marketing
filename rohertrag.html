@@ -1,0 +1,106 @@
+<!doctype html><html lang=de><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1">
+<title>Rohertrag-Overview · 7 O'CLOCK</title><style>
+:root{--bg:#faf8f5;--card:#fff;--ink:#2b2b2b;--mut:#8a8378;--line:#e7e2d9;--green:#2f8f57;--red:#c0492b;--gold:#b79b6e;--dark:#4a4335;--blue:#2f6f8f}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5}
+.wrap{max-width:1000px;margin:0 auto;padding:20px}.brand{font-size:11px;letter-spacing:.14em;color:var(--mut);font-weight:700}
+h1{font-size:23px;margin:2px 0 2px}.sub{color:var(--mut);font-size:13px;margin-bottom:12px}
+.filters{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-bottom:8px}
+.flab{font-size:11px;color:var(--mut);font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-right:2px}
+.filters button{border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 11px;font-size:12.5px;cursor:pointer;font-weight:600;color:var(--ink)}
+.filters button.on{background:#2b2b2b;color:#fff;border-color:#2b2b2b}
+.filters button.bcmp.on{background:var(--blue);border-color:var(--blue)}
+.cust{display:flex;gap:5px;align-items:center;color:var(--mut);font-size:12px}
+.cust input{border:1px solid var(--line);border-radius:6px;padding:5px 7px;font-size:12px}
+#range{font-size:12px;color:var(--mut);margin:6px 0 8px}
+.cards{display:flex;gap:12px;flex-wrap:wrap;margin-top:4px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;flex:1;min-width:210px}
+.ct{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--gold);font-weight:700}
+.big{font-size:25px;font-weight:800;margin-top:4px;color:#1c1c1c}.lbl{font-weight:700;font-size:12.5px}
+.cmp{font-size:12px;color:var(--dark);margin-top:5px}.mini{font-size:11px;color:var(--mut);margin-top:4px}
+.sec{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-top:16px}
+h2{font-size:15px;margin:0 0 10px;border-bottom:1px solid var(--line);padding-bottom:8px}
+table{width:100%;border-collapse:collapse;font-size:12.5px}td,th{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line)}
+td.n,th.n{text-align:right}.tot td{font-weight:800;background:#f4efe7}.fin td{font-weight:800;background:#e9f0f2}
+.note{background:#f5f1e8;border-left:4px solid var(--gold);padding:8px 12px;border-radius:6px;font-size:12px;margin-top:14px;color:var(--dark)}
+.foot{color:var(--mut);font-size:11px;margin-top:10px}
+</style></head><body><div class=wrap>
+<div class=brand>7 O'CLOCK · CONTROLLING</div><h1>Rohertrag- &amp; DB-Overview</h1>
+<div class=sub>Tagesdaten aus Shopify, Meta, Google &amp; GoAffPro · Stand: 06.08.2026 14:59 · Zeitraum frei wählbar + Vergleich (innerhalb der letzten 90 Tage)</div>
+<div class=filters>
+ <span class=flab>Zeitraum A</span>
+ <button data-a=1>Gestern</button><button data-a=7>7 Tage</button><button data-a=30>30 Tage</button><button data-a=90>90 Tage</button>
+ <button data-am=2026-06>Juni</button><button data-am=2026-07>Juli</button><button data-am=2026-08>Aug*</button><button data-am=2026-05>Mai*</button>
+ <span class=cust>| eigener: <input type=date id=d1><input type=date id=d2><button id=dgo>OK</button></span>
+</div>
+<div class=filters>
+ <span class=flab>Vergleich B</span>
+ <button class=bcmp data-b="">keiner</button><button class=bcmp data-b=M2026-06>Juni</button><button class=bcmp data-b=M2026-07>Juli</button><button class=bcmp data-b=M2026-08>Aug*</button><button class=bcmp data-b=M2026-05>Mai*</button>
+ <span class=cust>| eigener: <input type=date id=d3><input type=date id=d4><button id=dbgo>OK</button></span>
+</div>
+<div id=range></div>
+<div class=cards id=cards></div>
+<div class=sec><h2>Wasserfall</h2><table id=wf></table></div>
+<div class=note><b>Annahmen:</b> Versand 6,56 €/Best. · Verpackung 0,80 €/Best. · Payment blended 2,55 % + 0,16 €/Order (Shopify Payments 2,59 % real × 64,5 % + PayPal 2,49 %+0,35 € × 35,5 %) · Fremddienstleistungen 3.000 €/Monat · Shopify Plus 2.500 €/Monat (fix, 100 €+83 €/Tag). Umsatz = net_sales (retouren- &amp; rabattbereinigt) + Versand-Einnahmen. IFM (GoAffPro) monatlich anteilig. „DB nach Werbung" = vor übrigen Fixkosten (Personal, Miete). Monate mit * sind nur teilweise im 90-Tage-Fenster.</div>
+<div class=foot>Automatisch generiert · 7 O'CLOCK</div>
+<script>
+const DATA=[["2026-05-08", 11637.6, 4023.85, 601.69, 178, 2604.23, 816.61, 83.61], ["2026-05-09", 10547.06, 3763.9, 460.38, 109, 2639.11, 887.92, 83.61], ["2026-05-10", 50418.96, 18592.47, 2125.91, 607, 3428.74, 903.2, 83.61], ["2026-05-11", 12105.76, 4373.26, 847.07, 189, 3005.86, 783.01, 83.61], ["2026-05-12", 9388.36, 3077, 591.98, 166, 2877.48, 740.15, 83.61], ["2026-05-13", 10161.05, 3702.96, 541.43, 157, 2803.0, 757.43, 83.61], ["2026-05-14", 17859.84, 6229.52, 777.71, 215, 2846.74, 914.76, 83.61], ["2026-05-15", 10758.5, 3936.3, 585.12, 145, 2497.82, 745.88, 83.61], ["2026-05-16", 9718.77, 3525.85, 561.77, 128, 2616.89, 878.36, 83.61], ["2026-05-17", 15304.46, 5414.62, 838.97, 186, 3159.11, 834.81, 83.61], ["2026-05-18", 11164.1, 4007.42, 535.06, 188, 2616.9, 775.07, 83.61], ["2026-05-19", 14280.79, 5294.93, 694.78, 170, 2461.05, 689.24, 83.61], ["2026-05-20", 10131.43, 3533.87, 540.07, 149, 2581.08, 748.7, 83.61], ["2026-05-21", 3478.43, 623.54, 444.56, 115, 2355.83, 689.64, 83.61], ["2026-05-22", 11584.6, 4223.24, 616.61, 147, 2320.54, 641.24, 83.61], ["2026-05-23", 10446.64, 3384.61, 584.71, 121, 2558.58, 814.58, 83.61], ["2026-05-24", 15582.91, 5375.03, 933.04, 202, 3169.61, 877.79, 83.61], ["2026-05-25", 16117.56, 4841.64, 909.79, 211, 2820.47, 707.67, 83.61], ["2026-05-26", 11272.32, 3832.21, 545.22, 148, 2572.75, 608.27, 83.61], ["2026-05-27", 11699.26, 3555.99, 721.53, 196, 2827.33, 728.81, 83.61], ["2026-05-28", 12010.44, 4264.52, 691.17, 187, 2579.07, 692.36, 83.61], ["2026-05-29", 14260.67, 4623.42, 953.84, 208, 2397.85, 663.72, 83.61], ["2026-05-30", 14132.78, 4287.78, 915.03, 209, 2200.02, 691.58, 83.61], ["2026-05-31", 28372.28, 9111.06, 925.42, 483, 3143.8, 806.35, 83.61], ["2026-06-01", 12842.21, 4140.4, 872.61, 211, 2793.63, 687.09, 135.88], ["2026-06-02", 13755.66, 4313.17, 770.07, 205, 2709.92, 738.99, 135.88], ["2026-06-03", 10260.32, 3529.05, 601.43, 171, 2689.43, 777.0, 135.88], ["2026-06-04", 18795.04, 8140, 798.65, 226, 2827.69, 813.28, 135.88], ["2026-06-05", 14425.01, 5819.01, 722.32, 184, 2481.17, 745.76, 135.88], ["2026-06-06", 14081.06, 5689.79, 708.43, 173, 2615.45, 850.79, 135.88], ["2026-06-07", 16734.75, 5958.38, 957.14, 229, 3151.02, 912.08, 135.88], ["2026-06-08", 18373.43, 7223.12, 768.08, 232, 2723.71, 821.44, 135.88], ["2026-06-09", 16440.52, 5670.59, 1002, 244, 2912.79, 713.3, 135.88], ["2026-06-10", 18879.84, 6901.06, 894.86, 245, 3029.27, 826.55, 135.88], ["2026-06-11", 15700.97, 5535.21, 858.07, 236, 3017.61, 781.77, 135.88], ["2026-06-12", 16149.09, 6281.37, 693.7, 206, 2627.55, 844.38, 135.88], ["2026-06-13", 13557.22, 5046.31, 725.49, 169, 3098.46, 895.98, 135.88], ["2026-06-14", 24663.27, 9569.65, 1058.99, 267, 3666.67, 886.02, 135.88], ["2026-06-15", 15361.77, 6038.78, 766.86, 209, 3119.38, 767.37, 135.88], ["2026-06-16", 16545.34, 5861.26, 847.9, 219, 2792.33, 838.62, 135.88], ["2026-06-17", 12058.63, 4443.24, 792.35, 193, 3002.34, 731.65, 135.88], ["2026-06-18", 11563.71, 3744.44, 604.52, 176, 3045.77, 796.32, 135.88], ["2026-06-19", 11657.54, 4065.72, 703.6, 171, 2887.18, 738.62, 135.88], ["2026-06-20", 11273.5, 3917.14, 522.53, 139, 2938.85, 775.81, 135.88], ["2026-06-21", 16324.57, 5717.44, 697.82, 191, 3659.46, 926.97, 135.88], ["2026-06-22", 13009.5, 4385.86, 593.79, 194, 3259.1, 709.48, 135.88], ["2026-06-23", 9592.67, 3793.58, 546.28, 164, 2937.11, 702.72, 135.88], ["2026-06-24", 9535.93, 3427.33, 612.32, 164, 2955.25, 676.28, 135.88], ["2026-06-25", 13475.09, 4914.98, 619.06, 183, 2731.78, 664.95, 135.88], ["2026-06-26", 12689.46, 4805.46, 688.41, 212, 2814.7, 659.65, 135.88], ["2026-06-27", 13071.42, 4883.38, 650.95, 147, 2742.62, 724.19, 135.88], ["2026-06-28", 19050.74, 6724.92, 956.51, 243, 3476.22, 808.74, 135.88], ["2026-06-29", 19842.14, 7577.76, 1089.73, 262, 2648.05, 684.32, 135.88], ["2026-06-30", 15619.88, 5675.56, 882.38, 243, 2796.07, 676.93, 135.88], ["2026-07-01", 19404.75, 6448.51, 941.75, 273, 2707.35, 670.69, 100.34], ["2026-07-02", 15550.13, 5655.05, 733.61, 208, 2472.37, 705.84, 100.34], ["2026-07-03", 18323.11, 6522.09, 969.9, 241, 2490.18, 856.12, 100.34], ["2026-07-04", 16926.36, 5956.9, 814.43, 189, 2424.4, 865.68, 100.34], ["2026-07-05", 33575.16, 11555.75, 842.69, 499, 3042.16, 869.65, 100.34], ["2026-07-06", 15585.55, 5418.73, 775.72, 225, 2537.91, 806.03, 100.34], ["2026-07-07", 16042.44, 5983.08, 787.58, 229, 2597.68, 879.4, 100.34], ["2026-07-08", 12777.18, 3927.69, 722.79, 198, 2587.28, 830.55, 100.34], ["2026-07-09", 14112.94, 4728.49, 656.72, 188, 2664.29, 830.61, 100.34], ["2026-07-10", 9860.18, 3753.71, 561.7, 163, 2607.76, 665.08, 100.34], ["2026-07-11", 13315.45, 4745, 669.12, 158, 2652.82, 882.83, 100.34], ["2026-07-12", 18396.4, 6394.88, 876.01, 221, 3117.37, 1011.31, 100.34], ["2026-07-13", 18540.84, 7175.27, 803.34, 237, 2651.11, 779.45, 100.34], ["2026-07-14", 13083.4, 4573.76, 690.43, 213, 2603.12, 776.08, 100.34], ["2026-07-15", 17352.68, 6208.37, 727.85, 202, 2476.57, 788.61, 100.34], ["2026-07-16", 9138.81, 2661.57, 733.17, 180, 2523.27, 662.38, 100.34], ["2026-07-17", 11046.75, 4010.02, 645.44, 175, 2559.11, 697.77, 100.34], ["2026-07-18", 13623.4, 4453.01, 598.81, 155, 2331.55, 695.3, 100.34], ["2026-07-19", 25342.25, 8455.84, 1196.23, 309, 2947.12, 767.03, 100.34], ["2026-07-20", 12352.43, 4571.37, 612.65, 192, 2565.5, 681.46, 100.34], ["2026-07-21", 15382.63, 4927.03, 666.35, 195, 2687.04, 752.65, 100.34], ["2026-07-22", 13264.67, 4647.69, 582.74, 183, 2766.13, 745.54, 100.34], ["2026-07-23", 12853.63, 4246.04, 616.9, 172, 2695.04, 701.78, 100.34], ["2026-07-24", 12043.89, 4024.11, 570.93, 174, 2551.51, 637.9, 100.34], ["2026-07-25", 14267.05, 4839.32, 686.82, 150, 2616.4, 693.47, 100.34], ["2026-07-26", 18939.36, 6485.92, 908.19, 226, 3199.27, 735.56, 100.34], ["2026-07-27", 16038.6, 5301.14, 831.76, 223, 3010.13, 623.91, 100.34], ["2026-07-28", 13233.81, 4600.01, 638.04, 202, 2894.57, 653.71, 100.34], ["2026-07-29", 14604.2, 5052.49, 759.24, 207, 2857.15, 678.46, 100.34], ["2026-07-30", 14573.23, 5807.43, 633.13, 193, 3116.54, 612.95, 100.34], ["2026-07-31", 15032.66, 5220.28, 643.49, 206, 3167.36, 570.23, 100.34], ["2026-08-01", 17874.35, 6006.6, 849.55, 202, 2740.86, 673.14, 164.37], ["2026-08-02", 27340.02, 8898.36, 928.12, 404, 3793.13, 785.23, 164.37], ["2026-08-03", 22321.73, 7421.76, 1138.59, 285, 3491.47, 671.36, 164.37], ["2026-08-04", 25558.48, 9003.14, 913.65, 263, 3596.88, 715.56, 164.37], ["2026-08-05", 18281.47, 6153.01, 680.06, 220, 3534.68, 803.73, 164.37]];
+const SHIP=6.56,PACK=0.80,PAY_PCT=0.0255,PAY_FIX=0.16,VAT=1.19,FREMD=100,SHOP=2500/30;
+const nf=n=>Math.round(n||0).toLocaleString("de-DE");
+const eur=x=>"€"+nf(x);
+const money=x=>(x<0?"−€":"€")+nf(Math.abs(x));
+const dmoney=x=>(x>=0?"+€":"−€")+nf(Math.abs(x));
+const de1=x=>(x||0).toLocaleString("de-DE",{minimumFractionDigits:1,maximumFractionDigits:1});
+const dpct=(a,b)=>b?((a-b)/b*100):0;
+function resolve(spec){if(spec==null||spec==="")return null;
+ if(typeof spec==="number")return DATA.slice(-spec);
+ if(spec[0]==="M")return DATA.filter(r=>r[0].slice(0,7)===spec.slice(1));
+ if(spec==="cust"||spec==="custB"){let ia=spec==="cust"?"d1":"d3",ib=spec==="cust"?"d2":"d4";let a=document.getElementById(ia).value,b=document.getElementById(ib).value;if(!a||!b)return null;return DATA.filter(r=>r[0]>=a&&r[0]<=b);}
+ return null;}
+function agg(rows){let n=0,cg=0,sh=0,o=0,mt=0,gg=0,ifm=0;rows.forEach(r=>{n+=r[1];cg+=r[2];sh+=r[3];o+=r[4];mt+=r[5];gg+=r[6];ifm+=r[7];});
+ let days=rows.length,ums=n+sh,roh=ums-cg,versand=SHIP*o,verpack=PACK*o,payment=PAY_PCT*(ums*VAT)+PAY_FIX*o,fremd=FREMD*days,shop=SHOP*days,db=roh-versand-verpack-payment-fremd-shop,ads=mt+gg+ifm,dbw=db-ads;
+ return {ums,cg,roh,rohp:ums?roh/ums*100:0,versand,verpack,payment,fremd,shop,db,dbp:ums?db/ums*100:0,meta:mt,goog:gg,ifm,ads,adsp:ums?ads/ums*100:0,dbw,dbwp:ums?dbw/ums*100:0,o,days,from:rows[0][0],to:rows[rows.length-1][0]};}
+let A={spec:7,label:"7 Tage"},B={spec:null,label:""};
+function card(title,a,color,sub,mini,b){
+ let cmp=(b!=null)?"<div class=cmp>B: "+eur(b)+" · <b style=\"color:"+(dpct(a,b)>=0?'var(--green)':'var(--red)')+"\">"+(dpct(a,b)>=0?'+':'')+de1(dpct(a,b))+" %</b></div>":"";
+ return "<div class=card><div class=ct>"+title+"</div><div class=big>"+eur(a)+"</div><div class=lbl style=\"color:"+color+"\">"+sub+"</div>"+cmp+"<div class=mini>"+mini+"</div></div>";}
+function wfTable(xa,xb){
+ let two=!!xb,b=xb||{};
+ let o="<tr><th>Position</th><th class=n>"+A.label+"</th>"+(two?"<th class=n>"+B.label+"</th><th class=n>Δ</th>":"")+"</tr>";
+ function r(l,a,bv){return "<tr><td>"+l+"</td><td class=n>"+money(a)+"</td>"+(two?"<td class=n>"+money(bv)+"</td><td class=n>"+dmoney(a-bv)+"</td>":"")+"</tr>";}
+ function tt(cls,l,a,ap,bv,bp){return "<tr class="+cls+"><td>"+l+"</td><td class=n>"+eur(a)+" · "+de1(ap)+" %</td>"+(two?"<td class=n>"+eur(bv)+" · "+de1(bp)+" %</td><td class=n>"+dmoney(a-bv)+"</td>":"")+"</tr>";}
+ o+=r("Umsatz (netto, inkl. Versand)",xa.ums,b.ums);
+ o+=r("− Wareneinsatz (COGS)",-xa.cg,-b.cg);
+ o+=tt("tot","= Rohertrag",xa.roh,xa.rohp,b.roh,b.rohp);
+ o+=r("− Versand (6,56 €/Best.)",-xa.versand,-b.versand);
+ o+=r("− Verpackung (0,80 €/Best.)",-xa.verpack,-b.verpack);
+ o+=r("− Payment (2,55 % + 0,16 €/Order)",-xa.payment,-b.payment);
+ o+=r("− Fremddienstleistungen (3.000/Mon.)",-xa.fremd,-b.fremd);
+ o+=r("− Shopify Plus (2.500/Mon.)",-xa.shop,-b.shop);
+ o+=tt("tot","= DB vor Werbung",xa.db,xa.dbp,b.db,b.dbp);
+ o+=r("− Meta Adspend",-xa.meta,-b.meta);
+ o+=r("− Google Adspend",-xa.goog,-b.goog);
+ o+=r("− IFM / Affiliate",-xa.ifm,-b.ifm);
+ o+=tt("fin","= DB nach Werbung",xa.dbw,xa.dbwp,b.dbw,b.dbwp);
+ return o;}
+function setActive(){
+ document.querySelectorAll("[data-a]").forEach(x=>x.classList.toggle("on",A.spec===+x.dataset.a));
+ document.querySelectorAll("[data-am]").forEach(x=>x.classList.toggle("on",A.spec==="M"+x.dataset.am));
+ document.querySelectorAll("[data-b]").forEach(x=>x.classList.toggle("on",(B.spec||"")===x.dataset.b));}
+function render(){
+ let ra=resolve(A.spec),rng=document.getElementById("range");
+ if(!ra||!ra.length){rng.textContent="Bitte gültigen Zeitraum A wählen.";return;}
+ let xa=agg(ra),rb=resolve(B.spec),xb=(rb&&rb.length)?agg(rb):null;
+ rng.innerHTML="<b>A:</b> "+xa.from+" – "+xa.to+" ("+xa.days+" T · "+nf(xa.o)+" Best.)"+(xb?" &nbsp;·&nbsp; <b>B:</b> "+xb.from+" – "+xb.to+" ("+xb.days+" T · "+nf(xb.o)+" Best.)":"");
+ document.getElementById("cards").innerHTML=
+  card("Rohertrag",xa.roh,"var(--green)","Marge "+de1(xa.rohp)+" %","Umsatz "+eur(xa.ums)+" · COGS "+eur(xa.cg),xb?xb.roh:null)+
+  card("DB vor Werbung",xa.db,"var(--dark)",de1(xa.dbp)+" % v. Umsatz","nach Kosten vor Werbung",xb?xb.db:null)+
+  card("DB nach Werbung",xa.dbw,"var(--blue)",de1(xa.dbwp)+" % v. Umsatz","Werbung "+eur(xa.ads)+" ("+de1(xa.adsp)+" %)",xb?xb.dbw:null);
+ document.getElementById("wf").innerHTML=wfTable(xa,xb);
+ setActive();}
+document.querySelectorAll("[data-a]").forEach(x=>x.onclick=()=>{A={spec:+x.dataset.a,label:x.textContent};render();});
+document.querySelectorAll("[data-am]").forEach(x=>x.onclick=()=>{A={spec:"M"+x.dataset.am,label:x.textContent};render();});
+document.getElementById("dgo").onclick=()=>{A={spec:"cust",label:"eigener"};render();};
+document.getElementById("dbgo").onclick=()=>{B={spec:"custB",label:"eigener B"};render();};
+document.querySelectorAll("[data-b]").forEach(x=>x.onclick=()=>{B={spec:x.dataset.b||null,label:x.textContent};render();});
+render();
+</script></div></body></html>

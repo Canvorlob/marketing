@@ -25,7 +25,7 @@ td.n,th.n{text-align:right}.tot td{font-weight:800;background:#f4efe7}.fin td{fo
 .foot{color:var(--mut);font-size:11px;margin-top:10px}
 </style></head><body><div class=wrap>
 <div class=brand>7 O'CLOCK · CONTROLLING</div><h1>Rohertrag- &amp; DB-Overview</h1>
-<div class=sub>Tagesdaten aus Shopify, Meta, Google &amp; GoAffPro · Stand: 18.08.2026 09:54<span id=dbis></span> · Zeitraum frei wählbar + Vergleich (innerhalb der letzten 90 Tage)</div>
+<div class=sub>Tagesdaten aus Shopify, Meta, Google &amp; GoAffPro · Stand: 18.08.2026 11:10<span id=dbis></span> · Zeitraum frei wählbar + Vergleich (innerhalb der letzten 90 Tage)</div>
 <div class=filters>
  <span class=flab>Zeitraum A</span>
  <button data-a=1>Gestern</button><button data-a=7>7 Tage</button><button data-a=30>30 Tage</button><button data-a=90>90 Tage</button>
@@ -69,7 +69,7 @@ function card(title,a,color,sub,mini,b){
 function wfTable(xa,xb){
  let two=!!xb,b=xb||{};
  let o="<tr><th>Position</th><th class=n>"+A.label+"</th>"+(two?"<th class=n>"+B.label+"</th><th class=n>Δ</th>":"")+"</tr>";
- function r(l,a,bv){return "<tr><td>"+l+"</td><td class=n>"+money(a)+"</td>"+(two?"<td class=n>"+money(bv)+"</td><td class=n>"+dmoney(a-bv)+"</td>":"")+"</tr>";}
+ function r(l,a,bv){let ap=xa.ums?a/xa.ums*100:0,bp=b.ums?bv/b.ums*100:0;return "<tr><td>"+l+"</td><td class=n>"+money(a)+" · "+de1(ap)+" %</td>"+(two?"<td class=n>"+money(bv)+" · "+de1(bp)+" %</td><td class=n>"+dmoney(a-bv)+"</td>":"")+"</tr>";}
  function tt(cls,l,a,ap,bv,bp){return "<tr class="+cls+"><td>"+l+"</td><td class=n>"+eur(a)+" · "+de1(ap)+" %</td>"+(two?"<td class=n>"+eur(bv)+" · "+de1(bp)+" %</td><td class=n>"+dmoney(a-bv)+"</td>":"")+"</tr>";}
  o+=r("Umsatz (netto, inkl. Versand)",xa.ums,b.ums);
  o+=r("− Wareneinsatz (COGS)",-xa.cg,-b.cg);

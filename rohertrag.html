@@ -25,7 +25,7 @@ td.n,th.n{text-align:right}.tot td{font-weight:800;background:#f4efe7}.fin td{fo
 .foot{color:var(--mut);font-size:11px;margin-top:10px}
 </style></head><body><div class=wrap>
 <div class=brand>7 O'CLOCK · CONTROLLING</div><h1>Rohertrag- &amp; DB-Overview</h1>
-<div class=sub>Tagesdaten aus Shopify, Meta, Google &amp; GoAffPro · Stand: 20.08.2026 09:05<span id=dbis></span> · Zeitraum frei wählbar + Vergleich (seit 1. Januar 2026)</div>
+<div class=sub>Tagesdaten aus Shopify, Meta, Google &amp; GoAffPro · Stand: 21.08.2026 11:55<span id=dbis></span><span id=fresh></span> · Zeitraum frei wählbar + Vergleich (seit 1. Januar 2026)</div>
 <div class=filters>
  <span class=flab>Zeitraum A</span>
  <button data-a=1>Gestern</button><button data-a=7>7 Tage</button><button data-a=30>30 Tage</button><button data-a=90>90 Tage</button>
@@ -156,6 +156,12 @@ document.getElementById("dgo").onclick=()=>{A={spec:"cust",label:"eigener"};rend
 document.getElementById("dbgo").onclick=()=>{B={spec:"custB",label:"eigener B"};render();};
 document.querySelectorAll("[data-b]").forEach(x=>x.onclick=()=>{B={spec:x.dataset.b||null,label:x.textContent};render();});
 document.getElementById("dbis").textContent=" · Daten bis "+fmtd(LAST);
+(function(){var t=new Date();t.setHours(0,0,0,0);var y=new Date(t);y.setDate(t.getDate()-1);
+ var ymd=function(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");};
+ var el=document.getElementById("fresh");if(!el)return;
+ if(LAST>=ymd(y)){el.innerHTML=' · <b style="color:var(--green)">✓ aktuell</b> <span class=muted>(bis gestern)</span>';}
+ else{var lg=new Date(LAST+"T00:00:00");var behind=Math.max(1,Math.round((y-lg)/86400000));el.innerHTML=' · <b style="color:var(--red)">⚠ VERALTET — '+behind+' Tag'+(behind===1?'':'e')+' hinter gestern</b>';}
+})();
 ["d1","d2","d3","d4"].forEach(id=>{let el=document.getElementById(id);if(el){el.max=LAST;el.min=FIRST;}});
 render();
 </script></div></body></html>

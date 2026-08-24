@@ -1,0 +1,183 @@
+<!doctype html><html lang=de><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1">
+<title>Creative-Cockpit · 7 O'CLOCK</title><style>
+:root{--bg:#faf8f5;--card:#fff;--ink:#2b2b2b;--mut:#8a8378;--line:#e7e2d9;--green:#2f8f57;--red:#c0492b;--gold:#b79b6e;--dark:#4a4335;--blue:#2f6f8f;--amber:#c98a2b}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5}
+.wrap{max-width:1180px;margin:0 auto;padding:20px}
+.brand{font-size:11px;letter-spacing:.14em;color:var(--mut);font-weight:700}
+h1{font-size:23px;margin:2px 0 2px}.sub{color:var(--mut);font-size:13px;margin-bottom:14px}
+.bar{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-bottom:8px}
+.flab{font-size:11px;color:var(--mut);font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-right:2px}
+.bar button{border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 11px;font-size:12.5px;cursor:pointer;font-weight:600;color:var(--ink)}
+.bar button.on{background:#2b2b2b;color:#fff;border-color:#2b2b2b}
+.bar select,.bar input{border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:12.5px;color:var(--ink);background:#fff}
+.cust{display:flex;gap:5px;align-items:center;color:var(--mut);font-size:12px}
+.chk{display:flex;gap:5px;align-items:center;color:var(--dark);font-size:12.5px;font-weight:600;cursor:pointer}
+#stand{font-size:12px;color:var(--mut);margin:6px 0 10px}
+#stand b{color:var(--dark)}
+.badge{display:inline-block;padding:1px 7px;border-radius:20px;font-size:10.5px;font-weight:700;letter-spacing:.02em}
+.cards{display:flex;gap:12px;flex-wrap:wrap;margin:6px 0 14px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 15px;flex:1;min-width:150px}
+.kpi .t{font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--gold);font-weight:700}
+.kpi .v{font-size:22px;font-weight:800;margin-top:3px;color:#1c1c1c}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+.ad{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;position:relative}
+.ad.win{border-color:#bfe0cb;box-shadow:0 0 0 1px #bfe0cb inset}
+.ad.lose{opacity:.86}
+.thumbwrap{position:relative;width:100%;aspect-ratio:1/1;background:#efeae1;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.thumbwrap img{width:100%;height:100%;object-fit:cover;image-rendering:auto}
+.noimg{color:var(--mut);font-size:11px;text-align:center;padding:10px}
+.fmt{position:absolute;top:8px;left:8px;background:rgba(43,43,43,.82);color:#fff}
+.rank{position:absolute;top:8px;right:8px;background:rgba(255,255,255,.92);color:var(--dark);border:1px solid var(--line)}
+.tag{position:absolute;bottom:8px;left:8px}
+.tag.g{background:var(--green);color:#fff}.tag.r{background:var(--red);color:#fff}.tag.n{background:#efeae1;color:var(--dark)}
+.body{padding:11px 13px 13px}
+.nm{font-weight:700;font-size:13px;line-height:1.3;word-break:break-word}
+.cmp{font-size:10.5px;color:var(--mut);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row{display:flex;justify-content:space-between;gap:8px;margin-top:8px}
+.met{flex:1}
+.met .l{font-size:10px;text-transform:uppercase;letter-spacing:.03em;color:var(--mut);font-weight:700}
+.met .n{font-size:14px;font-weight:800;color:#1c1c1c}
+.roasv.gk{color:var(--green)}.roasv.rk{color:var(--red)}.roasv.ok{color:var(--amber)}
+.sub2{display:flex;gap:12px;margin-top:9px;padding-top:8px;border-top:1px solid var(--line);flex-wrap:wrap}
+.mini{font-size:11px;color:var(--dark)}.mini b{color:#1c1c1c}
+.note{background:#f5f1e8;border-left:4px solid var(--gold);padding:9px 12px;border-radius:6px;font-size:12px;margin:14px 0;color:var(--dark)}
+.foot{color:var(--mut);font-size:11px;margin-top:14px}
+#empty{color:var(--mut);padding:30px;text-align:center}
+a{color:var(--blue)}
+</style></head><body><div class=wrap>
+<div class=brand>7 O'CLOCK · PERFORMANCE MARKETING</div>
+<h1>Creative-Cockpit — welche Ads laufen</h1>
+<div class=sub>Live aus Meta (Ad-Ebene). Für Grafik &amp; Content: seht auf einen Blick, welche Motive verkaufen und fesseln — und baut mehr davon.</div>
+
+<div class=bar>
+ <span class=flab>Zeitraum</span>
+ <button data-r=today>Heute (live)</button>
+ <button data-r=1>Gestern</button>
+ <button data-r=7 class=on>7 Tage</button>
+ <button data-r=14>14 Tage</button>
+ <button data-r=30>30 Tage</button>
+ <span class=cust>| eigener: <input type=date id=d1><input type=date id=d2><button id=dgo>OK</button></span>
+</div>
+<div class=bar>
+ <span class=flab>Sortieren</span>
+ <select id=sort>
+  <option value=winner>Gewinner-Score (Verkauf × Effizienz)</option>
+  <option value=spend>Budget (Spend)</option>
+  <option value=roas>ROAS</option>
+  <option value=rev>Umsatz</option>
+  <option value=purch>Käufe</option>
+  <option value=ctr>CTR</option>
+  <option value=hook>Hook-Rate (Video)</option>
+ </select>
+ <span class=flab style="margin-left:8px">Format</span>
+ <select id=fmt><option value=all>Alle</option><option value=video>Nur Video</option><option value=image>Nur Bild</option></select>
+ <span class=flab style="margin-left:8px">Min. Spend</span>
+ <select id=minsp><option value=0>alle</option><option value=20>≥ 20 €</option><option value=50 selected>≥ 50 €</option><option value=100>≥ 100 €</option><option value=250>≥ 250 €</option></select>
+ <label class=chk style="margin-left:8px"><input type=checkbox id=onlywin> nur Gewinner</label>
+ <span class=flab style="margin-left:8px">Break-even ROAS</span>
+ <input id=be type=number step=0.05 style="width:74px" value=2.20>
+</div>
+<div id=stand>lädt …</div>
+<div class=cards id=cards></div>
+<div class=grid id=grid></div>
+<div id=empty style="display:none">Keine Ads im gewählten Zeitraum/Filter.</div>
+
+<div class=note><b>Wie lesen?</b> <b>ROAS</b> grün = über Break-even (rentabel), rot = darunter. <b>Gewinner-Score</b> belohnt hohen ROAS <i>und</i> echtes Budget (kleine Zufallstreffer werden gedämpft). <b>Hook-Rate</b> = 3-Sek-Videoaufrufe ÷ Impressionen (Daumenstopp) — nur bei Videos. <b>CTR</b> = Klickrate. Break-even-ROAS oben anpassbar (Standard 2,20 = Portfolio). Zahlen sind Meta-attribuiert (tendenziell etwas zu hoch), aber für den <i>Vergleich der Creatives untereinander</i> genau richtig.</div>
+
+<div class=foot>Datenquelle Meta Marketing API · Seite aktualisiert sich bei jedem Öffnen (Cache ~15 Min) · 7 O'CLOCK Controlling</div>
+</div>
+<script>
+const WORKER="https://rohertrag-worker.can-11b.workers.dev/creatives.json";
+let DATA=null, RANGE={r:7};
+const $=id=>document.getElementById(id);
+const nf=n=>Math.round(n||0).toLocaleString("de-DE");
+const eur=x=>"€"+nf(x);
+const de1=x=>(x||0).toLocaleString("de-DE",{minimumFractionDigits:1,maximumFractionDigits:1});
+const de2=x=>(x||0).toLocaleString("de-DE",{minimumFractionDigits:2,maximumFractionDigits:2});
+const pad=n=>String(n).padStart(2,"0");
+const iso=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+const fmtd=s=>{let p=s.split("-");return p[2]+"."+p[1]+"."+p[0];};
+function rangeDates(r){
+ const now=new Date(); const today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+ if(r==="today")return[iso(today),iso(today)];
+ const y=new Date(today);y.setDate(y.getDate()-1);
+ if(r==="1")return[iso(y),iso(y)];
+ const s=new Date(y);s.setDate(s.getDate()-(Number(r)-1));
+ return[iso(s),iso(y)];
+}
+function be(){let v=parseFloat($("be").value);return (isFinite(v)&&v>0)?v:2.20;}
+function load(since,until){
+ $("stand").innerHTML="lädt Zeitraum "+fmtd(since)+" – "+fmtd(until)+" …";
+ $("grid").innerHTML="";$("cards").innerHTML="";$("empty").style.display="none";
+ fetch(WORKER+"?since="+since+"&until="+until).then(r=>r.json()).then(d=>{DATA=d;render();}).catch(e=>{$("stand").textContent="Fehler beim Laden: "+e;});
+}
+function scoreOf(a,B){ // Gewinner-Score: Effizienz × Budget-Vertrauen (dämpft Kleinst-Spend-Flukes)
+ const eff=(a.roas||0)/B; const conf=1-Math.exp(-(a.spend||0)/150); return eff*conf;
+}
+function render(){
+ if(!DATA||!DATA.ads){$("stand").textContent="keine Daten";return;}
+ const B=be();
+ const minsp=Number($("minsp").value), fmt=$("fmt").value, sort=$("sort").value, onlywin=$("onlywin").checked;
+ let ads=DATA.ads.filter(a=>a.spend>=minsp);
+ if(fmt!=="all")ads=ads.filter(a=>a.fmt===fmt);
+ if(onlywin)ads=ads.filter(a=>a.roas>=B);
+ const keyf={spend:a=>a.spend,roas:a=>a.roas,rev:a=>a.rev,purch:a=>a.purch,ctr:a=>a.ctr,hook:a=>(a.hook==null?-1:a.hook),winner:a=>scoreOf(a,B)};
+ ads.sort((x,y)=>keyf[sort](y)-keyf[sort](x));
+ // Summary
+ let ts=0,tr=0,tp=0,win=0; DATA.ads.filter(a=>a.spend>=minsp).forEach(a=>{ts+=a.spend;tr+=a.rev;tp+=a.purch;if(a.roas>=B)win++;});
+ const bro=ts?tr/ts:0;
+ $("cards").innerHTML=
+  kpi("Ad-Spend",eur(ts))+kpi("Umsatz (Meta)",eur(tr))+
+  kpi("Blended ROAS",de2(bro),bro>=B?"var(--green)":"var(--red)")+
+  kpi("Gewinner-Ads",win+" / "+DATA.ads.filter(a=>a.spend>=minsp).length,"var(--green)");
+ // Grid
+ const g=$("grid");g.innerHTML="";
+ if(!ads.length){$("empty").style.display="block";}
+ ads.forEach((a,i)=>g.insertAdjacentHTML("beforeend",cardHTML(a,i+1,B)));
+ const gen=DATA.generatedAt?new Date(DATA.generatedAt):null;
+ $("stand").innerHTML="Zeitraum <b>"+fmtd(DATA.since)+" – "+fmtd(DATA.until)+"</b> · "+ads.length+" Ads angezeigt"+
+  (gen?" · Stand "+pad(gen.getDate())+"."+pad(gen.getMonth()+1)+". "+pad(gen.getHours())+":"+pad(gen.getMinutes()):"")+
+  (DATA.stale?" · <span style='color:var(--amber)'>wird aktualisiert…</span>":"");
+}
+function kpi(t,v,col){return "<div class=kpi><div class=t>"+t+"</div><div class=v"+(col?" style='color:"+col+"'":"")+">"+v+"</div></div>";}
+function roasClass(r,B){if(r>=B)return"gk";if(r>=B*0.85)return"ok";return"rk";}
+function cardHTML(a,rank,B){
+ const winc=a.roas>=B?"win":(a.roas>0&&a.roas<B*0.7?"lose":"");
+ const tag=a.roas>=B?"<span class='badge tag g'>Gewinner</span>":(a.roas>0?(a.roas<B*0.7?"<span class='badge tag r'>unter BE</span>":"<span class='badge tag n'>grenzwertig</span>"):"<span class='badge tag n'>kein Verkauf</span>");
+ const img=a.thumb?"<img loading=lazy src=\""+a.thumb+"\" alt=\"\" onerror=\"this.style.display='none';this.parentNode.querySelector('.noimg').style.display='block'\"><div class=noimg style='display:none'>"+esc(a.name)+"</div>":"<div class=noimg>"+esc(a.name)+"</div>";
+ const hook=(a.hook==null)?"<b>–</b>":"<b>"+de1(a.hook)+" %</b>";
+ return "<div class='ad "+winc+"'>"+
+  "<div class=thumbwrap>"+img+
+   "<span class='badge fmt'>"+(a.fmt==="video"?"▶ Video":"◼ Bild")+"</span>"+
+   "<span class='badge rank'>#"+rank+"</span>"+tag+
+  "</div>"+
+  "<div class=body>"+
+   "<div class=nm>"+esc(a.name)+"</div>"+
+   "<div class=cmp title=\""+esc(a.campaign)+"\">"+esc(a.campaign)+"</div>"+
+   "<div class=row>"+
+    "<div class=met><div class=l>ROAS</div><div class='n roasv "+roasClass(a.roas,B)+"'>"+de2(a.roas)+"</div></div>"+
+    "<div class=met><div class=l>Umsatz</div><div class=n>"+eur(a.rev)+"</div></div>"+
+    "<div class=met><div class=l>Spend</div><div class=n>"+eur(a.spend)+"</div></div>"+
+   "</div>"+
+   "<div class=sub2>"+
+    "<span class=mini>Käufe <b>"+nf(a.purch)+"</b></span>"+
+    "<span class=mini>CTR <b>"+de1(a.ctr)+" %</b></span>"+
+    "<span class=mini>Hook "+hook+"</span>"+
+    (a.fmt==="video"&&a.compl!=null?"<span class=mini>Durchges. <b>"+de1(a.compl)+" %</b></span>":"")+
+   "</div>"+
+  "</div>"+
+ "</div>";
+}
+function esc(s){return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+// Events
+document.querySelectorAll(".bar button[data-r]").forEach(b=>b.onclick=()=>{
+ document.querySelectorAll(".bar button[data-r]").forEach(x=>x.classList.remove("on"));b.classList.add("on");
+ RANGE={r:b.dataset.r};const[s,u]=rangeDates(b.dataset.r);load(s,u);
+});
+$("dgo").onclick=()=>{const a=$("d1").value,b=$("d2").value;if(!a||!b)return;document.querySelectorAll(".bar button[data-r]").forEach(x=>x.classList.remove("on"));load(a,b);};
+["sort","fmt","minsp","onlywin","be"].forEach(id=>$(id).addEventListener("input",()=>{if(DATA)render();try{localStorage.setItem("cc_"+id,id==="onlywin"?($(id).checked?"1":"0"):$(id).value);}catch(e){}}));
+// restore prefs
+try{["sort","fmt","minsp","be"].forEach(id=>{const v=localStorage.getItem("cc_"+id);if(v!=null)$(id).value=v;});const ow=localStorage.getItem("cc_onlywin");if(ow==="1")$("onlywin").checked=true;}catch(e){}
+// initial
+(()=>{const[s,u]=rangeDates("7");load(s,u);})();
+</script></body></html>

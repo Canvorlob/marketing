@@ -88,6 +88,7 @@ a{color:var(--blue)}
 </div>
 <script>
 const WORKER="https://rohertrag-worker.can-11b.workers.dev/creatives.json";
+const THUMB="https://rohertrag-worker.can-11b.workers.dev/thumb?v=2&id=";
 let DATA=null, RANGE={r:7};
 const $=id=>document.getElementById(id);
 const nf=n=>Math.round(n||0).toLocaleString("de-DE");
@@ -144,7 +145,7 @@ function roasClass(r,B){if(r>=B)return"gk";if(r>=B*0.85)return"ok";return"rk";}
 function cardHTML(a,rank,B){
  const winc=a.roas>=B?"win":(a.roas>0&&a.roas<B*0.7?"lose":"");
  const tag=a.roas>=B?"<span class='badge tag g'>Gewinner</span>":(a.roas>0?(a.roas<B*0.7?"<span class='badge tag r'>unter BE</span>":"<span class='badge tag n'>grenzwertig</span>"):"<span class='badge tag n'>kein Verkauf</span>");
- const img=a.thumb?"<img loading=lazy src=\""+a.thumb+"\" alt=\"\" onerror=\"this.style.display='none';this.parentNode.querySelector('.noimg').style.display='block'\"><div class=noimg style='display:none'>"+esc(a.name)+"</div>":"<div class=noimg>"+esc(a.name)+"</div>";
+ const img="<img loading=lazy src=\""+THUMB+encodeURIComponent(a.id)+"\" alt=\"\" onerror=\"this.style.display='none';this.parentNode.querySelector('.noimg').style.display='block'\"><div class=noimg style='display:none'>"+esc(a.name)+"</div>";
  const hook=(a.hook==null)?"<b>–</b>":"<b>"+de1(a.hook)+" %</b>";
  return "<div class='ad "+winc+"'>"+
   "<div class=thumbwrap>"+img+

@@ -1,0 +1,135 @@
+<!doctype html><html lang=de><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1">
+<title>Kunden-Overview · 7 O'CLOCK</title><style>
+:root{--bg:#faf8f5;--card:#fff;--ink:#2b2b2b;--mut:#8a8378;--line:#e7e2d9;--green:#2f8f57;--red:#c0492b;--gold:#b79b6e;--dark:#4a4335;--blue:#2f6f8f}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5}
+.wrap{max-width:1040px;margin:0 auto;padding:20px}.brand{font-size:11px;letter-spacing:.14em;color:var(--mut);font-weight:700}
+h1{font-size:23px;margin:2px 0 2px}.sub{color:var(--mut);font-size:13px;margin-bottom:12px}
+.filters{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-bottom:8px}
+.flab{font-size:11px;color:var(--mut);font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-right:2px}
+.filters button{border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 11px;font-size:12.5px;cursor:pointer;font-weight:600;color:var(--ink)}
+.filters button.on{background:#2b2b2b;color:#fff;border-color:#2b2b2b}
+.filters button.bcmp.on{background:var(--blue);border-color:var(--blue)}
+.cust{display:flex;gap:5px;align-items:center;color:var(--mut);font-size:12px}
+.cust input{border:1px solid var(--line);border-radius:6px;padding:5px 7px;font-size:12px}
+#range{font-size:12px;color:var(--mut);margin:6px 0 10px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px;margin-top:4px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.ct{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--gold);font-weight:700}
+.big{font-size:26px;font-weight:800;margin-top:4px;color:#1c1c1c}
+.lbl{font-weight:600;font-size:12px;color:var(--dark);margin-top:3px}
+.cmp{font-size:12px;color:var(--dark);margin-top:6px}
+.mini{font-size:11px;color:var(--mut);margin-top:4px}
+.sec{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-top:16px}
+h2{font-size:15px;margin:0 0 10px;border-bottom:1px solid var(--line);padding-bottom:8px}
+table{width:100%;border-collapse:collapse;font-size:12.5px}td,th{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line)}
+td.n,th.n{text-align:right}
+.note{background:#f5f1e8;border-left:4px solid var(--gold);padding:9px 12px;border-radius:6px;font-size:12px;margin-top:14px;color:var(--dark)}
+.foot{color:var(--mut);font-size:11px;margin-top:12px}
+.warn{background:#f5f1e8;border-left:4px solid var(--blue);padding:7px 11px;border-radius:6px;font-size:11.5px;color:var(--dark);margin:8px 0}
+</style></head><body><div class=wrap>
+<div class=brand>7 O'CLOCK · CONTROLLING</div><h1>Kunden-Overview</h1>
+<div class=sub>Kunden, Neukunden, AOV &amp; CAC aus Shopify + Meta/Google/IFM · Stand: <span id=stand>lädt…</span> · Zeitraum frei wählbar + Vergleich</div>
+<div class=filters>
+ <span class=flab>Zeitraum A</span>
+ <button data-a=7>7 Tage</button><button data-a=30 class=on>30 Tage</button><button data-a=90>90 Tage</button>
+ <button data-am=2026-05>Mai</button><button data-am=2026-06>Juni</button><button data-am=2026-07>Juli</button><button data-am=2026-08>Aug*</button>
+ <span class=cust>| eigener: <input type=date id=d1><input type=date id=d2><button id=dgo>OK</button></span>
+</div>
+<div class=filters>
+ <span class=flab>Vergleich B</span>
+ <button class=bcmp data-b="">keiner</button><button class=bcmp data-b=M2026-05>Mai</button><button class=bcmp data-b=M2026-06>Juni</button><button class=bcmp data-b=M2026-07>Juli</button><button class=bcmp data-b=M2026-08>Aug*</button>
+ <span class=cust>| eigener: <input type=date id=d3><input type=date id=d4><button id=dbgo>OK</button></span>
+</div>
+<div id=range></div>
+<div id=ncwarn class=warn style="display:none"></div>
+<div class=cards id=cards></div>
+<div class=sec><h2>Details</h2><table id=tbl></table></div>
+<div class=note><b>Definitionen:</b> <b>Kunden gesamt</b> = kumulierte Kundenbasis bis zum <i>Ende</i> des Zeitraums (Basis 136.031 per 31.12.2025 + Neukunden 2026). <b>Neukunden</b> = Erstkäufer im Zeitraum (Shopify). <b>Neukundenquote</b> = Neukunden ÷ (Neukunden + Bestandskäufer). <b>AOV</b> = Bestellwert (inkl. MwSt &amp; Versand) ÷ Bestellungen. <b>Neukunden-AOV</b> = Erstkäufer-Umsatz ÷ Erstkäufer-Bestellungen (nächtlicher Bestell-Ebenen-Job). <b>CAC</b> = (Meta + Google + IFM) ÷ Neukunden. <b>CPO</b> = Spend ÷ Bestellungen. Monate mit * (Aug) laufen noch.</div>
+<div class=foot>Automatisch aktualisiert (Shopify + Meta/Google/IFM, täglich) · 7 O'CLOCK Controlling</div>
+</div>
+<script>
+const WORKER="https://rohertrag-worker.can-11b.workers.dev/customers.json";
+let RAW=null, DAYS=[], BASE=136031, CUM=[];
+const $=id=>document.getElementById(id);
+const nf=n=>Math.round(n||0).toLocaleString("de-DE");
+const eur=x=>"€"+nf(x);
+const de1=x=>(x||0).toLocaleString("de-DE",{minimumFractionDigits:1,maximumFractionDigits:1});
+const de2=x=>(x||0).toLocaleString("de-DE",{minimumFractionDigits:2,maximumFractionDigits:2});
+const pct=x=>de1(x)+" %";
+const dpct=(a,b)=>b?((a-b)/b*100):0;
+const fmtd=s=>{let p=s.split("-");return p[2]+"."+p[1]+"."+p[0];};
+// Feld-Index: 0 date,1 orders,2 net,3 total,4 newc,5 retc,6 spend,7 ncOrders,8 ncRev
+function load(){
+ fetch(WORKER).then(r=>r.json()).then(d=>{RAW=d;DAYS=d.days||[];BASE=d.baseAllTime||136031;
+  CUM=[];let c=0;for(let i=0;i<DAYS.length;i++){c+=DAYS[i][4];CUM[i]=c;}
+  const nc=d.ncLastDate;
+  $("ncwarn").style.display=nc?"none":"block";
+  if(!nc)$("ncwarn").innerHTML="<b>Neukunden-AOV</b> wird gerade erstmalig berechnet (Bestell-Ebenen-Backfill) — erscheint in Kürze.";
+  else $("ncwarn").innerHTML="<b>Neukunden-AOV</b> verfügbar bis "+fmtd(nc)+" (nächtlicher Job).";
+  render();
+ }).catch(e=>{$("stand").textContent="Fehler: "+e;});
+}
+function idxRange(spec){ // returns [i0,i1] inclusive indices into DAYS
+ if(spec==null||spec==="")return null;
+ if(typeof spec==="number"){let i1=DAYS.length-1,i0=Math.max(0,i1-spec+1);return[i0,i1];}
+ if(spec[0]==="M"){let ym=spec.slice(1);let idx=[];for(let i=0;i<DAYS.length;i++)if(DAYS[i][0].slice(0,7)===ym)idx.push(i);return idx.length?[idx[0],idx[idx.length-1]]:null;}
+ if(spec==="cust"||spec==="custB"){let ia=spec==="cust"?"d1":"d3",ib=spec==="cust"?"d2":"d4";let a=$(ia).value,b=$(ib).value;if(!a||!b)return null;let i0=-1,i1=-1;for(let i=0;i<DAYS.length;i++){if(DAYS[i][0]>=a&&i0<0)i0=i;if(DAYS[i][0]<=b)i1=i;}return(i0>=0&&i1>=i0)?[i0,i1]:null;}
+ return null;}
+function agg(rng){
+ if(!rng)return null;let[i0,i1]=rng;let o=0,net=0,tot=0,nw=0,rt=0,sp=0,nco=0,ncr=0,ncDays=0;
+ for(let i=i0;i<=i1;i++){let r=DAYS[i];o+=r[1];net+=r[2];tot+=r[3];nw+=r[4];rt+=r[5];sp+=r[6];nco+=r[7];ncr+=r[8];if(r[7]>0)ncDays++;}
+ let base=BASE+CUM[i1]; // Kunden gesamt bis Ende des Zeitraums
+ return {i0,i1,from:DAYS[i0][0],to:DAYS[i1][0],orders:o,net,tot,nw,rt,sp,nco,ncr,ncDays,
+  allTime:base, quote:(nw+rt)?nw/(nw+rt)*100:0, aov:o?tot/o:0, ncAov:nco?ncr/nco:0,
+  cac:nw?sp/nw:0, cpo:o?sp/o:0};}
+let A={spec:30,label:"30 Tage"},B={spec:"",label:""};
+function card(t,val,lbl,b,fmtv,better){
+ let cmp="";
+ if(b!=null&&isFinite(b)){let dp=dpct(val,b);let good=(better==="down")?dp<0:dp>0;
+  cmp="<div class=cmp>B: "+fmtv(b)+" · <b style=\"color:"+(dp===0?'var(--mut)':(good?'var(--green)':'var(--red)'))+"\">"+(dp>=0?'+':'')+de1(dp)+" %</b></div>";}
+ return "<div class=card><div class=ct>"+t+"</div><div class=big>"+fmtv(val)+"</div><div class=lbl>"+lbl+"</div>"+cmp+"</div>";}
+function render(){
+ if(!DAYS.length){return;}
+ let a=agg(idxRange(A.spec)),b=B.spec?agg(idxRange(B.spec)):null;
+ if(!a){$("range").textContent="Zeitraum ungültig";return;}
+ $("range").innerHTML="<b>Zeitraum A:</b> "+fmtd(a.from)+" – "+fmtd(a.to)+" · "+(a.i1-a.i0+1)+" Tage"+(b?" &nbsp;|&nbsp; <b style='color:var(--blue)'>Vergleich B:</b> "+fmtd(b.from)+" – "+fmtd(b.to):"");
+ const ncOk=a.nco>0;
+ let c="";
+ c+=card("Kunden gesamt (all-time)",a.allTime,"kumulierte Basis bis "+fmtd(a.to),b?b.allTime:null,eur=>nf(eur),"up");
+ c+=card("Neukunden",a.nw,"Erstkäufer im Zeitraum",b?b.nw:null,nf,"up");
+ c+=card("Neukundenquote",a.quote,"von allen Käufern",b?b.quote:null,pct,"up");
+ c+=card("AOV",a.aov,"Bestellwert je Bestellung",b?b.aov:null,eur,"up");
+ c+=card("Neukunden-AOV",ncOk?a.ncAov:NaN,ncOk?"Erstkäufer-Bestellwert":"wird berechnet…",(b&&b.nco>0)?b.ncAov:null,x=>isFinite(x)?eur(x):"–","up");
+ c+=card("CAC",a.cac,"Spend ÷ Neukunden",b?b.cac:null,eur,"down");
+ c+=card("Umsatz (netto)",a.net,"inkl. "+nf(a.orders)+" Best.",b?b.net:null,eur,"up");
+ c+=card("Marketing-Spend",a.sp,"Meta+Google+IFM · CPO "+eur(a.cpo),b?b.sp:null,eur,"down");
+ $("cards").innerHTML=c;
+ // table
+ let two=!!b;
+ let t="<tr><th>Kennzahl</th><th class=n>A ("+(A.label||"Zeitraum")+")</th>"+(two?"<th class=n>B ("+(B.label||"")+")</th><th class=n>Δ</th>":"")+"</tr>";
+ const row=(l,av,bv,f)=>{f=f||nf;return "<tr><td>"+l+"</td><td class=n>"+f(av)+"</td>"+(two?"<td class=n>"+f(bv)+"</td><td class=n>"+(isFinite(av-bv)?((av-bv>=0?'+':'')+f(Math.abs(av-bv))):'–')+"</td>":"")+"</tr>";};
+ t+=row("Kunden gesamt (all-time)",a.allTime,b&&b.allTime,nf);
+ t+=row("Neukunden",a.nw,b&&b.nw,nf);
+ t+=row("Bestandskäufer",a.rt,b&&b.rt,nf);
+ t+=row("Neukundenquote",a.quote,b&&b.quote,pct);
+ t+=row("Bestellungen",a.orders,b&&b.orders,nf);
+ t+=row("Umsatz netto",a.net,b&&b.net,eur);
+ t+=row("Bestellwert (brutto)",a.tot,b&&b.tot,eur);
+ t+=row("AOV",a.aov,b&&b.aov,eur);
+ t+=row("Neukunden-AOV",ncOk?a.ncAov:NaN,(b&&b.nco>0)?b.ncAov:NaN,x=>isFinite(x)?eur(x):"–");
+ t+=row("Marketing-Spend",a.sp,b&&b.sp,eur);
+ t+=row("CAC (je Neukunde)",a.cac,b&&b.cac,eur);
+ t+=row("CPO (je Bestellung)",a.cpo,b&&b.cpo,eur);
+ $("tbl").innerHTML=t;
+ const gen=RAW.generatedAt?new Date(RAW.generatedAt):null;
+ $("stand").textContent=(gen?fmtd(gen.toISOString().slice(0,10))+" "+String(gen.getHours()).padStart(2,"0")+":"+String(gen.getMinutes()).padStart(2,"0"):"—")+" · Daten bis "+fmtd(RAW.lastDate);
+}
+// events
+const alabels={7:"7 Tage",30:"30 Tage",90:"90 Tage"};
+document.querySelectorAll(".filters button[data-a]").forEach(x=>x.onclick=()=>{document.querySelectorAll(".filters button[data-a],.filters button[data-am]").forEach(y=>y.classList.remove("on"));x.classList.add("on");A={spec:Number(x.dataset.a),label:alabels[x.dataset.a]};render();});
+document.querySelectorAll(".filters button[data-am]").forEach(x=>x.onclick=()=>{document.querySelectorAll(".filters button[data-a],.filters button[data-am]").forEach(y=>y.classList.remove("on"));x.classList.add("on");A={spec:"M"+x.dataset.am,label:x.textContent};render();});
+document.querySelectorAll(".filters button[data-b]").forEach(x=>x.onclick=()=>{document.querySelectorAll(".filters button[data-b]").forEach(y=>y.classList.remove("on"));x.classList.add("on");B=x.dataset.b?{spec:x.dataset.b,label:x.textContent}:{spec:"",label:""};render();});
+$("dgo").onclick=()=>{if(!$("d1").value||!$("d2").value)return;document.querySelectorAll(".filters button[data-a],.filters button[data-am]").forEach(y=>y.classList.remove("on"));A={spec:"cust",label:"eigener"};render();};
+$("dbgo").onclick=()=>{if(!$("d3").value||!$("d4").value)return;document.querySelectorAll(".filters button[data-b]").forEach(y=>y.classList.remove("on"));B={spec:"custB",label:"eigener"};render();};
+load();
+</script></body></html>

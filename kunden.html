@@ -101,6 +101,7 @@ function render(){
  c+=card("AOV",a.aov,"Bestellwert je Bestellung",b?b.aov:null,eur,"up");
  c+=card("Neukunden-AOV",ncOk?a.ncAov:NaN,ncOk?"Erstkäufer-Bestellwert":"wird berechnet…",(b&&b.nco>0)?b.ncAov:null,x=>isFinite(x)?eur(x):"–","up");
  c+=card("CAC",a.cac,"Spend ÷ Neukunden",b?b.cac:null,eur,"down");
+ c+=card("Umsatz je Neukunde",a.nw?a.net/a.nw:0,"Nettoumsatz ÷ Neukunden",b?(b.nw?b.net/b.nw:0):null,eur,"up");
  c+=card("Umsatz (netto)",a.net,"inkl. "+nf(a.orders)+" Best.",b?b.net:null,eur,"up");
  c+=card("Marketing-Spend",a.sp,"Meta+Google+IFM · CPO "+eur(a.cpo),b?b.sp:null,eur,"down");
  $("cards").innerHTML=c;
@@ -118,6 +119,7 @@ function render(){
  t+=row("AOV",a.aov,b&&b.aov,eur);
  t+=row("Neukunden-AOV",ncOk?a.ncAov:NaN,(b&&b.nco>0)?b.ncAov:NaN,x=>isFinite(x)?eur(x):"–");
  t+=row("Marketing-Spend",a.sp,b&&b.sp,eur);
+ t+=row("Umsatz je Neukunde (netto)",a.nw?a.net/a.nw:0,b&&(b.nw?b.net/b.nw:0),eur);
  t+=row("CAC (je Neukunde)",a.cac,b&&b.cac,eur);
  t+=row("CPO (je Bestellung)",a.cpo,b&&b.cpo,eur);
  $("tbl").innerHTML=t;

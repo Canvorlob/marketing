@@ -44,12 +44,13 @@ td.n,th.n{text-align:right}
 <div id=ncwarn class=warn style="display:none"></div>
 <div class=cards id=cards></div>
 <div class=sec><h2>Details</h2><table id=tbl></table></div>
-<div class=note><b>Definitionen:</b> <b>Kunden gesamt</b> = kumulierte Kundenbasis bis zum <i>Ende</i> des Zeitraums (Basis 136.031 per 31.12.2025 + Neukunden 2026). <b>Neukunden</b> = Erstkäufer im Zeitraum (Shopify). <b>Neukundenquote</b> = Neukunden ÷ (Neukunden + Bestandskäufer). <b>AOV</b> = Bestellwert (inkl. MwSt &amp; Versand) ÷ Bestellungen. <b>Neukunden-AOV</b> = Erstkäufer-Umsatz ÷ Erstkäufer-Bestellungen (nächtlicher Bestell-Ebenen-Job). <b>CAC</b> = (Meta + Google + IFM) ÷ Neukunden. <b>CPO</b> = Spend ÷ Bestellungen. Monate mit * (Aug) laufen noch.</div>
+<div class=note><b>Alle Umsätze = netto + Versanderlöse</b> (ohne MwSt), einheitlich. <b>Kunden gesamt</b> = kumulierte Basis bis zum <i>Ende</i> des Zeitraums (136.031 per 31.12.2025 + Neukunden 2026). <b>Neukunden</b> = Erstkäufer im Zeitraum. <b>Neukundenquote</b> = Neukunden ÷ (Neukunden + Bestandskäufer). <b>AOV</b> = (netto+Versand) ÷ Bestellungen. <b>Neukunden-AOV / -Umsatz</b> = Erstkäufer-Bestellungen, aus Bestell-Ebene MwSt-bereinigt (÷1,19). <b>Umsatz je Neukunde</b> = gesamter (netto+Versand)-Umsatz ÷ Neukunden. <b>CAC</b> = (Meta+Google+IFM) ÷ Neukunden. <b>CPO</b> = Spend ÷ Bestellungen. Monate mit * (Aug) laufen noch.</div>
 <div class=foot>Automatisch aktualisiert (Shopify + Meta/Google/IFM, täglich) · 7 O'CLOCK Controlling</div>
 </div>
 <script>
 const WORKER="https://rohertrag-worker.can-11b.workers.dev/customers.json";
 let RAW=null, DAYS=[], BASE=136031, CUM=[];
+const VAT=1.19; // Neukunden-Werte kommen brutto aus Bestellungen -> auf netto+Versand umrechnen
 const $=id=>document.getElementById(id);
 const nf=n=>Math.round(n||0).toLocaleString("de-DE");
 const eur=x=>"€"+nf(x);
@@ -76,12 +77,14 @@ function idxRange(spec){ // returns [i0,i1] inclusive indices into DAYS
  if(spec==="cust"||spec==="custB"){let ia=spec==="cust"?"d1":"d3",ib=spec==="cust"?"d2":"d4";let a=$(ia).value,b=$(ib).value;if(!a||!b)return null;let i0=-1,i1=-1;for(let i=0;i<DAYS.length;i++){if(DAYS[i][0]>=a&&i0<0)i0=i;if(DAYS[i][0]<=b)i1=i;}return(i0>=0&&i1>=i0)?[i0,i1]:null;}
  return null;}
 function agg(rng){
- if(!rng)return null;let[i0,i1]=rng;let o=0,net=0,tot=0,nw=0,rt=0,sp=0,nco=0,ncr=0,ncDays=0;
- for(let i=i0;i<=i1;i++){let r=DAYS[i];o+=r[1];net+=r[2];tot+=r[3];nw+=r[4];rt+=r[5];sp+=r[6];nco+=r[7];ncr+=r[8];if(r[7]>0)ncDays++;}
+ if(!rng)return null;let[i0,i1]=rng;let o=0,net=0,sh=0,nw=0,rt=0,sp=0,nco=0,ncrG=0,ncDays=0;
+ for(let i=i0;i<=i1;i++){let r=DAYS[i];o+=r[1];net+=r[2];sh+=(r[9]||0);nw+=r[4];rt+=r[5];sp+=r[6];nco+=r[7];ncrG+=r[8];if(r[7]>0)ncDays++;}
+ let netship=net+sh;               // Umsatz-Definition: netto + Versanderlöse (ohne MwSt)
+ let ncr=ncrG/VAT;                 // Neukunden-Umsatz brutto -> netto+Versand
  let base=BASE+CUM[i1]; // Kunden gesamt bis Ende des Zeitraums
- return {i0,i1,from:DAYS[i0][0],to:DAYS[i1][0],orders:o,net,tot,nw,rt,sp,nco,ncr,ncDays,
-  allTime:base, quote:(nw+rt)?nw/(nw+rt)*100:0, aov:o?tot/o:0, ncAov:nco?ncr/nco:0,
-  cac:nw?sp/nw:0, cpo:o?sp/o:0};}
+ return {i0,i1,from:DAYS[i0][0],to:DAYS[i1][0],orders:o,net,sh,netship,nw,rt,sp,nco,ncr,ncDays,
+  allTime:base, quote:(nw+rt)?nw/(nw+rt)*100:0, aov:o?netship/o:0, ncAov:nco?ncr/nco:0,
+  upn:nw?netship/nw:0, cac:nw?sp/nw:0, cpo:o?sp/o:0};}
 let A={spec:30,label:"30 Tage"},B={spec:"",label:""};
 function card(t,val,lbl,b,fmtv,better){
  let cmp="";
@@ -98,12 +101,12 @@ function render(){
  c+=card("Kunden gesamt (all-time)",a.allTime,"kumulierte Basis bis "+fmtd(a.to),b?b.allTime:null,eur=>nf(eur),"up");
  c+=card("Neukunden",a.nw,"Erstkäufer im Zeitraum",b?b.nw:null,nf,"up");
  c+=card("Neukundenquote",a.quote,"von allen Käufern",b?b.quote:null,pct,"up");
- c+=card("AOV",a.aov,"Bestellwert je Bestellung",b?b.aov:null,eur,"up");
+ c+=card("AOV",a.aov,"netto+Versand je Bestellung",b?b.aov:null,eur,"up");
  c+=card("Neukunden-AOV",ncOk?a.ncAov:NaN,ncOk?"Erstkäufer-Bestellwert":"wird berechnet…",(b&&b.nco>0)?b.ncAov:null,x=>isFinite(x)?eur(x):"–","up");
  c+=card("Neukunden-Umsatz",ncOk?a.ncr:NaN,ncOk?"Summe Erstbestellungen":"wird berechnet…",(b&&b.nco>0)?b.ncr:null,x=>isFinite(x)?eur(x):"–","up");
  c+=card("CAC",a.cac,"Spend ÷ Neukunden",b?b.cac:null,eur,"down");
- c+=card("Umsatz je Neukunde",a.nw?a.net/a.nw:0,"Nettoumsatz ÷ Neukunden",b?(b.nw?b.net/b.nw:0):null,eur,"up");
- c+=card("Umsatz (netto)",a.net,"inkl. "+nf(a.orders)+" Best.",b?b.net:null,eur,"up");
+ c+=card("Umsatz je Neukunde",a.upn,"Umsatz (netto+Versand) ÷ Neukunden",b?b.upn:null,eur,"up");
+ c+=card("Umsatz",a.netship,"netto + Versand · "+nf(a.orders)+" Best.",b?b.netship:null,eur,"up");
  c+=card("Marketing-Spend",a.sp,"Meta+Google+IFM · CPO "+eur(a.cpo),b?b.sp:null,eur,"down");
  $("cards").innerHTML=c;
  // table
@@ -115,13 +118,12 @@ function render(){
  t+=row("Bestandskäufer",a.rt,b&&b.rt,nf);
  t+=row("Neukundenquote",a.quote,b&&b.quote,pct);
  t+=row("Bestellungen",a.orders,b&&b.orders,nf);
- t+=row("Umsatz netto",a.net,b&&b.net,eur);
- t+=row("Bestellwert (brutto)",a.tot,b&&b.tot,eur);
- t+=row("AOV",a.aov,b&&b.aov,eur);
+ t+=row("Umsatz (netto+Versand)",a.netship,b&&b.netship,eur);
+ t+=row("AOV (netto+Versand)",a.aov,b&&b.aov,eur);
  t+=row("Neukunden-AOV",ncOk?a.ncAov:NaN,(b&&b.nco>0)?b.ncAov:NaN,x=>isFinite(x)?eur(x):"–");
  t+=row("Neukunden-Umsatz (Erstbest.)",ncOk?a.ncr:NaN,(b&&b.nco>0)?b.ncr:NaN,x=>isFinite(x)?eur(x):"–");
  t+=row("Marketing-Spend",a.sp,b&&b.sp,eur);
- t+=row("Umsatz je Neukunde (netto)",a.nw?a.net/a.nw:0,b&&(b.nw?b.net/b.nw:0),eur);
+ t+=row("Umsatz je Neukunde",a.upn,b&&b.upn,eur);
  t+=row("CAC (je Neukunde)",a.cac,b&&b.cac,eur);
  t+=row("CPO (je Bestellung)",a.cpo,b&&b.cpo,eur);
  $("tbl").innerHTML=t;

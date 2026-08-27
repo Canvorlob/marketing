@@ -25,7 +25,7 @@ td.n,th.n{text-align:right}.tot td{font-weight:800;background:#f4efe7}.fin td{fo
 .foot{color:var(--mut);font-size:11px;margin-top:10px}
 </style></head><body><div class=wrap>
 <div class=brand>7 O'CLOCK · CONTROLLING</div><h1>Rohertrag- &amp; DB-Overview</h1>
-<div class=sub>Tagesdaten aus Shopify, Meta, Google &amp; GoAffPro · Stand: <span id=stand>24.08.2026 10:01</span><span id=dbis></span><span id=fresh></span> · Zeitraum frei wählbar + Vergleich (seit 1. Januar 2026)</div>
+<div class=sub>Tagesdaten aus Shopify, Meta, Google &amp; GoAffPro · Stand: <span id=stand>27.08.2026 08:46</span><span id=dbis></span><span id=fresh></span> · Zeitraum frei wählbar + Vergleich (seit 1. Januar 2026)</div>
 <div class=filters>
  <span class=flab>Zeitraum A</span>
  <button data-a=1>Gestern</button><button data-a=7>7 Tage</button><button data-a=30>30 Tage</button><button data-a=90>90 Tage</button>
@@ -41,6 +41,10 @@ td.n,th.n{text-align:right}.tot td{font-weight:800;background:#f4efe7}.fin td{fo
 <div id=range></div>
 <div class=cards id=cards></div>
 <div class=sec><h2>Wasserfall</h2><table id=wf></table></div>
+<div class=sec><h2>Umsatz vor Retouren &amp; Retourenquote</h2>
+<div style="font-size:12px;color:var(--mut);margin-bottom:8px">Von Bruttoumsatz (vor Rabatt &amp; Retouren) zum Nettoumsatz — so seht ihr die Umsatzperformance <b>ohne</b> Retouren/Stornos. Reagiert auf den Filter (Produkt-Umsatz, ohne Versand).</div>
+<table id=retq></table>
+<div class=note style="border-left-color:var(--blue);background:#eef2f4;color:var(--dark)"><b>Umsatz vor Retouren</b> = Umsatz nach Rabatt, aber bevor Retouren/Stornos abgezogen werden (= was tatsächlich bestellt wurde). <b>Retourenquote</b> = Retouren ÷ Umsatz vor Retouren.</div></div>
 <div class=sec><h2>Umsatz-Mix nach Kategorie</h2>
 <div style="font-size:12px;color:var(--mut);margin-bottom:8px">Anteile am <b>Netto-Umsatz</b> für <b>Zeitraum A</b> (und Vergleich B). Reagiert auf den Filter oben.</div>
 <div id=pie style="display:flex;gap:28px;flex-wrap:wrap;align-items:flex-start"></div></div>
@@ -73,9 +77,9 @@ function resolve(spec){if(spec==null||spec==="")return null;
  if(spec[0]==="M")return DATA.filter(r=>r[0].slice(0,7)===spec.slice(1));
  if(spec==="cust"||spec==="custB"){let ia=spec==="cust"?"d1":"d3",ib=spec==="cust"?"d2":"d4";let a=document.getElementById(ia).value,b=document.getElementById(ib).value;if(!a||!b)return null;return DATA.filter(r=>r[0]>=a&&r[0]<=b);}
  return null;}
-function agg(rows){let n=0,cg=0,sh=0,o=0,mt=0,gg=0,ifm=0,gn=0,gc=0;rows.forEach(r=>{n+=r[1];cg+=r[2];sh+=r[3];o+=r[4];mt+=r[5];gg+=r[6];ifm+=r[7];gn+=(r[8]||0);gc+=(r[9]||0);});
+function agg(rows){let n=0,cg=0,sh=0,o=0,mt=0,gg=0,ifm=0,gn=0,gc=0,gr=0,dc=0,rt=0;rows.forEach(r=>{n+=r[1];cg+=r[2];sh+=r[3];o+=r[4];mt+=r[5];gg+=r[6];ifm+=r[7];gn+=(r[8]||0);gc+=(r[9]||0);gr+=(r[10]||0);dc+=(r[11]||0);rt+=(r[12]||0);});
  let days=rows.length,ums=n+sh,roh=ums-cg,versand=SHIP*o,verpack=PACK*o,payment=PAY_PCT*(ums*VAT)+PAY_FIX*o,fremd=FREMD*days,shop=SHOP*days,db=roh-versand-verpack-payment-fremd-shop,ads=mt+gg+ifm,dbw=db-ads;
- return {ums,cg,roh,rohp:ums?roh/ums*100:0,versand,verpack,payment,fremd,shop,db,dbp:ums?db/ums*100:0,meta:mt,goog:gg,ifm,ads,adsp:ums?ads/ums*100:0,dbw,dbwp:ums?dbw/ums*100:0,o,days,from:rows[0][0],to:rows[rows.length-1][0],gnet:gn,gshare:n?gn/n*100:0,gcogpct:gn?gc/gn*100:0,quota:n?cg/n*100:0};}
+ return {ums,cg,roh,rohp:ums?roh/ums*100:0,versand,verpack,payment,fremd,shop,db,dbp:ums?db/ums*100:0,meta:mt,goog:gg,ifm,ads,adsp:ums?ads/ums*100:0,dbw,dbwp:ums?dbw/ums*100:0,o,days,from:rows[0][0],to:rows[rows.length-1][0],gnet:gn,gshare:n?gn/n*100:0,gcogpct:gn?gc/gn*100:0,quota:n?cg/n*100:0,net:n,gross:gr,disc:dc,ret:rt,umsVorRet:n+rt,retq:(n+rt)?rt/(n+rt)*100:0};}
 let A={spec:7,label:"7 Tage"},B={spec:null,label:""};
 function card(title,a,color,sub,mini,b){
  let cmp=(b!=null)?"<div class=cmp>B: "+eur(b)+" · <b style=\"color:"+(dpct(a,b)>=0?'var(--green)':'var(--red)')+"\">"+(dpct(a,b)>=0?'+':'')+de1(dpct(a,b))+" %</b></div>":"";
@@ -127,6 +131,19 @@ function pieSVG(A,title){
  let idx=labels.map((l,i)=>i).sort((a,b)=>vals[b]-vals[a]);
  let leg=idx.map(i=>{ if(vals[i]<=0)return ''; let frac=tot?vals[i]/tot*100:0; return '<div style="display:flex;align-items:center;gap:6px;font-size:12px;margin:3px 0"><span style="width:11px;height:11px;border-radius:2px;background:'+PIECOL[i%PIECOL.length]+';display:inline-block;flex:none"></span><span style="flex:1">'+labels[i]+'</span><b>'+de1(frac)+'&nbsp;%</b> <span class=muted style="min-width:64px;text-align:right;display:inline-block">'+eur(vals[i])+'</span></div>'; }).join("");
  return '<div style="min-width:300px"><div style="font-size:12px;font-weight:700;color:var(--dark);margin-bottom:6px">'+title+'</div><div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap"><svg width=180 height=180 viewBox="0 0 180 180">'+paths+'<circle cx=90 cy=90 r=46 fill="var(--card)"/><text x=90 y=85 text-anchor=middle font-size=10 fill="#8a8378">Netto ges.</text><text x=90 y=101 text-anchor=middle font-size=13 font-weight=700 fill="#2b2b2b">'+eur(tot)+'</text></svg><div style="flex:1;min-width:220px">'+leg+'</div></div></div>';}
+function retTable(xa,xb){
+ let two=!!xb,b=xb||{};
+ let o="<tr><th>Position</th><th class=n>"+A.label+"</th>"+(two?"<th class=n>"+B.label+"</th><th class=n>Δ</th>":"")+"</tr>";
+ function r(l,a,bv){return "<tr><td>"+l+"</td><td class=n>"+money(a)+"</td>"+(two?"<td class=n>"+money(bv)+"</td><td class=n>"+dmoney(a-bv)+"</td>":"")+"</tr>";}
+ function tt(cls,l,a,bv){return "<tr class="+cls+"><td>"+l+"</td><td class=n>"+eur(a)+"</td>"+(two?"<td class=n>"+eur(bv)+"</td><td class=n>"+dmoney(a-bv)+"</td>":"")+"</tr>";}
+ function pr(l,a,bv){return "<tr><td>"+l+"</td><td class=n><b>"+de1(a)+"&nbsp;%</b></td>"+(two?"<td class=n>"+de1(bv)+"&nbsp;%</td><td class=n>"+(a-bv>=0?'+':'')+de1(a-bv)+"&nbsp;pp</td>":"")+"</tr>";}
+ o+=r("Bruttoumsatz (vor Rabatt &amp; Retouren)",xa.gross,b.gross);
+ o+=r("− Rabatte",-xa.disc,-b.disc);
+ o+=tt("tot","Umsatz vor Retouren",xa.umsVorRet,b.umsVorRet);
+ o+=r("− Retouren / Stornos",-xa.ret,-b.ret);
+ o+=tt("fin","= Nettoumsatz (nach Retouren)",xa.net,b.net);
+ o+=pr("Retourenquote",xa.retq,b.retq);
+ return o;}
 function setActive(){
  document.querySelectorAll("[data-a]").forEach(x=>x.classList.toggle("on",A.spec===+x.dataset.a));
  document.querySelectorAll("[data-am]").forEach(x=>x.classList.toggle("on",A.spec==="M"+x.dataset.am));
@@ -146,6 +163,7 @@ function render(){
   card("DB vor Werbung",xa.db,"var(--dark)",de1(xa.dbp)+" % v. Umsatz","nach Kosten vor Werbung",xb?xb.db:null)+
   card("DB nach Werbung",xa.dbw,"var(--blue)",de1(xa.dbwp)+" % v. Umsatz","Werbung "+eur(xa.ads)+" ("+de1(xa.adsp)+" %)",xb?xb.dbw:null);
  document.getElementById("wf").innerHTML=wfTable(xa,xb);
+ document.getElementById("retq").innerHTML=retTable(xa,xb);
  document.getElementById("gresp").innerHTML=gTable(xa,xb);
  let pieH=pieSVG(catAgg(ra),"Zeitraum A · "+xa.from+" – "+xa.to);
  if(rb&&rb.length) pieH+=pieSVG(catAgg(rb),"Vergleich B · "+xb.from+" – "+xb.to);

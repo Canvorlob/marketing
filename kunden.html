@@ -43,6 +43,10 @@ td.n,th.n{text-align:right}
 <div id=range></div>
 <div id=ncwarn class=warn style="display:none"></div>
 <div class=cards id=cards></div>
+<div class=sec id=clvsec style="display:none"><h2>Customer Lifetime Value (Kohorte)</h2>
+<div style="font-size:12px;color:var(--mut);margin-bottom:10px">Ø Umsatz (netto+Versand) je <b>Neukunde</b> innerhalb von 30/60/90 Tagen nach Erstkauf — inkl. Wiederkäufe, ohne 0-€-Bestellungen. Kohorte = Neukunden 2026, die lang genug „gereift" sind. <b>Unabhängig vom Zeitraumfilter oben.</b></div>
+<div class=cards id=clvcards></div>
+<div class=foot id=clvfoot></div></div>
 <div class=sec><h2>Details</h2><table id=tbl></table></div>
 <div class=note><b>Alle Umsätze = netto + Versanderlöse</b> (ohne MwSt). <b>Alle Kunden-/Bestellzähler ohne 0-€-Bestellungen</b> (Bloggerpakete, Neusendungen, Ersatz) — die verwässern sonst die AOV. <b>Kunden gesamt</b> = kumulierte Basis bis zum <i>Ende</i> des Zeitraums (136.031 per 31.12.2025 + Neukunden 2026). <b>Neukunden</b> = Erstkäufer im Zeitraum. <b>Neukundenquote</b> = Neukunden ÷ (Neukunden + Bestandskäufer). <b>AOV</b> = Gesamtumsatz (netto+Versand) ÷ alle Kunden (Neukunden + Bestandskäufer). <b>Neukunden-Umsatz</b> = Summe der Erstbestellungen (netto+Versand, ÷1,19 MwSt-bereinigt). <b>Neukunden-AOV</b> = Neukunden-Umsatz ÷ Neukunden (Ø Bestellwert je Neukunde). <b>CAC (Neukunden)</b> = (Meta+Google+IFM) ÷ Neukunden. <b>CAC (alle Kunden)</b> = Spend ÷ alle Kunden (inkl. Bestandskäufer). <b>CPO</b> = Spend ÷ Bestellungen. <b>CVR</b> = abgeschlossene Checkouts ÷ Sessions (wie Shopify). <b>Neukunden-CVR</b> = Neukunden ÷ Sessions (Anteil der Besuche, die zu einem Neukunden wurden). Monate mit * laufen noch.</div>
 <div class=foot>Automatisch aktualisiert (Shopify + Meta/Google/IFM, täglich) · 7 O'CLOCK Controlling</div>
@@ -67,8 +71,16 @@ function load(){
   $("ncwarn").style.display=nc?"none":"block";
   if(!nc)$("ncwarn").innerHTML="<b>Neukunden-AOV</b> wird gerade erstmalig berechnet (Bestell-Ebenen-Backfill) — erscheint in Kürze.";
   else $("ncwarn").innerHTML="<b>Neukunden-AOV</b> verfügbar bis "+fmtd(nc)+" (nächtlicher Job).";
-  render();
+  render();renderCLV();
  }).catch(e=>{$("stand").textContent="Fehler: "+e;});
+}
+function renderCLV(){
+ var c=RAW&&RAW.clv,sec=$("clvsec");if(!sec)return;
+ if(!c||!(c.clv30||c.clv60||c.clv90)){sec.style.display="none";return;}
+ sec.style.display="";
+ var mk=function(t,val,n){return "<div class=card><div class=ct>"+t+"</div><div class=big>"+eur(val)+"</div><div class=lbl>Ø je Neukunde</div><div style='font-size:11px;color:var(--mut);margin-top:4px'>"+nf(n)+" Kunden in Kohorte</div></div>";};
+ $("clvcards").innerHTML=mk("CLV 30 Tage",c.clv30,c.n30)+mk("CLV 60 Tage",c.clv60,c.n60)+mk("CLV 90 Tage",c.clv90,c.n90);
+ $("clvfoot").textContent="Kohortenberechnung Stand "+(c.asOf?fmtd(c.asOf):"—")+" · Ø je Neukunde (netto+Versand, inkl. Wiederkäufe, ohne 0€).";
 }
 function idxRange(spec){ // returns [i0,i1] inclusive indices into DAYS
  if(spec==null||spec==="")return null;

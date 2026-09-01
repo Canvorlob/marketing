@@ -44,7 +44,7 @@ td.n,th.n{text-align:right}
 <div id=ncwarn class=warn style="display:none"></div>
 <div class=cards id=cards></div>
 <div class=sec><h2>Details</h2><table id=tbl></table></div>
-<div class=note><b>Alle Umsätze = netto + Versanderlöse</b> (ohne MwSt). <b>Alle Kunden-/Bestellzähler ohne 0-€-Bestellungen</b> (Bloggerpakete, Neusendungen, Ersatz) — die verwässern sonst die AOV. <b>Kunden gesamt</b> = kumulierte Basis bis zum <i>Ende</i> des Zeitraums (136.031 per 31.12.2025 + Neukunden 2026). <b>Neukunden</b> = Erstkäufer im Zeitraum. <b>Neukundenquote</b> = Neukunden ÷ (Neukunden + Bestandskäufer). <b>AOV</b> = Gesamtumsatz (netto+Versand) ÷ alle Kunden (Neukunden + Bestandskäufer). <b>Neukunden-Umsatz</b> = Summe der Erstbestellungen (netto+Versand, ÷1,19 MwSt-bereinigt). <b>Neukunden-AOV</b> = Neukunden-Umsatz ÷ Neukunden (Ø Bestellwert je Neukunde). <b>CAC</b> = (Meta+Google+IFM) ÷ Neukunden. <b>CPO</b> = Spend ÷ Bestellungen. <b>CVR</b> = abgeschlossene Checkouts ÷ Sessions (wie Shopify). <b>Neukunden-CVR</b> = Neukunden ÷ Sessions (Anteil der Besuche, die zu einem Neukunden wurden). Monate mit * laufen noch.</div>
+<div class=note><b>Alle Umsätze = netto + Versanderlöse</b> (ohne MwSt). <b>Alle Kunden-/Bestellzähler ohne 0-€-Bestellungen</b> (Bloggerpakete, Neusendungen, Ersatz) — die verwässern sonst die AOV. <b>Kunden gesamt</b> = kumulierte Basis bis zum <i>Ende</i> des Zeitraums (136.031 per 31.12.2025 + Neukunden 2026). <b>Neukunden</b> = Erstkäufer im Zeitraum. <b>Neukundenquote</b> = Neukunden ÷ (Neukunden + Bestandskäufer). <b>AOV</b> = Gesamtumsatz (netto+Versand) ÷ alle Kunden (Neukunden + Bestandskäufer). <b>Neukunden-Umsatz</b> = Summe der Erstbestellungen (netto+Versand, ÷1,19 MwSt-bereinigt). <b>Neukunden-AOV</b> = Neukunden-Umsatz ÷ Neukunden (Ø Bestellwert je Neukunde). <b>CAC (Neukunden)</b> = (Meta+Google+IFM) ÷ Neukunden. <b>CAC (alle Kunden)</b> = Spend ÷ alle Kunden (inkl. Bestandskäufer). <b>CPO</b> = Spend ÷ Bestellungen. <b>CVR</b> = abgeschlossene Checkouts ÷ Sessions (wie Shopify). <b>Neukunden-CVR</b> = Neukunden ÷ Sessions (Anteil der Besuche, die zu einem Neukunden wurden). Monate mit * laufen noch.</div>
 <div class=foot>Automatisch aktualisiert (Shopify + Meta/Google/IFM, täglich) · 7 O'CLOCK Controlling</div>
 </div>
 <script>
@@ -91,7 +91,7 @@ function agg(rng){
  const base=BASE+CUM[i1];          // Kunden gesamt bis Ende des Zeitraums
  return {i0,i1,from:DAYS[i0][0],to:DAYS[i1][0],orders,net,sh,netship,nw,rt,kunden,sp,nco:pnew,ncr,ses,comp,
   allTime:base, quote:kunden?nw/kunden*100:0, aov:kunden?netship/kunden:0, ncAov:nw?ncr/nw:0,
-  cac:nw?sp/nw:0, cpo:orders?sp/orders:0, cvr:ses?comp/ses*100:0, ncCvr:ses?nw/ses*100:0, ordCvr:ses?pord/ses*100:0};}
+  cac:nw?sp/nw:0, cacAll:kunden?sp/kunden:0, cpo:orders?sp/orders:0, cvr:ses?comp/ses*100:0, ncCvr:ses?nw/ses*100:0, ordCvr:ses?pord/ses*100:0};}
 let A={spec:30,label:"30 Tage"},B={spec:"",label:""};
 function card(t,val,lbl,b,fmtv,better){
  let cmp="";
@@ -115,7 +115,8 @@ function render(){
  c+=card("AOV",a.aov,"Ø Bestellwert je Kunde",b?b.aov:null,eur,"up");
  c+=card("Neukunden-AOV",ncOk?a.ncAov:NaN,ncOk?"Ø Bestellwert je Neukunde":"wird berechnet…",(b&&b.nco>0)?b.ncAov:null,x=>isFinite(x)?eur(x):"–","up");
  c+=card("Neukunden-Umsatz",ncOk?a.ncr:NaN,ncOk?"Summe Erstbestellungen":"wird berechnet…",(b&&b.nco>0)?b.ncr:null,x=>isFinite(x)?eur(x):"–","up");
- c+=card("CAC",a.cac,"Spend ÷ Neukunden",b?b.cac:null,eur,"down");
+ c+=card("CAC (Neukunden)",a.cac,"Spend ÷ Neukunden",b?b.cac:null,eur,"down");
+ c+=card("CAC (alle Kunden)",a.cacAll,"Spend ÷ alle Kunden",b?b.cacAll:null,eur,"down");
  c+=card("Umsatz",a.netship,"netto + Versand · "+nf(a.orders)+" Best.",b?b.netship:null,eur,"up");
  c+=card("Marketing-Spend",a.sp,"Meta+Google+IFM · CPO "+eur(a.cpo),b?b.sp:null,eur,"down");
  $("cards").innerHTML=c;
@@ -138,6 +139,7 @@ function render(){
  t+=row("Neukunden-Umsatz (Erstbest.)",ncOk?a.ncr:NaN,(b&&b.nco>0)?b.ncr:NaN,x=>isFinite(x)?eur(x):"–");
  t+=row("Marketing-Spend",a.sp,b&&b.sp,eur);
  t+=row("CAC (je Neukunde)",a.cac,b&&b.cac,eur);
+ t+=row("CAC (je Kunde, alle)",a.cacAll,b&&b.cacAll,eur);
  t+=row("CPO (je Bestellung)",a.cpo,b&&b.cpo,eur);
  $("tbl").innerHTML=t;
  const gen=RAW.generatedAt?new Date(RAW.generatedAt):null;

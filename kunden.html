@@ -91,7 +91,7 @@ function agg(rng){
  const base=BASE+CUM[i1];          // Kunden gesamt bis Ende des Zeitraums
  return {i0,i1,from:DAYS[i0][0],to:DAYS[i1][0],orders,net,sh,netship,nw,rt,kunden,sp,nco:pnew,ncr,ses,comp,
   allTime:base, quote:kunden?nw/kunden*100:0, aov:kunden?netship/kunden:0, ncAov:nw?ncr/nw:0,
-  cac:nw?sp/nw:0, cpo:orders?sp/orders:0, cvr:ses?comp/ses*100:0, ncCvr:ses?nw/ses*100:0};}
+  cac:nw?sp/nw:0, cpo:orders?sp/orders:0, cvr:ses?comp/ses*100:0, ncCvr:ses?nw/ses*100:0, ordCvr:ses?pord/ses*100:0};}
 let A={spec:30,label:"30 Tage"},B={spec:"",label:""};
 function card(t,val,lbl,b,fmtv,better){
  let cmp="";
@@ -109,7 +109,8 @@ function render(){
  c+=card("Neukunden",a.nw,"Erstkäufer im Zeitraum",b?b.nw:null,nf,"up");
  c+=card("Neukundenquote",a.quote,"von allen Käufern",b?b.quote:null,pct,"up");
  const pct2=x=>de2(x)+" %";
- c+=card("CVR",a.ses?a.cvr:NaN,a.ses?"Checkouts ÷ Sessions":"keine Session-Daten",(b&&b.ses)?b.cvr:null,x=>isFinite(x)?pct2(x):"–","up");
+ c+=card("CVR (getrackt)",a.ses?a.cvr:NaN,a.ses?"Checkouts ÷ Sessions (Shopify)":"keine Session-Daten",(b&&b.ses)?b.cvr:null,x=>isFinite(x)?pct2(x):"–","up");
+ c+=card("CVR (Bestellungen)",a.ses?a.ordCvr:NaN,a.ses?"bezahlte Best. ÷ Sessions":"keine Session-Daten",(b&&b.ses)?b.ordCvr:null,x=>isFinite(x)?pct2(x):"–","up");
  c+=card("Neukunden-CVR",a.ses?a.ncCvr:NaN,a.ses?"Neukunden ÷ Sessions":"keine Session-Daten",(b&&b.ses)?b.ncCvr:null,x=>isFinite(x)?pct2(x):"–","up");
  c+=card("AOV",a.aov,"Ø Bestellwert je Kunde",b?b.aov:null,eur,"up");
  c+=card("Neukunden-AOV",ncOk?a.ncAov:NaN,ncOk?"Ø Bestellwert je Neukunde":"wird berechnet…",(b&&b.nco>0)?b.ncAov:null,x=>isFinite(x)?eur(x):"–","up");
@@ -127,7 +128,8 @@ function render(){
  t+=row("Bestandskäufer",a.rt,b&&b.rt,nf);
  t+=row("Neukundenquote",a.quote,b&&b.quote,pct);
  t+=row("Sessions",a.ses,b&&b.ses,nf);
- t+=row("CVR (Checkouts ÷ Sessions)",a.ses?a.cvr:NaN,(b&&b.ses)?b.cvr:NaN,x=>isFinite(x)?de2(x)+" %":"–");
+ t+=row("CVR getrackt (Checkouts ÷ Sessions)",a.ses?a.cvr:NaN,(b&&b.ses)?b.cvr:NaN,x=>isFinite(x)?de2(x)+" %":"–");
+ t+=row("CVR order-basiert (bez. Best. ÷ Sessions)",a.ses?a.ordCvr:NaN,(b&&b.ses)?b.ordCvr:NaN,x=>isFinite(x)?de2(x)+" %":"–");
  t+=row("Neukunden-CVR (Neukunden ÷ Sessions)",a.ses?a.ncCvr:NaN,(b&&b.ses)?b.ncCvr:NaN,x=>isFinite(x)?de2(x)+" %":"–");
  t+=row("Bestellungen",a.orders,b&&b.orders,nf);
  t+=row("Umsatz (netto+Versand)",a.netship,b&&b.netship,eur);

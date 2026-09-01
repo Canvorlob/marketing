@@ -44,7 +44,7 @@ td.n,th.n{text-align:right}
 <div id=ncwarn class=warn style="display:none"></div>
 <div class=cards id=cards></div>
 <div class=sec><h2>Details</h2><table id=tbl></table></div>
-<div class=note><b>Alle Umsätze = netto + Versanderlöse</b> (ohne MwSt). <b>Alle Kunden-/Bestellzähler ohne 0-€-Bestellungen</b> (Bloggerpakete, Neusendungen, Ersatz) — die verwässern sonst die AOV. <b>Kunden gesamt</b> = kumulierte Basis bis zum <i>Ende</i> des Zeitraums (136.031 per 31.12.2025 + Neukunden 2026). <b>Neukunden</b> = Erstkäufer im Zeitraum. <b>Neukundenquote</b> = Neukunden ÷ (Neukunden + Bestandskäufer). <b>AOV</b> = Gesamtumsatz (netto+Versand) ÷ alle Kunden (Neukunden + Bestandskäufer). <b>Neukunden-Umsatz</b> = Summe der Erstbestellungen (netto+Versand, ÷1,19 MwSt-bereinigt). <b>Neukunden-AOV</b> = Neukunden-Umsatz ÷ Neukunden (Ø Bestellwert je Neukunde). <b>CAC</b> = (Meta+Google+IFM) ÷ Neukunden. <b>CPO</b> = Spend ÷ Bestellungen. Monate mit * (Aug) laufen noch.</div>
+<div class=note><b>Alle Umsätze = netto + Versanderlöse</b> (ohne MwSt). <b>Alle Kunden-/Bestellzähler ohne 0-€-Bestellungen</b> (Bloggerpakete, Neusendungen, Ersatz) — die verwässern sonst die AOV. <b>Kunden gesamt</b> = kumulierte Basis bis zum <i>Ende</i> des Zeitraums (136.031 per 31.12.2025 + Neukunden 2026). <b>Neukunden</b> = Erstkäufer im Zeitraum. <b>Neukundenquote</b> = Neukunden ÷ (Neukunden + Bestandskäufer). <b>AOV</b> = Gesamtumsatz (netto+Versand) ÷ alle Kunden (Neukunden + Bestandskäufer). <b>Neukunden-Umsatz</b> = Summe der Erstbestellungen (netto+Versand, ÷1,19 MwSt-bereinigt). <b>Neukunden-AOV</b> = Neukunden-Umsatz ÷ Neukunden (Ø Bestellwert je Neukunde). <b>CAC</b> = (Meta+Google+IFM) ÷ Neukunden. <b>CPO</b> = Spend ÷ Bestellungen. <b>CVR</b> = abgeschlossene Checkouts ÷ Sessions (wie Shopify). <b>Neukunden-CVR</b> = Neukunden ÷ Sessions (Anteil der Besuche, die zu einem Neukunden wurden). Monate mit * laufen noch.</div>
 <div class=foot>Automatisch aktualisiert (Shopify + Meta/Google/IFM, täglich) · 7 O'CLOCK Controlling</div>
 </div>
 <script>
@@ -78,8 +78,8 @@ function idxRange(spec){ // returns [i0,i1] inclusive indices into DAYS
  return null;}
 function agg(rng){
  if(!rng)return null;let[i0,i1]=rng;
- let net=0,sh=0,sp=0,ncrG=0,pnew=0,pord=0,pcust=0,newSql=0,retSql=0,ordSql=0;
- for(let i=i0;i<=i1;i++){let r=DAYS[i];net+=r[2];sh+=(r[9]||0);sp+=r[6];pnew+=(r[7]||0);ncrG+=(r[8]||0);pord+=(r[10]||0);pcust+=(r[11]||0);newSql+=r[4];retSql+=r[5];ordSql+=r[1];}
+ let net=0,sh=0,sp=0,ncrG=0,pnew=0,pord=0,pcust=0,newSql=0,retSql=0,ordSql=0,ses=0,comp=0;
+ for(let i=i0;i<=i1;i++){let r=DAYS[i];net+=r[2];sh+=(r[9]||0);sp+=r[6];pnew+=(r[7]||0);ncrG+=(r[8]||0);pord+=(r[10]||0);pcust+=(r[11]||0);newSql+=r[4];retSql+=r[5];ordSql+=r[1];ses+=(r[12]||0);comp+=(r[13]||0);}
  // bezahlte Zähler bevorzugen (0€-Bestellungen wie Bloggerpakete/Ersatz ausgeschlossen); Fallback ShopifyQL
  const havePaid=pcust>0;
  const nw=havePaid?pnew:newSql;
@@ -89,9 +89,9 @@ function agg(rng){
  const netship=net+sh;             // Umsatz: netto + Versanderlöse (ohne MwSt)
  const ncr=ncrG/VAT;               // Neukunden-Umsatz brutto -> netto+Versand
  const base=BASE+CUM[i1];          // Kunden gesamt bis Ende des Zeitraums
- return {i0,i1,from:DAYS[i0][0],to:DAYS[i1][0],orders,net,sh,netship,nw,rt,kunden,sp,nco:pnew,ncr,
+ return {i0,i1,from:DAYS[i0][0],to:DAYS[i1][0],orders,net,sh,netship,nw,rt,kunden,sp,nco:pnew,ncr,ses,comp,
   allTime:base, quote:kunden?nw/kunden*100:0, aov:kunden?netship/kunden:0, ncAov:nw?ncr/nw:0,
-  cac:nw?sp/nw:0, cpo:orders?sp/orders:0};}
+  cac:nw?sp/nw:0, cpo:orders?sp/orders:0, cvr:ses?comp/ses*100:0, ncCvr:ses?nw/ses*100:0};}
 let A={spec:30,label:"30 Tage"},B={spec:"",label:""};
 function card(t,val,lbl,b,fmtv,better){
  let cmp="";
@@ -108,6 +108,9 @@ function render(){
  c+=card("Kunden gesamt (all-time)",a.allTime,"kumulierte Basis bis "+fmtd(a.to),b?b.allTime:null,eur=>nf(eur),"up");
  c+=card("Neukunden",a.nw,"Erstkäufer im Zeitraum",b?b.nw:null,nf,"up");
  c+=card("Neukundenquote",a.quote,"von allen Käufern",b?b.quote:null,pct,"up");
+ const pct2=x=>de2(x)+" %";
+ c+=card("CVR",a.ses?a.cvr:NaN,a.ses?"Checkouts ÷ Sessions":"keine Session-Daten",(b&&b.ses)?b.cvr:null,x=>isFinite(x)?pct2(x):"–","up");
+ c+=card("Neukunden-CVR",a.ses?a.ncCvr:NaN,a.ses?"Neukunden ÷ Sessions":"keine Session-Daten",(b&&b.ses)?b.ncCvr:null,x=>isFinite(x)?pct2(x):"–","up");
  c+=card("AOV",a.aov,"Ø Bestellwert je Kunde",b?b.aov:null,eur,"up");
  c+=card("Neukunden-AOV",ncOk?a.ncAov:NaN,ncOk?"Ø Bestellwert je Neukunde":"wird berechnet…",(b&&b.nco>0)?b.ncAov:null,x=>isFinite(x)?eur(x):"–","up");
  c+=card("Neukunden-Umsatz",ncOk?a.ncr:NaN,ncOk?"Summe Erstbestellungen":"wird berechnet…",(b&&b.nco>0)?b.ncr:null,x=>isFinite(x)?eur(x):"–","up");
@@ -123,6 +126,9 @@ function render(){
  t+=row("Neukunden",a.nw,b&&b.nw,nf);
  t+=row("Bestandskäufer",a.rt,b&&b.rt,nf);
  t+=row("Neukundenquote",a.quote,b&&b.quote,pct);
+ t+=row("Sessions",a.ses,b&&b.ses,nf);
+ t+=row("CVR (Checkouts ÷ Sessions)",a.ses?a.cvr:NaN,(b&&b.ses)?b.cvr:NaN,x=>isFinite(x)?de2(x)+" %":"–");
+ t+=row("Neukunden-CVR (Neukunden ÷ Sessions)",a.ses?a.ncCvr:NaN,(b&&b.ses)?b.ncCvr:NaN,x=>isFinite(x)?de2(x)+" %":"–");
  t+=row("Bestellungen",a.orders,b&&b.orders,nf);
  t+=row("Umsatz (netto+Versand)",a.netship,b&&b.netship,eur);
  t+=row("AOV (netto+Versand ÷ Kunden)",a.aov,b&&b.aov,eur);

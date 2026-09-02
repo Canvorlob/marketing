@@ -1,298 +1,57 @@
-<!DOCTYPE html>
-<html lang="de">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>7 O'CLOCK · Marketing-Entscheidungs-Cockpit</title>
-<style>
-:root{color-scheme:light;
- --bg:#faf8f4; --card:#ffffff; --ink:#2a2620; --mut:#7a7266; --line:#e7e0d5;
- --acc:#5F4A32; --sand:#f3ece1;
- --green:#2e7d52; --greenbg:#e7f3ec; --teal:#2a7d7d; --tealbg:#e5f2f2;
- --amber:#a9791b; --amberbg:#f7efdc; --red:#b23b34; --redbg:#f8e7e5; --grey:#8a8278; --greybg:#eee;}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);
- font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
- font-size:14px;line-height:1.45;padding:20px;}
-.wrap{max-width:1080px;margin:0 auto;}
-h1{font-size:22px;margin:0 0 2px;letter-spacing:.2px}
-.sub{color:var(--mut);font-size:13px;margin-bottom:4px}
-.brand{color:var(--acc);font-weight:700;letter-spacing:.5px;font-size:12px;text-transform:uppercase}
-.meta{color:var(--mut);font-size:12px;margin-top:6px}
-.filters{display:inline-flex;gap:0;background:var(--sand);border-radius:10px;padding:3px;margin:12px 0 2px}
-.filters button{border:none;background:transparent;padding:7px 16px;border-radius:8px;font-size:13px;color:var(--mut);cursor:pointer;font-weight:600;transition:all .12s}
-.filters button.on{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.08)}
-.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:14px 0;}
-h2{font-size:15px;margin:2px 0 12px;color:var(--acc);border-bottom:2px solid var(--sand);padding-bottom:6px}
-.anchor{display:flex;flex-wrap:wrap;gap:18px;align-items:center}
-.merbox{flex:0 0 auto;text-align:center;padding:10px 20px;border-radius:12px;background:var(--sand);min-width:150px}
-.merbox .big{font-size:34px;font-weight:800;line-height:1;color:var(--acc)}
-.merbox .lbl{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.5px;margin-top:4px}
-.anchor .txt{flex:1;min-width:240px;font-size:13px}
-.kpis{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px}
-.kpi{background:var(--sand);border-radius:8px;padding:7px 12px;font-size:12px}
-.kpi b{font-size:15px;display:block;color:var(--ink)}
-table{width:100%;border-collapse:collapse;font-size:13px}
-th{text-align:left;color:var(--mut);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.4px;padding:6px 8px;border-bottom:1px solid var(--line)}
-td{padding:6px 8px;border-bottom:1px solid #f2ede4}
-td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
-tr:last-child td{border-bottom:none}
-.chip{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap}
-.c-green{background:var(--greenbg);color:var(--green)} .c-teal{background:var(--tealbg);color:var(--teal)}
-.c-amber{background:var(--amberbg);color:var(--amber)} .c-red{background:var(--redbg);color:var(--red)}
-.c-grey{background:var(--greybg);color:var(--grey)}
-.badge{font-size:10px;padding:1px 7px;border-radius:20px;font-weight:700;vertical-align:middle;margin-left:6px}
-.b-snap{background:var(--amberbg);color:var(--amber)}
-.bands{display:flex;flex-wrap:wrap;gap:8px}
-.band{flex:1;min-width:150px;border-radius:8px;padding:8px 10px;font-size:12px}
-.band .r{font-weight:800;font-size:13px}
-.foot{color:var(--mut);font-size:11.5px;line-height:1.5;margin-top:6px}
-.note{background:var(--amberbg);border-left:3px solid var(--amber);padding:8px 12px;border-radius:6px;font-size:12.5px;margin-top:10px}
-.muted{color:var(--mut)} .sm{font-size:11px}
-.ratio{font-weight:700}
-@media(max-width:620px){.merbox .big{font-size:28px}}
-</style>
-</head>
-<body>
-<div class="wrap">
- <div class="brand">7 O'CLOCK</div>
- <h1>Marketing-Entscheidungs-Cockpit</h1>
- <div class="sub">Meta skalieren &amp; Google-Agentur steuern</div>
- <div class="filters" id="filters">
-   <button data-w="2">Letzte 2 Tage</button>
-   <button data-w="7">Letzte 7 Tage</button>
-   <button data-w="30" class="on">Letzte 30 Tage</button>
-   <button data-w="90">Letzte 90 Tage</button>
- </div>
- <div id="mon-note" class="note" style="display:none;background:#eaecff;border-left-color:#5b6ee0;margin-top:8px"></div>
- <div class="meta" id="updated"></div>
+<!doctype html><html lang=de><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1">
+<title>7 O'CLOCK · Controlling-Übersicht</title><style>
+:root{--bg:#faf8f5;--card:#fff;--ink:#2b2b2b;--mut:#8a8378;--line:#e7e2d9;--green:#2f8f57;--gold:#b79b6e;--dark:#4a4335;--blue:#2f6f8f}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.55}
+.wrap{max-width:940px;margin:0 auto;padding:32px 20px}
+.brand{font-size:11px;letter-spacing:.14em;color:var(--mut);font-weight:700}
+h1{font-size:27px;margin:4px 0 4px}.sub{color:var(--mut);font-size:14px;margin-bottom:24px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(400px,1fr));gap:16px}
+a.card{display:block;text-decoration:none;color:inherit;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px 22px;transition:box-shadow .15s,transform .15s}
+a.card:hover{box-shadow:0 6px 20px rgba(0,0,0,.07);transform:translateY(-2px);border-color:#d9d2c4}
+.ic{font-size:22px}
+.ct{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--gold);font-weight:700;margin-top:6px}
+.tt{font-size:19px;font-weight:800;color:#1c1c1c;margin:2px 0 6px}
+.ds{font-size:13px;color:var(--dark)}
+.tag{display:inline-block;margin-top:12px;font-size:11px;font-weight:700;color:var(--green);letter-spacing:.03em}
+.foot{color:var(--mut);font-size:12px;margin-top:26px;border-top:1px solid var(--line);padding-top:14px}
+</style></head><body><div class=wrap>
+<div class=brand>7 O'CLOCK · CONTROLLING</div>
+<h1>Controlling-Übersicht</h1>
+<div class=sub>Alle Live-Dashboards an einem Ort. Jede Seite zieht ihre Zahlen selbst aus Shopify, Meta &amp; Google und aktualisiert sich täglich.</div>
+<div class=grid>
 
- <div class="card">
-  <h2>Realit&auml;ts-Anker &mdash; Account-MER</h2>
-  <div class="anchor">
-   <div class="merbox"><div class="big" id="mer-val">&middot;&middot;</div><div class="lbl">Blended MER (netto)</div></div>
-   <div class="merbox" style="background:#fff;border:1px dashed var(--line)"><div class="big" style="color:var(--mut);font-size:26px">2,10</div><div class="lbl">Break-even-MER</div></div>
-   <div class="merbox"><div class="big" id="db-val" style="font-size:26px;color:var(--green)">&middot;</div><div class="lbl">&euro; DB nach Werbung</div><div class="sm muted" style="margin-top:4px">Netto &times; 47,6 % &minus; gesamter Ad-Spend &middot; vor Fixkosten</div></div>
-   <div class="txt">
-     <div id="mer-verdict" style="font-weight:700;margin-bottom:4px">&hellip;</div>
-     <div class="muted sm">Die einzige attributions-freie Wahrheit: Shopify-Nettoumsatz &divide; gesamter Ad-Spend. Sagt, ob die ganze Maschine gesund ist &mdash; unabh&auml;ngig davon, was Meta/Google sich einzeln zuschreiben. <b>MER sagt, ob du Gas geben darfst; ROAS&divide;BE sagt, auf welche Kampagne.</b></div>
-     <div class="kpis">
-       <div class="kpi">Shopify Netto<b id="k-net">&middot;</b></div>
-       <div class="kpi">Ad-Spend gesamt<b id="k-spend">&middot;</b></div>
-       <div class="kpi">Meta / Google<b id="k-split">&middot;</b></div>
-       <div class="kpi">Bestellungen<b id="k-ord">&middot;</b></div>
-     </div>
-   </div>
-  </div>
-  <div class="note">Plattform-Warnung: Meta + Google beanspruchen zusammen mehr Umsatz, als der Shop insgesamt macht (Doppelz&auml;hlung). <b>Plattform-ROAS niemals summieren</b> &mdash; nur der Account-MER hier oben ist die absolute Wahrheit. Die Einzel-ROAS unten dienen dem <b>relativen</b> Vergleich.</div>
- </div>
+<a class=card href="cockpit.html">
+ <div class=ic>🎯</div>
+ <div class=ct>Steuerung</div>
+ <div class=tt>Marketing-Cockpit</div>
+ <div class=ds>Account-MER vs. Break-even, DB &amp; Gewinn/EBITDA (laufender Monat), Kampagnen-Steuerung Meta &amp; Google (ROAS ÷ Break-even, Δ-Budget), Regional-Split. Sagt dir, wo du Gas geben kannst.</div>
+ <div class=tag>LIVE · Zeitraum wählbar →</div>
+</a>
 
- <div class="card">
-  <h2>Regional-Split &mdash; DACH vs. Europa (ohne DACH)</h2>
-  <div class="anchor" id="region-body"></div>
-  <div class="foot">DACH = DE + AT + CH, EU = alle anderen L&auml;nder (nach Bestellland). Die Kampagnen sind per Naming sauber getrennt (<code>DE-AT-CH_</code> vs. <code>EU_</code>), daher l&auml;sst sich der MER regional trennen. Die Frage dahinter: <b>tr&auml;gt sich die Europa-Expansion?</b> Da EU nur ~9&ndash;10 % vom Umsatz ausmacht, lohnt der Blick.</div>
- </div>
+<a class=card href="rohertrag.html">
+ <div class=ic>📊</div>
+ <div class=ct>Profitabilität</div>
+ <div class=tt>Rohertrag-Overview</div>
+ <div class=ds>Rohertrag &amp; Deckungsbeitrag-Wasserfall, Umsatz-Mix nach Kategorie, Geschirr-Mix &amp; COGS-Effekt, Bruttoumsatz / Umsatz vor Retouren &amp; Retourenquote.</div>
+ <div class=tag>LIVE · Zeitraum + Vergleich →</div>
+</a>
 
- <div class="card">
-  <h2>Regelwerk &mdash; Verh&auml;ltnis ROAS &divide; Break-even</h2>
-  <div class="bands">
-   <div class="band c-green"><span class="r">&ge; 1,5</span> &middot; SKALIEREN<br><span class="sm">+20&ndash;30 % Budget</span></div>
-   <div class="band c-teal"><span class="r">1,2&ndash;1,5</span> &middot; HALTEN<br><span class="sm">+0&ndash;10 %</span></div>
-   <div class="band c-amber"><span class="r">1,0&ndash;1,2</span> &middot; BEOBACHTEN<br><span class="sm">halten / optimieren</span></div>
-   <div class="band c-red"><span class="r">&lt; 1,0</span> &middot; K&Uuml;RZEN<br><span class="sm">senken / stop</span></div>
-  </div>
-  <div class="foot">Der 50%-Puffer (Skalieren erst ab 1,5, nicht 1,0) ist der bewusste Abschlag f&uuml;r Metas &Uuml;ber-Attribution. Nach jedem Skalier-Schritt den MER oben nachmessen: bleibt er stabil &rarr; das Budget war inkrementell, weiter; f&auml;llt er &rarr; zur&uuml;ck.</div>
- </div>
+<a class=card href="kunden.html">
+ <div class=ic>👥</div>
+ <div class=ct>Kunden</div>
+ <div class=tt>Kunden-Overview</div>
+ <div class=ds>Kunden gesamt &amp; Neukunden, AOV &amp; Neukunden-AOV, CAC (Neu &amp; gesamt), CVR &amp; Neukunden-CVR, CLV 30/60/90. 0-€-Bestellungen sauber ausgeschlossen.</div>
+ <div class=tag>LIVE · Zeitraum + Vergleich →</div>
+</a>
 
- <div class="card">
-  <h2>Meta &mdash; Kampagnen-Entscheidungen</h2>
-  <table><thead><tr>
-    <th>Kampagne</th><th>Kategorie</th><th class="n">Spend</th><th class="n">ROAS</th><th class="n">BE</th><th class="n">Ratio</th><th>Aktion</th><th class="n">&Delta; Budget</th><th class="n">Umsatz Kat. (Shopify)</th>
-  </tr></thead><tbody id="meta-body"></tbody></table>
-  <div class="foot" id="meta-foot"></div>
- </div>
+<a class=card href="creatives.html">
+ <div class=ic>🎨</div>
+ <div class=ct>Creative</div>
+ <div class=tt>Creative-Cockpit</div>
+ <div class=ds>Welche Meta-Ads laufen gut — Ad-Level mit Vorschaubild, ROAS, CTR, Hook-Rate. Für Grafik &amp; Content: Vorlage für neue Ads.</div>
+ <div class=tag>LIVE · Zeitraum wählbar →</div>
+</a>
 
- <div class="card">
-  <h2>Google &mdash; Gespr&auml;chsliste f&uuml;r den Agentur-Call</h2>
-  <table><thead><tr>
-    <th>Kampagne</th><th class="n">ROAS</th><th class="n">BE</th><th class="n">Ratio</th><th>Aktion</th><th class="n">&Delta; Budget</th><th>Gespr&auml;chspunkt</th>
-  </tr></thead><tbody id="g-body"></tbody></table>
-  <div class="foot"><b>&Delta; Budget = Empfehlung f&uuml;r den Agentur-Call</b> (die Agentur steuert Google-Budgets, nicht du selbst) &mdash; sonst gleiche Logik wie Meta: Ratio = ROAS &divide; Kategorie-BE, gleiche B&auml;nder. <b>*</b> = attributions-bereinigt (v.a. Kunstblumen). <b>Brand/Search</b> (hohe ROAS, kein BE) erntet Marken-Nachfrage &rarr; Inkrementalit&auml;t per Holdout pr&uuml;fen. Feed-only-PMax ist sauber produkt-attribuiert.</div>
- </div>
-
- <div class="card">
-  <h2>Alle 17 Kategorien &mdash; DB-Wahrheit &amp; Break-even</h2>
-  <table><thead><tr>
-    <th>Kategorie</th><th class="n">Netto (Juni)</th><th class="n">COGS %</th><th class="n">BE-MER</th><th class="n">BE-ROAS</th>
-  </tr></thead><tbody id="cat-body"></tbody></table>
-  <div class="foot"><b>Letzter voller Monat (Juni).</b> COGS = echte Warenkosten aus Shopify je Kategorie. BE-MER = 1 &divide; Marge vor Werbung; BE-ROAS = 1,19 &divide; Marge. Strukturelle Kosten (Versand, Payment, Verpackung, Affiliate, Bruch) aus dem Kostenmodell. <b>Auff&auml;llig: Geschirr-COGS 61% (Mai 57%)</b> &rarr; BE-MER 2,92&rarr;3,63, BE-ROAS bis 4,32. EK-Verhandlung dringend. Servietten-COGS-Sprung ist mengenbedingt (Kleinkategorie). <b>Bloom</b> COGS manuell korrigiert &mdash; Hortensien-EK 2,46 € fehlt in Shopify im Kosten-Feld (steht im Vergleichspreis) &rarr; bitte nachtragen.</div>
- </div>
-
- <div class="foot" style="text-align:center;margin:18px 0">
-   &Ouml;ffentliche Snapshot-Version &middot; Zeitr&auml;ume vorberechnet zum angegebenen Stand &middot; die interaktive Live-Version l&auml;uft intern in Cowork.
- </div>
 </div>
-
-<script>
-// ==== Snapshot (Stand 13. August 2026) · alle Fenster vorberechnet ====
-const WIN={
- "2":{net:35068.09,gross:43063.64,orders:463,metaTotal:6583,googleTotal:1583,
-   catrev:{"Geschirr":11139,"Gläser":10563,"Keramikbecher":3915,"Bettwäsche":2898,"Vasen":469,"Bloom":1016},
-   region:{"dach":30048,"eu":5020,"dachMer":4.22,"euMer":4.83},
-   catoaf:{},
-   meta:[["BW25_SocialVideo","Broad",1272.64,4.55],["EU_Summersale_26","Broad",951.47,6.49],["TOFU_Bettwäsche_ABO","Bettwäsche",773.19,1.79],["CreativeTesting_ABO","Broad",628.57,1.8],["TOFU_GESCHIRR_Bestperformer","Geschirr",599.46,8.03],["Summersale_26","Broad",488.9,3.05],["Summersale_EndOff","Broad",250.51,6.28],["Summersale_26_Geschirr","Geschirr",244.9,0.92],["BW25_Posttip","Broad",234.62,4.78],["Bloom_V2","Bloom",214.09,3.04],["EG_Geschirrsets","Geschirr",192.07,5.23],["Summersale_NewCreatives","Broad",178.76,2.93],["Summersale_ASC","Broad",149.32,1.69],["NiaBeige_Geschirr","Geschirr",134.48,1.78],["BestsellerBundle_25","Gläser",101.9,5.86],["EU_Bloom","Bloom",87.87,1.1],["Gläser_ASC","Gläser",61.02,0],["Bloom_OFFER","Bloom",18.92,11.85]],
-   google:[["DE & AT | PMax | Feed-only | Gläser",4.1],["DE & AT | Brand-Shopping | Alle Produkte",1.95],["DE & AT | PMax | Feed-only | Geschirr",5.05],["DE & AT | PMax | Tassen & Kannen | Feed-only",1.63],["DE & AT | PMax | Asset-only | Bettwäsche, Gläser, Geschirr-Sets",8.12],["DACH | Search | Brand + Combination",30.55],["DE & AT | PMax | Bettwäsche | Feed-only",2.54],["DE & AT | PMax | Matcha | Feed-only",2.31],["DE & AT | Search | Generic | Matcha",0.0],["DACH | Search | Branding",38.13],["DE & AT | PMax | Kunstblumen | Feed-only",2.05],["DE & AT | PMax | Feed-only | Sonstiges",1.53],["DE & AT | PMax | Accessoires | Feed-only",2.81],["DE & AT | PMax | Vorratsgläser | Feed-only",0.0]]},
- "7":{net:124156.78,gross:145012.04,orders:1568,metaTotal:26693,googleTotal:5778,
-   catrev:{"Geschirr":40208,"Gläser":31835,"Keramikbecher":16019,"Bettwäsche":11586,"Vasen":1891,"Bloom":4350},
-   region:{"dach":111986,"eu":12171,"dachMer":4.06,"euMer":2.5},
-   catoaf:{},
-   meta:[["BW25_SocialVideo","Broad",4938.44,3.63],["EU_Summersale_26","Broad",4770.21,2.82],["TOFU_Bettwäsche_ABO","Bettwäsche",2862.89,2.86],["CreativeTesting_ABO","Broad",2600.56,2.89],["TOFU_GESCHIRR_Bestperformer","Geschirr",2562.16,5.17],["Summersale_26","Broad",2079.66,3.25],["Summersale_EndOff","Broad",1070.78,4.94],["Summersale_26_Geschirr","Geschirr",944.27,6.32],["Bloom_V2","Bloom",854.57,3.28],["BW25_Posttip","Broad",797.08,5.34],["Summersale_NewCreatives","Broad",745.45,4.66],["EG_Geschirrsets","Geschirr",722.43,5.34],["Summersale_ASC","Broad",631.58,2.58],["BestsellerBundle_25","Gläser",427.58,3.61],["Gläser_ASC","Gläser",393.88,2.51],["NiaBeige_Geschirr","Geschirr",164.89,2.28],["EU_Bloom","Bloom",107.75,3.52],["Bloom_OFFER","Bloom",18.92,11.85]],
-   google:[["DE & AT | PMax | Feed-only | Gläser",5.88],["DE & AT | Brand-Shopping | Alle Produkte",5.67],["DE & AT | PMax | Feed-only | Geschirr",9.41],["DE & AT | PMax | Tassen & Kannen | Feed-only",5.02],["DE & AT | PMax | Asset-only | Bettwäsche, Gläser, Geschirr-Sets",6.64],["DACH | Search | Brand + Combination",46.34],["DE & AT | PMax | Bettwäsche | Feed-only",5.1],["DE & AT | Search | Generic | Matcha",1.64],["DE & AT | PMax | Kunstblumen | Feed-only",2.93],["DE & AT | PMax | Matcha | Feed-only",3.23],["DACH | Search | Branding",49.01],["DE & AT | PMax | Feed-only | Sonstiges",1.45],["DE & AT | PMax | Accessoires | Feed-only",1.69],["DE & AT | PMax | Vorratsgläser | Feed-only",1.27]]},
- "30":{net:497706.28,gross:577296.08,orders:6499,metaTotal:93418,googleTotal:21897,
-   catrev:{"Geschirr":161553,"Gläser":142572,"Keramikbecher":60221,"Bettwäsche":41142,"Vasen":9587,"Bloom":12907},
-   region:{"dach":444333,"eu":53373,"dachMer":4.43,"euMer":3.54},
-   catoaf:{"Broad":1.08},
-   meta:[["BW25_SocialVideo","Broad",17807.86,3.32],["EU_Summersale_26","Broad",14981.11,3.58],["TOFU_Bettwäsche_ABO","Bettwäsche",10079.73,3.13],["CreativeTesting_ABO","Broad",8788.72,4.19],["TOFU_GESCHIRR_Bestperformer","Geschirr",8187.48,5.63],["Summersale_26","Broad",6560.64,3.47],["EG_Geschirrsets","Geschirr",4234.18,4.52],["Summersale_26_Geschirr","Geschirr",4046.61,4.94],["Summersale_ASC","Broad",3379.12,3.1],["BW25_Posttip","Broad",2509.81,4.27],["BestsellerBundle_25","Gläser",2227.87,3.0],["Bloom_V2","Bloom",2181.96,4.41],["Summersale_EndOff","Broad",2133.55,4.8],["Summersale_NewCreatives","Broad",2009.23,5.17],["Gläser_ASC","Gläser",1728.42,3.38],["Wunschset_Launch","Gläser",954.15,1.71],["Bloom","Bloom",630.64,3.88],["Brooklyn","Broad",493.86,4.6],["NiaBeige_Geschirr","Geschirr",164.89,2.28],["Bloom_Wunschstrauß","Bloom",131.41,1.54],["EU_Bloom","Bloom",107.75,3.52],["PreAcces_NiaBeige","Broad",60.04,0],["Bloom_OFFER","Bloom",18.92,11.85]],
-   google:[["DE & AT | PMax | Feed-only | Gläser",7.85],["DE & AT | PMax | Feed-only | Geschirr",13.18],["DE & AT | PMax | Tassen & Kannen | Feed-only",5.09],["DE & AT | PMax | Asset-only | Bettwäsche, Gläser, Geschirr-Sets",5.63],["DE & AT | Brand-Shopping | Alle Produkte",7.63],["DE & AT | PMax | Bettwäsche | Feed-only",6.72],["DACH | Search | Brand + Combination",57.11],["DACH | Search | Branding",75.45],["DE & AT | PMax | Feed-only | Sonstiges",4.18],["DE & AT | PMax | Kunstblumen | Feed-only",3.35],["DE & AT | PMax | Accessoires | Feed-only",3.49],["DE & AT | PMax | Kunstblumen | Asset-only",1.93],["DE & AT | PMax | Matcha | Feed-only",2.71],["DE & AT | PMax | Vorratsgläser | Feed-only",1.59],["DE & AT | Search | Generic | Matcha",1.6]]},
- "90":{net:1385762.99,gross:1595160.45,orders:18829,metaTotal:261000,googleTotal:68321,
-   catrev:{"Geschirr":419438,"Gläser":462843,"Keramikbecher":152301,"Bettwäsche":116376,"Vasen":16590,"Bloom":22391},
-   region:{"dach":1249588,"eu":136175,"dachMer":4.32,"euMer":3.4},
-   catoaf:{"Bloom":1.06,"Broad":1.11},
-   meta:[["BW25_SocialVideo","Broad",44771.38,3.51],["TOFU_GESCHIRR_Bestperformer","Geschirr",31764.95,4.03],["EU_Summersale_26","Broad",30648.62,3.64],["CreativeTesting_ABO","Broad",26175.31,3.96],["TOFU_Bettwäsche_ABO","Bettwäsche",24193.25,3.16],["Summersale_26","Broad",17423.79,3.66],["EG_Geschirrsets","Geschirr",14265.15,4.53],["Summersale_26_Geschirr","Geschirr",11427.21,4.58],["Gläser_ASC","Gläser",8059.76,3.37],["BW25_Posttip","Broad",7935.41,3.56],["BestsellerBundle_25","Gläser",7688.64,3.66],["Summersale_ASC","Broad",7671.41,3.54],["EU_TOFU_ALL","Broad",7579.39,2.22],["Bloom","Bloom",2859.27,4.31],["Summersale_NewCreatives","Broad",2780.86,4.81],["Bloom_V2","Bloom",2181.96,4.41],["Summersale_EndOff","Broad",2133.55,4.8],["EU_SocialVideo","Broad",1757.14,3.33],["Mo_NiaSparset_Geschirr","Geschirr",1669.25,4.02],["Wunschset_Launch","Gläser",1633.04,2.41],["Evergreen_Bettwäsche_Test","Bettwäsche",1616.95,2.34],["Brooklyn","Broad",1228.12,4.72],["Bettwäsche_26","Bettwäsche",733.3,1.5],["Bloom_ABO","Bloom",730.21,1.55],["EG_Geschirrset_Gerillt","Geschirr",671.96,2.82],["Summersale_26_Animation","Broad",559.09,2.66],["NeueVasen_Testing","Vasen",357.93,2.75],["NiaBeige_Geschirr","Geschirr",164.89,2.28],["Bloom_Wunschstrauß","Bloom",131.41,1.54],["EU_Bloom","Bloom",107.75,3.52],["PreAcces_NiaBeige","Broad",60.04,0],["Bloom_OFFER","Bloom",18.92,11.85]],
-   google:[["DE & AT | PMax | Feed-only | Gläser",8.28],["DE & AT | PMax | Asset-only | Bettwäsche, Gläser, Geschirr-Sets",5.35],["DE & AT | PMax | Feed-only | Geschirr",10.62],["DE & AT | PMax | Tassen & Kannen | Feed-only",5.11],["DE & AT | Brand-Shopping | Alle Produkte",8.97],["DE & AT | PMax | Bettwäsche | Feed-only",6.73],["DE & AT | PMax | Feed-only | Sonstiges",5.43],["DACH | Search | Brand + Combination",47.32],["DE & AT | PMax | Accessoires | Feed-only",3.72],["DACH | Search | Branding",116.42],["DE & AT | PMax | Vorratsgläser | Feed-only",4.03],["DE & AT | PMax | Kunstblumen | Feed-only",3.27],["DE & AT | PMax | Kunstblumen | Asset-only",2.03],["DE & AT | PMax | Matcha | Feed-only",2.71],["DE & AT | Search | Generic | Matcha",1.6],["DE & AT | PMax | Keramik Becher | Asset Only",1.63]]}
-};
-const LABEL={"2":"Letzte 2 Tage","7":"Letzte 7 Tage","30":"Letzte 30 Tage","90":"Letzte 90 Tage"};
-const DATA_END="12. August 2026";   // letzter enthaltener Datentag (Fenster-Ende)
-const GEN_DATE="13. August 2026";   // wann die Seite erzeugt wurde
-
-const CATS=[
- ["Gläser",151524,23.4,1.69,2.02],
- ["Geschirr",138932,61.3,3.63,4.32],
- ["Keramikbecher",42609,27.1,1.81,2.15],
- ["Bettwäsche",38212,32.6,1.78,2.12],
- ["Accessoires",19984,29.6,2.17,2.59],
- ["Aufbewahrungsgläser",7613,30.4,1.7,2.03],
- ["Salatbowl",7395,22.8,1.69,2.01],
- ["Dipschale",7296,25.8,1.79,2.13],
- ["Bloom (Kunstblume)",6036,24.8,1.57,1.86],
- ["Servierbretter",3538,26.6,1.83,2.18],
- ["Vasen",3462,24.3,2.01,2.4],
- ["Besteck",3102,32.8,1.79,2.13],
- ["Gewürzmühlen",3099,27.2,1.67,1.98],
- ["Regale",2743,28.1,1.72,2.05],
- ["Servietten",2195,46.3,2.52,3.0],
- ["Spiegel",1625,39.8,2.26,2.68],
- ["Matcha Sets",709,28.6,1.71,2.03],
-];
-const BEROAS={"Gläser":2.02,"Geschirr":4.32,"Keramikbecher":2.15,"Bettwäsche":2.12,"Accessoires":2.59,"Vasen":2.4,"Bloom":1.86,"Broad":2.49};
-
-const eur=n=>"€"+Math.round(n).toLocaleString("de-DE");
-const de=n=>n.toLocaleString("de-DE",{minimumFractionDigits:2,maximumFractionDigits:2});
-function decide(r){if(r==null||isNaN(r))return["PRÜFEN","grey"];
- if(r>=1.5)return["SKALIEREN","green"];if(r>=1.2)return["HALTEN","teal"];
- if(r>=1.0)return["BEOBACHTEN","amber"];return["KÜRZEN","red"];}
-function pctStep(r){if(r==null||isNaN(r))return["&ndash;","mut"];
- if(r>=2.2)return["+30 %","green"];if(r>=1.5)return["+20 %","green"];
- if(r>=1.2)return["+10 %","teal"];if(r>=1.0)return["0 %","mut"];
- if(r>=0.8)return["&minus;20 %","red"];if(r>=0.5)return["&minus;40 %","red"];
- return["Stop","red"];}
-function chip(t,c){return '<span class="chip c-'+c+'">'+t+'</span>';}
-function gBE(n){n=(n||"").toLowerCase();
- if(n.includes("brand")||n.includes("search"))return null;
- if(n.includes("asset-only")&&(n.includes("bettw")||n.includes("sonstiges")))return null;
- if(n.includes("sonstiges"))return null;
- if(n.includes("geschirr"))return 3.47;
- if(n.includes("bettw"))return 2.19;
- if(n.includes("tassen")||n.includes("kannen"))return 2.13;
- if(n.includes("vorratsgläser")||n.includes("vorratsglaeser"))return 2.03;
- if(n.includes("accessoires"))return 3.88;
- if(n.includes("kunstblume")||n.includes("bloom"))return 1.75;
- if(n.includes("gläser")||n.includes("glaeser"))return 1.97;
- return null;}
-function gNote(n,be,ratio){n=(n||"").toLowerCase();
- if(n.includes("brand")||n.includes("search"))return "erntet Marken-Nachfrage — Inkrementalität per Holdout prüfen";
- if(be==null)return "gemischt/unsauber — aufsplitten";
- if(ratio<1.0)return "unter BE — kappen / optimieren";
- if(ratio>=1.5)return "über BE — Budget hoch";
- return "knapp über BE — halten";}
-
-// Kategorien (zeitraum-unabhängig)
-document.getElementById("cat-body").innerHTML=CATS.map(c=>
- '<tr><td>'+c[0]+'</td><td class="n">'+eur(c[1])+'</td><td class="n">'+de(c[2])+' %</td>'+
- '<td class="n"><b>'+de(c[3])+'</b></td><td class="n">'+de(c[4])+'</td></tr>').join("");
-
-function renderMeta(rows,catrev,catoaf){
- catrev=catrev||{};catoaf=catoaf||{};
- document.getElementById("meta-body").innerHTML=rows.slice().sort((a,b)=>b[2]-a[2]).map(r=>{
-  const be=BEROAS[r[1]]!=null?BEROAS[r[1]]:2.30;
-  const oaf=(catoaf[r[1]]&&catoaf[r[1]]>1.05)?catoaf[r[1]]:1;
-  const adj=r[3]/oaf;const ratio=adj/be;const[act,cls]=decide(ratio);const[pt,pc]=pctStep(ratio);
-  const rev=catrev[r[1]]!=null?eur(catrev[r[1]]):'<span class="muted">&ndash;</span>';
-  const roascell=oaf>1?de(r[3])+'<span class="muted sm">&rarr;'+de(adj)+'</span><sup style="color:var(--amber)">*</sup>':de(r[3]);
-  return '<tr><td>'+r[0]+'</td><td class="muted">'+r[1]+'</td><td class="n">'+eur(r[2])+'</td>'+
-   '<td class="n">'+roascell+'</td><td class="n muted">'+de(be)+'</td>'+
-   '<td class="n ratio">'+de(ratio)+'</td><td>'+chip(act,cls)+'</td>'+
-   '<td class="n"><b style="color:var(--'+pc+')">'+pt+'</b></td><td class="n">'+rev+'</td></tr>';}).join("");
- document.getElementById("meta-foot").innerHTML='Ratio = ROAS &divide; Break-even-ROAS. <b>* attributions-bereinigt:</b> Wo Meta+Google zusammen mehr Umsatz beanspruchen als die Kategorie real macht, wird der ROAS auf die Kategorie-Realit&auml;t heruntergerechnet (ROAS&rarr;bereinigt) &mdash; verhindert &Uuml;ber-Skalierung auf aufgebl&auml;hten Zahlen (v.a. kleine Kategorien wie Bloom). Broad gegen Portfolio-BE 2,49. <b>&Delta; Budget</b>: &ge;2,2&rarr;+30% &middot; 1,5&ndash;2,2&rarr;+20% &middot; 1,2&ndash;1,5&rarr;+10% &middot; 1,0&ndash;1,2&rarr;0% &middot; 0,8&ndash;1,0&rarr;&minus;20% &middot; 0,5&ndash;0,8&rarr;&minus;40% &middot; &lt;0,5&rarr;Stop. Max &plusmn;30&ndash;40%/Schritt (Lernphase); danach MER nachmessen.';}
-function gCat(n){n=(n||"").toLowerCase();
- if(n.includes("brand")||n.includes("search"))return null;
- if(n.includes("asset-only")&&(n.includes("bettw")||n.includes("sonstiges")))return null;
- if(n.includes("sonstiges"))return null;
- if(n.includes("geschirr"))return "Geschirr";
- if(n.includes("bettw"))return "Bettwäsche";
- if(n.includes("tassen")||n.includes("kannen"))return "Keramikbecher";
- if(n.includes("vorratsgläser"))return "Aufbewahrungsgläser";
- if(n.includes("accessoires"))return "Accessoires";
- if(n.includes("kunstblume"))return "Bloom";
- if(n.includes("gläser")||n.includes("glaeser"))return "Gläser";
- return null;}
-function renderGoogle(rows,catoaf){
- catoaf=catoaf||{};
- document.getElementById("g-body").innerHTML=rows.map(g=>{
-  const nm=g[0],roas=g[1],be=gBE(nm),gc=gCat(nm);
-  if(be==null){
-   return '<tr><td>'+nm+'</td><td class="n">'+de(roas)+'</td><td class="n muted">&ndash;</td><td class="n muted">&ndash;</td><td><span class="chip c-grey">PR&Uuml;FEN</span></td><td class="n muted">&ndash;</td><td class="muted sm">'+gNote(nm,null,null)+'</td></tr>';}
-  const oaf=(gc&&catoaf[gc]&&catoaf[gc]>1.05)?catoaf[gc]:1;
-  const adj=roas/oaf;const ratio=adj/be;const[a,cls]=decide(ratio);const[pt,pc]=pctStep(ratio);
-  const roascell=oaf>1?de(roas)+'<span class="muted sm">&rarr;'+de(adj)+'</span><sup style="color:var(--amber)">*</sup>':de(roas);
-  return '<tr><td>'+nm+'</td><td class="n">'+roascell+'</td><td class="n muted">'+de(be)+'</td><td class="n ratio">'+de(ratio)+'</td><td>'+chip(a,cls)+'</td><td class="n"><b style="color:var(--'+pc+')">'+pt+'</b></td><td class="muted sm">'+gNote(nm,be,ratio)+'</td></tr>';
- }).join("");}
-
-function renderAnchor(w){
- const spend=w.metaTotal+w.googleTotal;const mer=w.net/spend;
- document.getElementById("mer-val").textContent=de(mer);
- const marge=1/2.10;const db=w.net*marge-spend;
- const dbEl=document.getElementById("db-val");if(dbEl){dbEl.textContent=eur(db);dbEl.style.color=db>=0?"var(--green)":"var(--red)";}
- document.getElementById("k-net").textContent=eur(w.net);
- document.getElementById("k-spend").textContent=eur(spend);
- document.getElementById("k-split").textContent=eur(w.metaTotal)+" / "+eur(w.googleTotal);
- document.getElementById("k-ord").textContent=w.orders.toLocaleString("de-DE");
- let verdict,col;
- if(mer>=2.7){verdict="Grün — komfortabel über Break-even (~2,10). Gas geben erlaubt.";col="green";}
- else if(mer>=2.10){verdict="Gelb — über Break-even, aber Puffer schrumpft. Vorsichtig skalieren.";col="amber";}
- else{verdict="Rot — unter Break-even-MER. Bremsen, Budget umschichten.";col="red";}
- const mv=document.getElementById("mer-verdict");mv.textContent=verdict;mv.style.color="var(--"+col+")";}
-
-function renderRegion(w){
- const r=w.region||{};const dach=r.dach||0,eu=r.eu||0,tot=dach+eu;
- const dp=tot?dach/tot*100:0,ep=tot?eu/tot*100:0;
- const merhtml=(m)=>{if(m==null)return '<b>&mdash;</b>';const c=m>=2.7?'green':(m>=2.10?'amber':'red');return '<b style="color:var(--'+c+')">'+de(m)+'</b>';};
- const tile=(val,lbl,pct,merlbl,mer,dashed)=>'<div class="merbox" style="min-width:200px;'+(dashed?'background:#fff;border:1px dashed var(--line)':'')+'"><div class="big" style="font-size:23px">'+eur(val)+'</div><div class="lbl">'+lbl+' &middot; '+de(pct)+' %</div><div class="sm muted" style="margin-top:5px">'+merlbl+': '+merhtml(mer)+' <span class="muted">(BE 2,10)</span></div></div>';
- document.getElementById("region-body").innerHTML=
-  tile(dach,"DACH-Umsatz",dp,"DACH-MER",r.dachMer,false)+
-  tile(eu,"EU o. DACH",ep,"EU-MER",r.euMer,true)+
-  '<div class="txt muted sm">DACH-MER = DACH-Umsatz &divide; (DE-AT-CH-Meta + gesamter Google). EU-MER = EU-Umsatz &divide; EU_-Meta-Spend (kein EU-Google). Beide klar &uuml;ber Break-even (2,10) &rarr; die Europa-Expansion tr&auml;gt sich, ist aber etwas weniger effizient als DACH.</div>';}
-function render(k){
- const w=WIN[k];renderAnchor(w);renderRegion(w);renderMeta(w.meta,w.catrev,w.catoaf);renderGoogle(w.google,w.catoaf);
- var mn=document.getElementById("mon-note");if(k=="2"){mn.style.display="block";mn.innerHTML="<b>&#9888; Monitoring-Fenster &mdash; nicht zum Skalieren.</b> 2 Tage sind statistisch zu kurz f&uuml;r Budget-Entscheidungen (Tagesrauschen, z.B. Bloom hier stark ged&auml;mpft). Nutze es zum <b>Beobachten</b>: Spikes, Einbr&uuml;che, Ausrei&szlig;er fr&uuml;h sehen. Budget-Entscheidungen bleiben auf 7 Tagen.";}else{mn.style.display="none";}
- document.getElementById("updated").innerHTML="<b>Daten bis "+DATA_END+"</b> &middot; "+LABEL[k]+" &middot; <span class=\"muted\">Seite erzeugt "+GEN_DATE+"</span>";}
-
-document.querySelectorAll("#filters button").forEach(b=>{
- b.addEventListener("click",()=>{
-  document.querySelectorAll("#filters button").forEach(x=>x.classList.remove("on"));
-  b.classList.add("on");render(b.dataset.w);});});
-
-render("30");
-</script>
-</body>
-</html>
+<div class=foot>7 O'CLOCK GmbH · Marketing Controlling · self-updating (Cloudflare Worker) — kein Triple Whale, keine offene App nötig.</div>
+</div></body></html>

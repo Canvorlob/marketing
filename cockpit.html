@@ -1,0 +1,409 @@
+<!doctype html><script type="application/json" id="cowork-artifact-meta">
+{
+  "name": "Marketing Cockpit Live",
+  "schemaVersion": 1,
+  "description": "Live-Marketing-Cockpit für 7 O'CLOCK: zieht bei jedem Öffnen frische Zahlen aus Shopify (Umsatz/Kategorien/Region), Meta (Kampagnen-ROAS) und Google/Supermetrics. Zeigt Account-MER, € DB nach Werbung, Regional-Split, Meta-Skalier-Tabelle (Ratio/Aktion/Δ Budget mit Attributions-Bereinigung), Google-Feed-Steuerung. Fenster: 2/7/30/90 Tage + frei wählbarer Zeitraum. Nie veraltet — kein täglicher Upload nötig.",
+  "mcpTools": [
+    "mcp__4051df72-0308-4349-a668-8e97076eb4a2__run-analytics-query",
+    "mcp__9219a61a-d6a2-4323-b804-c31ff1d9b919__ads_get_ad_entities",
+    "mcp__3d9f20bf-0357-4596-94f6-5a14ccc66ee5__data_query",
+    "mcp__3d9f20bf-0357-4596-94f6-5a14ccc66ee5__get_async_query_results"
+  ],
+  "mcpServerNames": [
+    "Shopify",
+    "Meta Ads MCP",
+    "Supermetrics Marketing Analytics",
+    "Supermetrics Marketing Analytics"
+  ]
+}
+</script>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Marketing-Entscheidungs-Cockpit (Live)</title>
+<style>
+:root{color-scheme:light;--bg:#faf8f5;--card:#fff;--ink:#2b2b2b;--mut:#8a8378;--line:#e7e2d9;--green:#2f8f57;--amber:#c98a2b;--red:#c0492b;--teal:#2f7f8f;--amberbg:#fbf3e2;--chipg:#e6f2ea;--chipa:#fbf3e2;--chipr:#f8e7e2;--chipt:#e5f0f2;--chipgr:#eee;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5}
+.wrap{max-width:1180px;margin:0 auto;padding:18px}
+.brand{font-size:11px;letter-spacing:.12em;color:var(--mut);font-weight:700}
+h1{font-size:22px;margin:2px 0 2px}
+.sub{color:var(--mut);font-size:13px;margin-bottom:12px}
+.filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px}
+.filters button{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;padding:7px 12px;font-size:13px;cursor:pointer;font-weight:600}
+.filters button.on{background:#2b2b2b;color:#fff;border-color:#2b2b2b}
+.cust{display:flex;gap:6px;align-items:center;margin-left:4px;color:var(--mut);font-size:12px}
+.cust input{border:1px solid var(--line);border-radius:6px;padding:5px 7px;font-size:12px;background:#fff;color:var(--ink)}
+.cust button{border:1px solid var(--line);background:#fff;border-radius:6px;padding:5px 9px;font-size:12px;cursor:pointer}
+.meta{color:var(--mut);font-size:12px;margin:6px 0 4px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-top:14px}
+h2{font-size:15px;margin:0 0 10px;border-bottom:1px solid var(--line);padding-bottom:8px}
+.anchor{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-start}
+.merbox{background:#f4efe7;border-radius:10px;padding:14px 16px;min-width:150px}
+.big{font-size:34px;font-weight:800;line-height:1}
+.lbl{color:var(--mut);font-size:12px;margin-top:4px}
+.txt{flex:1;min-width:260px}
+.kpis{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.kpi{background:#f4efe7;border-radius:8px;padding:7px 10px;font-size:12px;color:var(--mut)}
+.kpi b{display:block;color:var(--ink);font-size:15px}
+.note{background:var(--amberbg);border-left:3px solid var(--amber);padding:8px 12px;border-radius:6px;font-size:12.5px;margin-top:10px}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line)}
+th{color:var(--mut);font-weight:600;font-size:11px}
+td.n,th.n{text-align:right}
+.muted{color:var(--mut)}
+.sm{font-size:11px}
+.ratio{font-weight:700}
+.chip{display:inline-block;padding:2px 7px;border-radius:20px;font-size:11px;font-weight:700}
+.c-green{background:var(--chipg);color:var(--green)}.c-amber{background:var(--chipa);color:var(--amber)}
+.c-red{background:var(--chipr);color:var(--red)}.c-teal{background:var(--chipt);color:var(--teal)}
+.c-mut{background:#eee;color:#777}.c-grey{background:#eee;color:#888}
+.foot{color:var(--mut);font-size:11px;margin-top:8px}
+#status{padding:10px 14px;border-radius:8px;font-size:13px;margin-top:8px}
+.st-load{background:#eef;color:#556}
+.st-err{background:var(--chipr);color:var(--red)}
+.spin{display:inline-block;width:12px;height:12px;border:2px solid #ccd;border-top-color:#556;border-radius:50%;animation:sp .8s linear infinite;vertical-align:-2px;margin-right:6px}
+@keyframes sp{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+ <div class="brand">7 O'CLOCK</div>
+ <h1>Marketing-Entscheidungs-Cockpit <span style="font-size:13px;color:var(--green);font-weight:700">· LIVE</span></h1>
+ <div class="sub">Zieht bei jedem Öffnen frische Zahlen aus Shopify, Meta &amp; Google &mdash; nie veraltet.</div>
+ <div class="filters" id="filters">
+   <button data-w="2">Letzte 2 Tage</button>
+   <button data-w="7" class="on">Letzte 7 Tage</button>
+   <button data-w="30">Letzte 30 Tage</button>
+   <button data-w="90">Letzte 90 Tage</button>
+   <span class="cust">| eigener Zeitraum: <input type="date" id="d1"><input type="date" id="d2"><button id="dgo">anzeigen</button></span>
+ </div>
+ <div id="status" class="st-load"><span class="spin"></span>Lade frische Daten &hellip;</div>
+ <div class="meta" id="updated"></div>
+ <div id="mon-note" class="note" style="display:none"></div>
+ <div id="risk-note" class="note" style="display:none;background:var(--chipr);border-left-color:var(--red)"></div>
+ <div id="body" style="display:none">
+  <div class="card">
+   <h2>Realit&auml;ts-Anker &mdash; Account-MER</h2>
+   <div class="anchor">
+    <div class="merbox"><div class="big" id="mer-val">&middot;</div><div class="lbl">Blended MER (netto+Vers.)</div></div>
+    <div class="merbox" style="background:#fff;border:1px dashed var(--line)"><div class="big" id="be-val" style="color:var(--mut);font-size:26px">1,85</div><div class="lbl">Break-even-MER</div></div>
+    <div class="merbox"><div class="big" id="db-val" style="font-size:26px;color:var(--green)">&middot;</div><div class="lbl">&euro; DB nach Werbung</div><div class="sm muted" style="margin-top:4px">Netto &times; 54,1 % &minus; Ad-Spend &middot; vor Fixkosten</div></div>
+    <div class="txt">
+      <div id="mer-verdict" style="font-weight:700;margin-bottom:4px">&hellip;</div>
+      <div class="muted sm">Die einzige attributions-freie Wahrheit: Shopify-Nettoumsatz &divide; gesamter Ad-Spend. <b>MER sagt, ob du Gas geben darfst; ROAS&divide;BE sagt, auf welche Kampagne.</b></div>
+      <div class="kpis">
+        <div class="kpi">Umsatz (netto+Vers.)<b id="k-net">&middot;</b></div>
+        <div class="kpi">Ad-Spend gesamt<b id="k-spend">&middot;</b></div>
+        <div class="kpi">Meta / Google<b id="k-split">&middot;</b></div>
+        <div class="kpi">Bestellungen<b id="k-ord">&middot;</b></div>
+      </div>
+    </div>
+   </div>
+  </div>
+  <div class="card">
+   <h2>Gewinn diesen Monat &mdash; <span id="pm-month">&middot;</span></h2>
+   <div id="pm-status" class="muted sm" style="margin-bottom:6px">&hellip;</div>
+   <div class="anchor">
+    <div class="merbox"><div class="big" id="pm-rev" style="font-size:26px">&middot;</div><div class="lbl">Umsatz bisher (<span id="pm-days">&middot;</span>)</div></div>
+    <div class="merbox"><div class="big" id="pm-ebitda" style="font-size:26px">&middot;</div><div class="lbl">Gewinn bisher (EBITDA)</div></div>
+    <div class="merbox" style="background:#fff;border:1px dashed var(--line)"><div class="big" id="pm-proj" style="font-size:26px">&middot;</div><div class="lbl">Hochrechnung Monatsende</div></div>
+    <div class="txt">
+      <div id="pm-verdict" style="font-weight:700;margin-bottom:6px">&hellip;</div>
+      <div class="note" style="margin-top:0"><b>Werbe-Regel:</b> Jeder Euro Werbung, der <b>mehr als 1,95 &euro;</b> Umsatz bringt, macht Gewinn &mdash; <b>Ziel 2,50 &euro;</b>. Fahr unten die Kampagnen mit <b>ROAS &uuml;ber ihrem Break-even</b> hoch.</div>
+      <div class="sm" style="margin-top:10px">
+        Fixkosten &euro;/Monat: <input id="pm-fix" type="number" value="158000" style="width:92px;border:1px solid var(--line);border-radius:6px;padding:4px 6px;font-size:12px;background:#fff;color:var(--ink)">
+        &nbsp;&middot;&nbsp; Materialkosten %: <input id="pm-mat" type="number" value="30" step="0.5" style="width:62px;border:1px solid var(--line);border-radius:6px;padding:4px 6px;font-size:12px;background:#fff;color:var(--ink)">
+        &nbsp;<button id="pm-go" style="border:1px solid var(--line);background:#fff;border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer">neu rechnen</button>
+      </div>
+    </div>
+   </div>
+   <div class="foot">Zeigt immer den <b>laufenden Monat</b> (unabh&auml;ngig vom Filter oben). Umsatz inkl. Versand. <b>Gewinn bisher</b> = echte Zahlen bis gestern, Fixkosten anteilig. <b>Hochrechnung</b> = bisheriger Tagesschnitt &times; Monatstage. Fixkosten &amp; Material nach der BWA anpassbar. Kampagnen-Steuerung &rarr; Tabellen unten.</div>
+  </div>
+  <div class="card">
+   <h2>Break-even vs. dein Kurs</h2>
+   <div style="overflow-x:auto"><table><thead><tr><th>Szenario</th><th class="n">Umsatz (netto)</th><th class="n">Max. Adspend</th><th class="n">Break-even MER</th><th class="n">Deine MER</th><th class="n">Gewinn/Monat</th></tr></thead><tbody id="sc-body"></tbody></table></div>
+   <div class="foot"><b>Break-even MER</b> = die Hürde bei dem Umsatz (Umsatz &divide; Max-Adspend). <b>Gewinn</b> entsteht, wenn deine MER über der Hürde liegt &mdash; der Abstand ist dein Gewinn. <b>Max-Adspend</b> = wie viel du bei dem Umsatz höchstens auf Meta+Google geben darfst, bevor's null wird. Alles live aus dem laufenden Monat; passt sich bei Material-/Fixkosten-Änderung automatisch an.</div>
+  </div>
+  <div class="card">
+   <h2>Regional-Split &mdash; DACH vs. Europa (ohne DACH)</h2>
+   <div class="anchor" id="region-body"></div>
+  </div>
+  <div class="card">
+   <h2>Meta &mdash; Kampagnen skalieren (ROAS &divide; Break-even)</h2>
+   <div style="overflow-x:auto"><table><thead><tr><th>Kampagne</th><th>Kategorie</th><th class="n">Spend</th><th class="n">ROAS</th><th class="n">BE</th><th class="n">Ratio</th><th>Aktion</th><th class="n">&Delta; Budget</th><th class="n">Umsatz Kat.</th></tr></thead><tbody id="meta-body"></tbody></table></div>
+   <div class="foot" id="meta-foot"></div>
+  </div>
+  <div class="card">
+   <h2>Google &mdash; Agentur-Steuerung (Feed-ROAS je Kategorie)</h2>
+   <div style="overflow-x:auto"><table><thead><tr><th>Kampagne</th><th class="n">Spend</th><th class="n">ROAS</th><th class="n">BE</th><th class="n">Ratio</th><th>Aktion</th><th class="n">&Delta; Budget</th><th>Gespr&auml;chspunkt</th></tr></thead><tbody id="g-body"></tbody></table></div>
+   <div class="foot">Brand/Search &amp; gemischte Assets = „PR&Uuml;FEN" (nicht kategorie-sauber). Feeds gegen Juni-Break-even.</div>
+  </div>
+  <div class="card">
+   <h2>Alle Kategorien &mdash; DB-Wahrheit &amp; Break-even (Ist-COGS Juli 2026)</h2>
+   <div style="overflow-x:auto"><table><thead><tr><th>Kategorie</th><th class="n">COGS %</th><th class="n">BE-MER</th><th class="n">BE-ROAS</th></tr></thead><tbody id="cat-body"></tbody></table></div>
+   <div class="foot">Monats-Snapshot (Ist-COGS Juli 2026, manuell aktualisiert &mdash; <b>nicht live</b>). COGS = echte Warenkosten aus Shopify. <b>Geschirr</b> auf aktuellen Einkaufspreis 56,40 &euro; gerechnet (Kostensenkung noch nicht voll in den Juli-Ist-COGS). BE-MER = 1 &divide; Marge vor Werbung.</div>
+  </div>
+ </div>
+</div>
+<script>
+// ---------- Konfiguration (Monats-Snapshot: Ist-COGS Juli 2026; Geschirr auf aktuellem EK 56,40) ----------
+const BEROAS={"Gläser":1.98,"Geschirr":2.55,"Keramikbecher":2.15,"Bettwäsche":2.12,"Accessoires":2.59,"Vasen":2.64,"Bloom":1.81,"Broad":2.20};
+const PORTF_MARGE=1/1.85;
+const CATS=[["Gläser",22.3,1.66,1.98],["Geschirr",42.2,2.14,2.55],["Keramikbecher",26.9,1.80,2.15],["Bettwäsche",32.7,1.78,2.12],["Accessoires",29.6,2.17,2.59],["Aufbewahrungsgläser",30.4,1.70,2.02],["Bloom (Kunstblume)",22.9,1.52,1.81],["Vasen",29.0,2.22,2.64],["Servietten",44.3,2.40,2.86]];
+const AD="564040751856144", GADS="6107591423";
+const T_SHOP="mcp__4051df72-0308-4349-a668-8e97076eb4a2__run-analytics-query";
+const T_META="mcp__9219a61a-d6a2-4323-b804-c31ff1d9b919__ads_get_ad_entities";
+const T_GSUB="mcp__3d9f20bf-0357-4596-94f6-5a14ccc66ee5__data_query";
+const T_GRES="mcp__3d9f20bf-0357-4596-94f6-5a14ccc66ee5__get_async_query_results";
+const WCPT="https://rohertrag-worker.can-11b.workers.dev/cockpit.json";  // öffentliche Datenquelle (statt In-App-Connector)
+
+// ---------- Helpers ----------
+const eur=n=>"€"+Math.round(n).toLocaleString("de-DE");
+const de=n=>(n==null||isNaN(n))?"–":n.toLocaleString("de-DE",{minimumFractionDigits:2,maximumFractionDigits:2});
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function gnum(s){ if(s==null) return NaN; if(typeof s==="number") return s; if(/not available/i.test(s)) return NaN;
+  let m=String(s).replace(/[^0-9.,]/g,""); if(!m) return NaN;
+  const hasDot=m.indexOf(".")>=0, hasComma=m.indexOf(",")>=0;
+  if(hasDot&&hasComma){ m=m.replace(/\./g,"").replace(",","."); }        // DE: 1.785,07 → 1785.07
+  else if(hasComma){ m=m.replace(",","."); }                              // DE-Dezimal: 3,13 → 3.13
+  else if((m.match(/\./g)||[]).length>1){ m=m.replace(/\./g,""); }        // 1.234.567 (Tausender ohne Dezimal)
+  // sonst: genau ein Punkt = Dezimalpunkt (Meta liefert ROAS teils als 3.87) → so lassen
+  return parseFloat(m); }
+function unwrap(r){ if(!r) return null; if(r.isError) throw new Error(r.content&&r.content[0]&&r.content[0].text||"tool error");
+  if(r.structuredContent!=null) return r.structuredContent; try{return JSON.parse(r.content[0].text);}catch(e){return r.content&&r.content[0]&&r.content[0].text;} }
+async function call(name,args,tries){ tries=tries||0;
+  try{ const r=await window.cowork.callMcpTool(name,args); return unwrap(r); }
+  catch(e){ const msg=((e&&e.message)||String(e)); if(/rate limit|429|too many|exceeded/i.test(msg)&&tries<5){ await sleep(2500*(tries+1)); return call(name,args,tries+1); } throw e; } }
+function fmtDate(d){ return d.toISOString().slice(0,10); }
+function win(w){ const end=new Date(); end.setDate(end.getDate()-1); const start=new Date(end); start.setDate(start.getDate()-(w-1)); return {since:fmtDate(start),until:fmtDate(end)}; }
+
+// Meta Kategorie
+function mcat(n){ n=(n||"").toLowerCase();
+  if(n.includes("geschirr")||n.includes("niasparset"))return "Geschirr";
+  if(n.includes("bettw"))return "Bettwäsche"; if(n.includes("vasen"))return "Vasen";
+  if(n.includes("bloom")||n.includes("blume"))return "Bloom";
+  if(n.includes("wunschset")||n.includes("gläser")||n.includes("glaeser")||n.includes("bundle")||n.includes("bestseller"))return "Gläser";
+  return "Broad"; }
+function mshort(n){ return (n||"").replace("DE-AT-CH_","").replace(/_Advantage.*$/,"").replace(/ Kampagne.*$/,"").replace(/_AllProducts.*$/,"").replace(/ –.*$/,"").slice(0,26); }
+// Google Kategorie + BE (Juli-korrigiert)
+function gBE(n){ n=(n||"").toLowerCase();
+  if(n.includes("brand")||n.includes("search"))return null;
+  if(n.includes("asset-only")&&(n.includes("bettw")||n.includes("sonstiges")))return null;
+  if(n.includes("sonstiges"))return null;
+  if(n.includes("geschirr"))return 2.55; if(n.includes("bettw"))return 2.12;
+  if(n.includes("tassen")||n.includes("kannen"))return 2.15;
+  if(n.includes("vorratsgläser")||n.includes("vorratsglaeser"))return 2.02;
+  if(n.includes("accessoires"))return 2.59;
+  if(n.includes("kunstblume")||n.includes("bloom"))return 1.81;
+  if(n.includes("gläser")||n.includes("glaeser"))return 1.98;
+  return null; }
+function gCat(n){ n=(n||"").toLowerCase();
+  if(n.includes("brand")||n.includes("search"))return null;
+  if(n.includes("asset-only")&&(n.includes("bettw")||n.includes("sonstiges")))return null;
+  if(n.includes("sonstiges"))return null;
+  if(n.includes("geschirr"))return "Geschirr"; if(n.includes("bettw"))return "Bettwäsche";
+  if(n.includes("tassen")||n.includes("kannen"))return "Keramikbecher";
+  if(n.includes("vorratsgläser"))return "Aufbewahrungsgläser";
+  if(n.includes("accessoires"))return "Accessoires";
+  if(n.includes("kunstblume"))return "Bloom";
+  if(n.includes("gläser")||n.includes("glaeser"))return "Gläser"; return null; }
+function gfeedCV(google,cat){ const keys={Geschirr:["feed-only | geschirr"],Gläser:["feed-only | gläser","vorratsgläser"],Bettwäsche:["bettwäsche | feed"],Keramikbecher:["tassen & kannen"],Bloom:["kunstblumen"]}[cat]||[];
+  return google.filter(g=>keys.some(k=>g.name.toLowerCase().includes(k))).reduce((a,g)=>a+g.cv,0); }
+
+// ---------- Datenabruf ----------
+async function shopScalar(since,until){ const p=await call(T_SHOP,{query:`FROM sales SHOW net_sales, gross_sales, orders, shipping_charges SINCE ${since} UNTIL ${until}`}); const r=p.rows[0]; return {net:+r[0],gross:+r[1],orders:+r[2],ship:+r[3]||0}; }
+async function shopGroup(dim,since,until){ const p=await call(T_SHOP,{query:`FROM sales SHOW net_sales GROUP BY ${dim} ORDER BY net_sales DESC LIMIT 60 SINCE ${since} UNTIL ${until}`}); const o={}; p.rows.forEach(r=>o[r[0]]=+r[1]); return o; }
+async function metaAcct(since,until){ const p=await call(T_META,{ad_account_id:AD,level:"account",fields:["id","name","spend"],time_range:JSON.stringify({since,until}),advertiser_request:"Live-Cockpit"}); const a=JSON.parse(p.ad_entities)[0]; return a?(a.amount_spent_cents!=null?a.amount_spent_cents/100:gnum(a.amount_spent)):0; }
+async function metaCamp(since,until){ const p=await call(T_META,{ad_account_id:AD,level:"campaign",fields:["id","name","spend","purchase_roas"],time_range:JSON.stringify({since,until}),sort:"spend_descending",limit:40,advertiser_request:"Live-Cockpit"});
+  return JSON.parse(p.ad_entities).map(a=>({name:a.name,spend:gnum(a.amount_spent),roas:gnum(a.purchase_roas)})).filter(a=>a.spend>0); }
+async function googleData(since,until){ const sub=await call(T_GSUB,{ds_id:"AW",ds_accounts:GADS,fields:"campaignname,cost,conversionvalue",date_range_type:"custom",start_date:since,end_date:until,max_rows:100});
+  const sid=(sub.data&&sub.data.schedule_id)||sub.schedule_id; if(!sid) throw new Error("kein schedule_id");
+  let raw=null; for(let i=0;i<15;i++){ const res=await call(T_GRES,{schedule_id:sid,compress:true}); const d=res.data||res; if(d.status==="completed"){raw=d.data;break;} if(d.status==="failed")throw new Error("Google fehlgeschlagen"); await sleep(2200); }
+  if(raw==null) throw new Error("Google Timeout");
+  const out=[]; String(raw).split("\n").forEach(line=>{ const i=line.indexOf("]: "); if(i<0)return; let rest=line.slice(i+3).trim(); if(!rest||/^campaign name/i.test(rest))return;
+    const parts=rest.split(","); const cv=parseFloat(parts.pop()); const cost=parseFloat(parts.pop()); let name=parts.join(",").trim().replace(/^"|"$/g,"");
+    if(name&&!isNaN(cost)&&!isNaN(cv)) out.push({name,cost,cv}); });
+  return out; }
+
+async function fetchWindow(since,until){
+  const j=await (await fetch(WCPT+"?since="+since+"&until="+until)).json();
+  const scal=j.scal||{net:0,gross:0,orders:0,ship:0};
+  const pt=j.pt||{}, reg=j.reg||{};
+  const mtot=+j.metaTotal||0; const camps=Array.isArray(j.camps)?j.camps:[]; const goog=Array.isArray(j.google)?j.google:[];
+  const metaErr=j.metaErr||null; const GERR=j.gErr||null;
+  window.__month=j.month||null;
+  // robuste Zuordnung über Teil-Strings (umgeht Sonderzeichen-/Encoding-Probleme wie bei "Bettwäsche")
+  const catrev={"Geschirr":0,"Gläser":0,"Keramikbecher":0,"Bettwäsche":0,"Vasen":0,"Bloom":0};
+  for(const k in pt){ const n=(k||"").toLowerCase(), v=pt[k]||0;
+    if(n.includes("geschirr")) catrev["Geschirr"]+=v;
+    else if(n.includes("trinkglas")||n.includes("weinglas")||n.includes("karaffe")) catrev["Gläser"]+=v;
+    else if(n.includes("keramik becher")||n==="tassen"||n.includes("espresso")||n.includes("untertasse")) catrev["Keramikbecher"]+=v;
+    else if(n.includes("bettw")) catrev["Bettwäsche"]+=v;
+    else if(n==="vasen") catrev["Vasen"]+=v;
+    else if(n.includes("kunstblume")) catrev["Bloom"]+=v; }
+  const google = GERR?[]:goog; const gErr=GERR;
+  const googleTotal=google.reduce((a,x)=>a+x.cost,0);
+  const meta=camps.map(c=>({name:mshort(c.name),cat:mcat(c.name),spend:c.spend,roas:c.roas,raw:c.name}));
+  // Region
+  const dach=(reg["Germany"]||0)+(reg["Austria"]||0)+(reg["Switzerland"]||0); const eu=scal.net-dach;
+  const EU_SF=0.85; // Sicherheitsfaktor: Nicht-DACH-Umsatz konservativ der EU-Kampagne zuschreiben
+  const euMeta=camps.filter(c=>/^EU/i.test(c.name)).reduce((a,c)=>a+c.spend,0); const dachMeta=mtot-euMeta;
+  const euAttr=eu*EU_SF;
+  const dachMer=(dachMeta+googleTotal)>0?dach/(dachMeta+googleTotal):0; const euMer=euMeta>0?euAttr/euMeta:0;
+  // catoaf
+  const catoaf={};
+  ["Bloom","Bettwäsche","Geschirr","Gläser","Keramikbecher","Vasen"].forEach(cat=>{ const mc=meta.filter(m=>m.cat===cat).reduce((a,m)=>a+m.spend*m.roas,0); const gc=gfeedCV(google,cat); const dn=(catrev[cat]||0)*1.19; const f=dn>0?Math.max(1,(mc+gc)/dn):1; if(f>1.05)catoaf[cat]=+f.toFixed(2); });
+  const mval=meta.reduce((a,m)=>a+m.spend*m.roas,0); const gcv=google.reduce((a,x)=>a+x.cv,0); const broad=Math.max(1,(mval+gcv)/(scal.net*1.19)); if(broad>1.05)catoaf["Broad"]=+broad.toFixed(2);
+  // Kategorie-Realität: DB nach Werbung (Meta+Google zusammen) je Kategorie
+  const catDB={};
+  ["Bloom","Bettwäsche","Geschirr","Gläser","Keramikbecher","Vasen"].forEach(cat=>{ const be=BEROAS[cat]; if(!be)return; const margin=1.19/be; const ms=meta.filter(m=>m.cat===cat).reduce((a,m)=>a+m.spend,0); const gs=google.filter(x=>gCat(x.name)===cat).reduce((a,x)=>a+(x.cost||0),0); catDB[cat]=Math.round((catrev[cat]||0)*margin-(ms+gs)); });
+  return {...scal,metaTotal:mtot,googleTotal,catrev,region:{dach,eu,dachMer,euMer,euMeta,euAttr,euSF:EU_SF},catoaf,catDB,meta,google:google.map(x=>({name:x.name,spend:x.cost,roas:x.cost>0?x.cv/x.cost:0})),gErr,metaErr};
+}
+
+// ---------- Render ----------
+function pctStep(r){ if(r==null||isNaN(r))return["–","c-mut"]; if(r>=2.2)return["+30 %","c-green"]; if(r>=1.5)return["+20 %","c-green"]; if(r>=1.2)return["+10 %","c-teal"]; if(r>=1.0)return["0 %","c-mut"]; if(r>=0.8)return["−20 %","c-red"]; if(r>=0.5)return["−40 %","c-red"]; return["Stop","c-red"]; }
+function decide(r){ if(r==null||isNaN(r))return["PRÜFEN","c-grey"]; if(r>=1.5)return["SKALIEREN","c-green"]; if(r>=1.2)return["HALTEN","c-teal"]; if(r>=1.0)return["BEOBACHTEN","c-amber"]; return["KÜRZEN","c-red"]; }
+function chip(t,c){return `<span class="chip ${c}">${t}</span>`;}
+// Sicherung: entschärft grüne "+"-Empfehlung wenn Google fehlt (unsicher) oder Kategorie absolut unter Break-even
+function budgetCell(cat,ratio,gErr,catDB){ let r=pctStep(ratio); let t=r[0],c=r[1]; const pos=/\+/.test(t);
+  const feed=["Bloom","Geschirr","Gläser","Bettwäsche","Keramikbecher"].includes(cat);
+  if(pos&&gErr&&feed) return ["pr&uuml;fen","c-amber",true];
+  if(pos&&catDB&&catDB[cat]!=null&&catDB[cat]<=0) return ["nicht skal.","c-red",true];
+  return [t,c,false]; }
+function render(W,label,k){
+  const spend=W.metaTotal+W.googleTotal;
+  const netAll=W.net+(W.ship||0);                 // Umsatz netto + Versanderlöse (kommt real rein)
+  const f=W.net>0?netAll/W.net:1;                  // Versand-Faktor
+  const mer=W.net/spend;                           // Entscheidungs-MER (auf net, Schwelle 1,85 – bleibt gleich)
+  const merAll=spend>0?netAll/spend:0;             // angezeigte MER inkl. Versand
+  const beAll=1.85*f;                              // Break-even mit demselben Faktor skaliert -> Signal unverändert
+  const db=W.net*PORTF_MARGE-spend;                // DB nach Werbung: Produktmarge (Versand ~kostenneutral -> nicht mit 54,1% bewertet)
+  document.getElementById("mer-val").textContent=W.metaErr?"—":de(merAll);
+  const beEl=document.getElementById("be-val"); if(beEl) beEl.textContent=de(beAll);
+  const dbEl=document.getElementById("db-val"); dbEl.textContent=W.metaErr?"—":eur(db); dbEl.style.color=db>=0?"var(--green)":"var(--red)";
+  document.getElementById("k-net").textContent=eur(netAll);
+  document.getElementById("k-spend").textContent=eur(spend);
+  document.getElementById("k-split").textContent=eur(W.metaTotal)+" / "+eur(W.googleTotal);
+  document.getElementById("k-ord").textContent=W.orders.toLocaleString("de-DE");
+  let v,c; if(W.metaErr){v="⚠ Meta-Connector getrennt — bitte neu verbinden (Einstellungen → Connectors → Meta), dann oben aktualisieren. Ohne Meta sind MER & Meta-Tabelle unvollständig; Shopify & Google unten stimmen.";c="var(--red)";}else if(mer>=2.4){v="Grün — komfortabel über Break-even (~"+de(beAll)+"). Gas geben erlaubt.";c="var(--green)";}else if(mer>=1.85){v="Gelb — über Break-even, aber Puffer schrumpft. Vorsichtig skalieren.";c="var(--amber)";}else{v="Rot — unter Break-even-MER. Bremsen, Budget umschichten.";c="var(--red)";}
+  const mv=document.getElementById("mer-verdict"); mv.textContent=v; mv.style.color=c;
+  // Region
+  const r=W.region,tot=r.dach+r.eu,dp=tot?r.dach/tot*100:0,ep=tot?r.eu/tot*100:0;
+  const merh=m=>{if(m==null||!m)return "<b>—</b>";const cc=m>=2.4?"var(--green)":(m>=1.85?"var(--amber)":"var(--red)");return `<b style="color:${cc}">${de(m)}</b>`;};
+  const tile=(val,l,pct,ml,m,dash)=>`<div class="merbox" style="min-width:200px;${dash?'background:#fff;border:1px dashed var(--line)':''}"><div class="big" style="font-size:23px">${eur(val)}</div><div class="lbl">${l} · ${de(pct)} %</div><div class="sm muted" style="margin-top:5px">${ml}: ${merh(m)} <span class="muted">(BE 1,85)</span></div></div>`;
+  document.getElementById("region-body").innerHTML=tile(r.dach,"DACH-Umsatz",dp,"DACH-MER",r.dachMer,false)+tile(r.eu,"EU o. DACH",ep,"EU-MER",r.euMer,true)+`<div class="txt muted sm">DACH-MER = DACH-Umsatz ÷ (DE-AT-CH-Meta + gesamter Google). EU-MER = (Nicht-DACH-Umsatz × Sicherheitsfaktor 0,85) ÷ EU_-Meta-Spend.</div>`;
+  // Meta
+  document.getElementById("meta-body").innerHTML=W.meta.slice().sort((a,b)=>b.spend-a.spend).map(m=>{
+    let be,oaf,adj,ratio,rev,rc;
+    if(/^EU/i.test(m.raw)){
+      const share=W.region.euMeta>0?m.spend/W.region.euMeta:1; const revV=W.region.euAttr*share; const emer=m.spend>0?revV/m.spend:0;
+      be=1.85; oaf=1; adj=emer; ratio=be>0?emer/be:0;
+      rev=eur(revV)+'<sup style="color:var(--teal)" title="Nicht-DACH-Umsatz × Sicherheitsfaktor '+W.region.euSF+'">SF</sup>';
+      rc=de(emer)+'<sup style="color:var(--teal)" title="geografischer MER = Nicht-DACH-Umsatz×SF ÷ EU-Spend">M</sup>';
+    } else {
+      be=BEROAS[m.cat]!=null?BEROAS[m.cat]:2.30; oaf=(W.catoaf[m.cat]&&W.catoaf[m.cat]>1.05)?W.catoaf[m.cat]:1; adj=m.roas/oaf; ratio=adj/be;
+      rev=W.catrev[m.cat]!=null?eur(W.catrev[m.cat]):'<span class="muted">–</span>';
+      rc=oaf>1?`${de(m.roas)}<span class="muted sm">→${de(adj)}</span><sup style="color:var(--amber)">*</sup>`:de(m.roas);
+    }
+    const[a,ac]=decide(ratio); const[pt,pc,warn]=budgetCell(m.cat,ratio,W.gErr,W.catDB);
+    return `<tr><td>${warn?m.name+' <span style="color:var(--red)" title="Kategorie unter Break-even">&#9888;</span>':m.name}</td><td class="muted">${m.cat}</td><td class="n">${eur(m.spend)}</td><td class="n">${rc}</td><td class="n muted">${de(be)}</td><td class="n ratio">${de(ratio)}</td><td>${chip(a,ac)}</td><td class="n">${chip(pt,pc)}</td><td class="n">${rev}</td></tr>`;
+  }).join("");
+  document.getElementById("meta-foot").innerHTML='Ratio = ROAS ÷ Break-even-ROAS. <b>*</b> attributions-bereinigt (kleine Kategorien). <b>Δ Budget:</b> ≥2,2→+30 · 1,5–2,2→+20 · 1,2–1,5→+10 · 1,0–1,2→0 · 0,8–1,0→−20 · &lt;0,8→−40/Stop. Max ±30 %/Schritt, danach MER nachmessen. <b style="color:var(--red)">&#9888; = Kategorie absolut unter Break-even (Meta+Google) → nicht hochfahren, erst redundante Plattform kürzen.</b> <b style="color:var(--teal)">EU-Kampagne:</b> Umsatz = Nicht-DACH-Umsatz × Sicherheitsfaktor 0,85 (<b>SF</b>), Spalte ROAS zeigt den geografischen <b>MER</b>, Ratio = MER ÷ BE-MER 1,85.';
+  // Google
+  document.getElementById("g-body").innerHTML=W.google.length?W.google.slice().sort((a,b)=>(b.spend||0)-(a.spend||0)).map(g=>{
+    const be=gBE(g.name),gc=gCat(g.name); const sp=`<td class="n">${eur(g.spend||0)}</td>`;
+    if(be==null)return `<tr><td>${g.name}</td>${sp}<td class="n">${de(g.roas)}</td><td class="n muted">–</td><td class="n muted">–</td><td>${chip("PRÜFEN","c-grey")}</td><td class="n muted">–</td><td class="muted sm">Marken/gemischt — nicht skalieren</td></tr>`;
+    const oaf=(gc&&W.catoaf[gc]&&W.catoaf[gc]>1.05)?W.catoaf[gc]:1; const adj=g.roas/oaf; const ratio=adj/be; const[a,ac]=decide(ratio); const[pt,pc]=budgetCell(gc,ratio,W.gErr,W.catDB);
+    const rc=oaf>1?`${de(g.roas)}<span class="muted sm">→${de(adj)}</span><sup style="color:var(--amber)">*</sup>`:de(g.roas);
+    const note=ratio<1?"unter BE — kappen":(ratio>=1.5?"über BE — Budget hoch":"knapp über BE — halten");
+    return `<tr><td>${g.name}</td>${sp}<td class="n">${rc}</td><td class="n muted">${de(be)}</td><td class="n ratio">${de(ratio)}</td><td>${chip(a,ac)}</td><td class="n">${chip(pt,pc)}</td><td class="muted sm">${note}</td></tr>`;
+  }).join(""):`<tr><td colspan="8" class="muted">${W.gErr?("Google nicht verfügbar: "+W.gErr):"keine Google-Daten"}</td></tr>`;
+  // Kategorien
+  document.getElementById("cat-body").innerHTML=CATS.map(c=>`<tr><td>${c[0]}</td><td class="n">${de(c[1])} %</td><td class="n"><b>${de(c[2])}</b></td><td class="n">${de(c[3])}</td></tr>`).join("");
+  // Monitoring-Banner
+  const mn=document.getElementById("mon-note");
+  if(k==="2"){mn.style.display="block";mn.innerHTML="<b>⚠ Monitoring-Fenster — nicht zum Skalieren.</b> 2 Tage sind statistisch zu kurz für Budget-Entscheidungen (Tagesrauschen). Nutze es zum Beobachten. Skaliert wird auf 7 Tagen.";}else{mn.style.display="none";}
+  const under=Object.keys(W.catDB||{}).filter(x=>W.catDB[x]<=0); const rn=document.getElementById("risk-note"); let rh="";
+  if(W.gErr) rh+='<b>&#9888; Google-Daten fehlen gerade.</b> Skalier-Empfehlungen für Feed-Kategorien sind unvollständig — nicht auf grüne „+" verlassen, oben „Aktualisieren".';
+  if(under.length) rh+=(rh?'<br>':'')+'<b>&#9888; Kategorie unter Break-even (Meta+Google zusammen): '+under.join(", ")+'.</b> Das hei&szlig;t NICHT automatisch „Kampagne aus" — sondern beide Plattformen zusammen geben zu viel f&uuml;r den Umsatz aus. Pr&uuml;fe per 1-Tag-Klick-ROAS, welche Plattform real treibt, und k&uuml;rze die redundante (oft der Google-Feed, der bestehende Nachfrage abgreift).';
+  if(rh){rn.style.display="block";rn.innerHTML=rh;}else{rn.style.display="none";}
+  // Header
+  document.getElementById("updated").innerHTML=`<b>Zeitraum: ${label}</b> · live abgerufen ${new Date().toLocaleString("de-DE")}${W.gErr?' · <span style="color:var(--amber)">Google übersprungen</span>':''}`;
+}
+
+// ---------- Gewinn diesen Monat (immer laufender Monat, unabhängig vom Filter) ----------
+const MONTHS=["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"];
+let pmData=null;
+function fmtLocal(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+async function shopScalarShip(since,until){ const p=await call(T_SHOP,{query:`FROM sales SHOW net_sales, shipping_charges, orders SINCE ${since} UNTIL ${until}`}); const r=p.rows[0]; return {net:+r[0],ship:+r[1],orders:+r[2]}; }
+async function fetchMonth(){
+  const now=new Date(); const y=now.getFullYear(), mo=now.getMonth();
+  document.getElementById('pm-month').textContent=MONTHS[mo]+" "+y;
+  document.getElementById('pm-status').textContent="Lade laufenden Monat …";
+  try{
+    let mm=window.__month;
+    if(!mm){ const w=win(2); const j=await (await fetch(WCPT+"?since="+w.since+"&until="+w.until)).json(); mm=j.month; }
+    if(!mm) throw new Error("keine Monatsdaten");
+    pmData={net:mm.net,ship:mm.ship,orders:mm.orders,spend:mm.spend,daysElapsed:mm.daysElapsed,daysInMonth:mm.daysInMonth};
+    document.getElementById('pm-status').textContent="";
+    renderMonth();
+  }catch(e){ document.getElementById('pm-status').textContent="Monat konnte nicht geladen werden: "+((e&&e.message)||e); }
+}
+function renderMonth(){
+  if(!pmData) return;
+  const fix=parseFloat(document.getElementById('pm-fix').value)||158000;
+  const mat=(parseFloat(document.getElementById('pm-mat').value)||30)/100;
+  const SHIPPAYPACK=0.155, IFM=0.032;
+  const dbExMedia=1-mat-SHIPPAYPACK-IFM;                 // DB vor Meta/Google (inkl. IFM als Kost)
+  const net=pmData.net, ship=pmData.ship, spend=pmData.spend, dE=pmData.daysElapsed, dM=pmData.daysInMonth;
+  const ebitdaMTD=net*dbExMedia+ship-spend-fix*(dE/dM);         // echt bis gestern, Fixkosten anteilig
+  const r=dM/dE;                                                 // Hochrechnung auf den vollen Monat
+  const ebitdaMonth=(net*r)*dbExMedia+(ship*r)-(spend*r)-fix;
+  document.getElementById('pm-rev').textContent=eur(net+ship);
+  document.getElementById('pm-days').textContent=dE+" von "+dM+" Tagen";
+  const eb=document.getElementById('pm-ebitda'); eb.textContent=(ebitdaMTD>=0?"+":"")+eur(ebitdaMTD); eb.style.color=ebitdaMTD>=0?"var(--green)":"var(--red)";
+  const pj=document.getElementById('pm-proj'); pj.textContent=(ebitdaMonth>=0?"+":"")+eur(ebitdaMonth); pj.style.color=ebitdaMonth>=0?"var(--green)":"var(--red)";
+  // Szenario-Tabelle: Break-even (bei aktueller Effizienz) vs. dein Kurs
+  const netP=net*r, shipP=ship*r, spendP=spend*r;
+  const shipRatio=net>0?ship/net:0;
+  const merNow=spend>0?net/spend:0;                       // blended MER (Monat bis heute)
+  const scRows=[];
+  const denom=dbExMedia+shipRatio-(merNow>0?1/merNow:99);
+  if(merNow>0&&denom>0){ const netBE=fix/denom, maxAdBE=netBE/merNow; scRows.push(["Gewinnschwelle",netBE,maxAdBE,merNow,merNow,0]); }
+  else scRows.push(["Gewinnschwelle",NaN,NaN,NaN,merNow,NaN]);
+  const maxAdK=netP*dbExMedia+shipP-fix, beMerK=maxAdK>0?netP/maxAdK:NaN, gewinnK=netP*dbExMedia+shipP-spendP-fix;
+  scRows.push(["Dein Kurs",netP,maxAdK,beMerK,merNow,gewinnK]);
+  const scb=document.getElementById('sc-body');
+  if(scb) scb.innerHTML=scRows.map(rr=>{ const g=rr[5]; const gc=isNaN(g)?"var(--mut)":(g>=0?"var(--green)":"var(--red)"); const gt=isNaN(g)?"—":((g>=0?"+":"")+eur(g)); return `<tr><td><b>${rr[0]}</b></td><td class="n">${isNaN(rr[1])?"—":eur(rr[1])}</td><td class="n">${isNaN(rr[2])?"—":eur(rr[2])}</td><td class="n muted">${isNaN(rr[3])?"—":de(rr[3])}</td><td class="n"><b>${isNaN(rr[4])?"—":de(rr[4])}</b></td><td class="n" style="color:${gc};font-weight:700">${gt}</td></tr>`; }).join("");
+  const v=document.getElementById('pm-verdict');
+  if(ebitdaMonth>=0){ v.textContent="✅ Auf Kurs — Hochrechnung ~"+eur(ebitdaMonth)+" Gewinn diesen Monat (bisher "+eur(ebitdaMTD)+" in "+dE+" Tagen). Skalier profitable Kampagnen (ROAS über Break-even) → mehr Umsatz und mehr Gewinn."; v.style.color="var(--green)"; }
+  else { v.textContent="⚠ Hochrechnung ~"+eur(-ebitdaMonth)+" Verlust diesen Monat. Gegensteuern: profitable Kampagnen (ROAS über Break-even) hochfahren — das bringt Umsatz und deckt die Fixkosten."; v.style.color="var(--red)"; }
+}
+
+// ---------- Ablauf ----------
+let curDays=7, lastW=null;
+let busy=false;
+async function load(since,until,label,k){
+  if(busy)return; busy=true;
+  const st=document.getElementById("status"); st.className="st-load"; st.innerHTML='<span class="spin"></span>Lade frische Daten für '+label+' &hellip;';
+  document.getElementById("body").style.display="none";
+  try{ const W=await fetchWindow(since,until); render(W,label,k); st.style.display="none"; document.getElementById("body").style.display="block"; }
+  catch(e){ const m=(e.message||String(e)); const conn=/invalidat|reconnect|connector|connection/i.test(m);
+    st.className="st-err";
+    st.innerHTML = conn ? `<b>Ein Daten-Connector ist getrennt</b> (Shopify, Meta oder Google). Bitte in <b>Einstellungen → Connectors</b> den betroffenen Anschluss neu verbinden, dann oben aktualisieren. <span class="sm muted">(${m})</span>` : `Fehler beim Laden: ${m}. Über den Reload-Button oben erneut versuchen.`; }
+  busy=false;
+}
+function selectWindow(k){ document.querySelectorAll("#filters button[data-w]").forEach(b=>b.classList.toggle("on",b.dataset.w===k)); curDays=+k; const {since,until}=win(+k); const lbl={"2":"Letzte 2 Tage","7":"Letzte 7 Tage","30":"Letzte 30 Tage","90":"Letzte 90 Tage"}[k]; load(since,until,lbl,k); }
+document.querySelectorAll("#filters button[data-w]").forEach(b=>b.addEventListener("click",()=>selectWindow(b.dataset.w)));
+document.getElementById("dgo").addEventListener("click",()=>{ const a=document.getElementById("d1").value,b=document.getElementById("d2").value; if(!a||!b)return; curDays=Math.max(1,Math.round((new Date(b)-new Date(a))/86400000)+1); document.querySelectorAll("#filters button[data-w]").forEach(x=>x.classList.remove("on")); load(a,b,a+" – "+b,"cust"); });
+// Gewinn-Block: Eingaben merken + neu rechnen
+document.getElementById("pm-go").addEventListener("click",()=>{ try{localStorage.setItem("pm_fix",document.getElementById("pm-fix").value);localStorage.setItem("pm_mat",document.getElementById("pm-mat").value);}catch(e){} renderMonth(); });
+try{ const _f=localStorage.getItem("pm_fix"),_m=localStorage.getItem("pm_mat"); if(_f)document.getElementById("pm-fix").value=_f; if(_m)document.getElementById("pm-mat").value=_m; }catch(e){}
+// Kampagnen-Tabellen: 7 Tage · Gewinn-Block: immer laufender Monat
+selectWindow("7");
+fetchMonth();
+</script>
+</body>
+</html>

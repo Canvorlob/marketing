@@ -143,15 +143,15 @@ td.n,th.n{text-align:right}
   <div class="card">
    <h2>Alle Kategorien &mdash; DB-Wahrheit &amp; Break-even (Ist-COGS September 2026, 01.&ndash;07.09.)</h2>
    <div style="overflow-x:auto"><table><thead><tr><th>Kategorie</th><th class="n">COGS %</th><th class="n">BE-MER</th><th class="n">BE-ROAS</th></tr></thead><tbody id="cat-body"></tbody></table></div>
-   <div class="foot">Monats-Snapshot (Ist-COGS <b>September 2026, 01.&ndash;07.09.</b> &mdash; nach Summersale, manuell aktualisiert, <b>nicht live</b>). COGS = echte Warenkosten aus Shopify. BE-MER = 1 &divide; Marge vor Werbung, BE-ROAS = BE-MER &times; 1,19. Bettw&auml;sche h&ouml;her (COGS 36,5 %), Accessoires/Aufbewahrung/Servietten niedriger als im Juli.</div>
+   <div class="foot">Monats-Snapshot (Ist-COGS <b>September 2026, 01.&ndash;07.09.</b> &mdash; nach Summersale, manuell aktualisiert, <b>nicht live</b>). COGS = echte Warenkosten aus Shopify. BE-MER = 1 &divide; Marge vor Werbung, BE-ROAS = BE-MER &times; 1,19. <b>Bettw&auml;sche bereinigt</b> (ohne Abverkaufsfarbe Hellgrau @ €25 → COGS 31,6 % statt roh 36,5 %). Accessoires/Aufbewahrung/Servietten niedriger als im Juli.</div>
   </div>
  </div>
 </div>
 <script>
 // ---------- Konfiguration (Monats-Snapshot: Ist-COGS September 2026, 01.–07.09., nach Summersale) ----------
-const BEROAS={"Gläser":1.93,"Geschirr":2.50,"Keramikbecher":2.08,"Bettwäsche":2.27,"Accessoires":2.28,"Vasen":2.70,"Bloom":1.81,"Broad":2.20};
+const BEROAS={"Gläser":1.93,"Geschirr":2.50,"Keramikbecher":2.08,"Bettwäsche":2.08,"Accessoires":2.28,"Vasen":2.70,"Bloom":1.81,"Broad":2.20};
 const PORTF_MARGE=1/1.85;
-const CATS=[["Gläser",21.0,1.63,1.93],["Geschirr",41.3,2.10,2.50],["Keramikbecher",25.1,1.74,2.08],["Bettwäsche",36.5,1.91,2.27],["Accessoires",23.5,1.91,2.28],["Aufbewahrungsgläser",23.7,1.53,1.82],["Bloom (Kunstblume)",22.9,1.52,1.81],["Vasen",29.9,2.27,2.70],["Servietten",38.5,2.10,2.50]];
+const CATS=[["Gläser",21.0,1.63,1.93],["Geschirr",41.3,2.10,2.50],["Keramikbecher",25.1,1.74,2.08],["Bettwäsche",31.6,1.75,2.08],["Accessoires",23.5,1.91,2.28],["Aufbewahrungsgläser",23.7,1.53,1.82],["Bloom (Kunstblume)",22.9,1.52,1.81],["Vasen",29.9,2.27,2.70],["Servietten",38.5,2.10,2.50]];
 const AD="564040751856144", GADS="6107591423";
 const T_SHOP="mcp__4051df72-0308-4349-a668-8e97076eb4a2__run-analytics-query";
 const T_META="mcp__9219a61a-d6a2-4323-b804-c31ff1d9b919__ads_get_ad_entities";
@@ -192,7 +192,7 @@ function gBE(n){ n=(n||"").toLowerCase();
   if(n.includes("brand")||n.includes("search"))return null;
   if(n.includes("asset-only")&&(n.includes("bettw")||n.includes("sonstiges")))return null;
   if(n.includes("sonstiges"))return null;
-  if(n.includes("geschirr"))return 2.50; if(n.includes("bettw"))return 2.27;
+  if(n.includes("geschirr"))return 2.50; if(n.includes("bettw"))return 2.08;
   if(n.includes("tassen")||n.includes("kannen"))return 2.08;
   if(n.includes("vorratsgläser")||n.includes("vorratsglaeser"))return 1.82;
   if(n.includes("accessoires"))return 2.28;

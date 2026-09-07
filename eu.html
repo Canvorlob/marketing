@@ -37,10 +37,11 @@ td.n,th.n{text-align:right}.muted{color:var(--mut)}
 </div>
 <div id=stand>lädt …</div>
 <div class=cards id=cards></div>
-<div class=card><h2>Länder</h2>
-<div class=seg><span style="font-size:11px;color:var(--mut);font-weight:700;text-transform:uppercase;margin-right:6px;align-self:center">Sortieren</span><button id=s-net class=on>nach Umsatz</button><button id=s-pot>nach Potenzial</button></div>
-<table><thead><tr><th>Land</th><th class=n>Umsatz</th><th class=n>Δ vs. Vorp.</th><th class=n>Best.</th><th class=n>AOV</th><th class=n>Sessions</th><th class=n>CVR</th><th class=n>Neukunden</th><th class=n>Potenzial €</th></tr></thead><tbody id=ctybody></tbody></table>
-<div class=note><b>Potenzial €</b> = geschätzter Mehrumsatz, wenn das Land seine CVR auf 1,5 % höbe (Sessions × fehlende CVR × AOV). Große Zahl = viel Traffic, der schlecht konvertiert → Lokalisierung/Versand/Zahlarten prüfen. <b>Δ vs. Vorp.</b> = Umsatzwachstum ggü. gleich langem Vorzeitraum.</div></div>
+<div class=card><h2>Länder — Umsatz, Ad-Spend &amp; Gewinn</h2>
+<div class=seg><span style="font-size:11px;color:var(--mut);font-weight:700;text-transform:uppercase;margin-right:6px;align-self:center">Sortieren</span><button id=s-net class=on>nach Umsatz</button><button id=s-profit>nach Gewinn</button><button id=s-pot>nach Potenzial</button></div>
+<div style="overflow-x:auto"><table><thead><tr><th>Land</th><th class=n>Umsatz</th><th class=n>Ad-Spend</th><th class=n>MER</th><th class=n>Gewinn</th><th class=n>BE-Spend</th><th class=n>Δ Umsatz</th><th class=n>CVR</th><th class=n>Neukund.</th><th class=n>Potenzial €</th></tr></thead><tbody id=ctybody></tbody></table></div>
+<div class=note><b>Gewinn</b> = Deckungsbeitrag (Netto × 54 % Portfolio-Marge) − Ad-Spend des Landes. <b>BE-Spend</b> = maximaler Ad-Spend, bei dem der Gewinn = 0 wäre (= Deckungsbeitrag). Liegt der aktuelle Spend darunter, ist der Abstand genau der Gewinn → Skalier-Spielraum. <b>Break-even</b> im Schnitt bei <b>MER 1,85 / ROAS 2,20</b>. <b>MER</b> = Umsatz ÷ Ad-Spend (Land, via Meta <i>breakdowns=country</i>).</div>
+<div class=note style="border-left-color:var(--amber);background:#f7f1e8"><b>Hinweis zur Marge:</b> Gerechnet mit der Portfolio-Marge 54 % (Versand kostenneutral, wie im Cockpit). Im Ausland ist die reale Marge wegen höherer Versandkosten/Retouren etwas niedriger — der ausgewiesene Gewinn ist damit die optimistische Kante. <b>Potenzial €</b> = geschätzter Mehr<i>umsatz</i> bei CVR-Lift auf 1,5 % (Sessions × fehlende CVR × AOV).</div></div>
 <div class=card><h2>Kategorie-Mix EU</h2><table><thead><tr><th>Kategorie</th><th class=n>Umsatz (netto)</th><th class=n>Anteil</th></tr></thead><tbody id=catbody></tbody></table></div>
 <div class=foot>Umsatz = netto + Versanderlöse · CVR = Checkouts ÷ Sessions · CAC/MER auf Basis Meta-EU-Kampagnen · 7 O'CLOCK Controlling</div>
 </div>
@@ -71,31 +72,35 @@ function load(a,b,label){
  }).catch(e=>{$("stand").textContent="Fehler: "+e;});
 }
 function render(label,a,b){
- const e=CUR.eu, ns=e.net+e.ship, o=e.orders, cust=e.newc+e.retc;
+ const e=CUR.eu, MARGE=CUR.marge||(1/1.85), ns=e.net+e.ship, o=e.orders, cust=e.newc+e.retc;
  const aov=o?ns/o:0, cvr=e.sessions?e.completed/e.sessions*100:0;
- const sp=CUR.metaEuSpend||0, cac=e.newc?sp/e.newc:0, mer=sp?ns/sp:0;
+ const sp=CUR.metaEuSpendCty||CUR.metaEuSpend||0, cac=e.newc?sp/e.newc:0, mer=sp?ns/sp:0;
+ const db=e.net*MARGE, gewinn=db-sp;
  const quote=cust?e.newc/cust*100:0;
  const dGrow=CUR.prevNet?((ns-CUR.prevNet)/CUR.prevNet*100):null;
  $("cards").innerHTML=
   kpi("Umsatz (EU)",eur(ns),"netto+Versand"+(dGrow!=null?" · "+(dGrow>=0?'+':'')+de1(dGrow)+"% vs. Vorp.":""))+
-  kpi("Bestellungen",nf(o),eur(aov)+" AOV")+
-  kpi("Neukunden",nf(e.newc),de1(quote)+" % Quote")+
-  kpi("CVR",de2(cvr)+" %","Checkouts ÷ Sessions")+
-  kpi("Sessions",nf(e.sessions),"Nicht-DACH")+
-  kpi("Meta-Spend (EU)",eur(sp),"EU-Kampagnen")+
+  kpi("Ad-Spend (EU)",eur(sp),"Meta, Nicht-DACH")+
+  kpi("Deckungsbeitrag",eur(db),"Netto × 54 % vor Ads")+
+  kpi("Gewinn (EU)","<span class='"+(gewinn>=0?'up':'down')+"'>"+eur(gewinn)+"</span>","DB − Ad-Spend")+
+  kpi("MER (EU)",de2(mer),"BE bei 1,85")+
   kpi("CAC (EU)",eur(cac),"Spend ÷ Neukunden")+
-  kpi("MER (EU)",de2(mer),"Umsatz ÷ Spend");
+  kpi("CVR",de2(cvr)+" %","Checkouts ÷ Sessions")+
+  kpi("Neukunden",nf(e.newc),de1(quote)+" % Quote");
  // Länder
  let rows=(CUR.countries||[]).map(c=>{
    const cns=c.net+c.ship, caov=c.orders?cns/c.orders:aov, ccvr=c.sessions?c.completed/c.sessions:0;
    const pot=c.sessions*Math.max(0,TARGET-ccvr)*caov;
+   const csp=c.spend||0, cdb=c.net*MARGE, cgew=cdb-csp, cmer=csp?cns/csp:0;
    const pv=PREV[c.c], grow=(pv&&pv>0)?((c.net-pv)/pv*100):null;
-   return {c:c.c,ns:cns,orders:c.orders,aov:caov,sessions:c.sessions,cvr:ccvr*100,newc:c.newc,pot,grow};
+   return {c:c.c,ns:cns,spend:csp,mer:cmer,db:cdb,gew:cgew,cvr:ccvr*100,newc:c.newc,pot,grow};
  }).filter(x=>x.ns>0);
- rows.sort((x,y)=>SORT==="pot"?y.pot-x.pot:y.ns-x.ns);
+ rows.sort((x,y)=>SORT==="pot"?y.pot-x.pot:SORT==="profit"?y.gew-x.gew:y.ns-x.ns);
  $("ctybody").innerHTML=rows.slice(0,25).map(x=>{
    const gg=x.grow==null?'<span class=muted>–</span>':('<span class="'+(x.grow>=0?'up':'down')+'">'+(x.grow>=0?'+':'')+de1(x.grow)+' %</span>');
-   return "<tr><td>"+x.c+"</td><td class=n>"+eur(x.ns)+"</td><td class=n>"+gg+"</td><td class=n>"+nf(x.orders)+"</td><td class=n>"+eur(x.aov)+"</td><td class=n>"+nf(x.sessions)+"</td><td class=n>"+de2(x.cvr)+" %</td><td class=n>"+nf(x.newc)+"</td><td class=n>"+(x.pot>50?"<b>"+eur(x.pot)+"</b>":'<span class=muted>'+eur(x.pot)+'</span>')+"</td></tr>";
+   const mm=x.spend?('<b class="'+(x.mer>=1.85?'up':'down')+'">'+de1(x.mer)+'</b>'):'<span class=muted>–</span>';
+   const gew='<span class="'+(x.gew>=0?'up':'down')+'">'+(x.gew>=0?'+':'')+eur(x.gew)+'</span>';
+   return "<tr><td>"+x.c+"</td><td class=n>"+eur(x.ns)+"</td><td class=n>"+(x.spend?eur(x.spend):'<span class=muted>–</span>')+"</td><td class=n>"+mm+"</td><td class=n>"+gew+"</td><td class=n>"+eur(x.db)+"</td><td class=n>"+gg+"</td><td class=n>"+de2(x.cvr)+" %</td><td class=n>"+nf(x.newc)+"</td><td class=n>"+(x.pot>50?"<b>"+eur(x.pot)+"</b>":'<span class=muted>'+eur(x.pot)+'</span>')+"</td></tr>";
  }).join("");
  // Kategorie
  const cats=CUR.cats||{}; const ct=Object.entries(cats).filter(([k,v])=>v>0).sort((a,b)=>b[1]-a[1]); const tot=ct.reduce((s,[k,v])=>s+v,0);
@@ -105,7 +110,9 @@ function render(label,a,b){
 }
 document.querySelectorAll(".filters button[data-w]").forEach(x=>x.onclick=()=>{document.querySelectorAll(".filters button[data-w]").forEach(y=>y.classList.remove("on"));x.classList.add("on");const[a,b]=win(+x.dataset.w);load(a,b,"Letzte "+x.dataset.w+" Tage");});
 $("dgo").onclick=()=>{const a=$("d1").value,b=$("d2").value;if(!a||!b)return;document.querySelectorAll(".filters button[data-w]").forEach(y=>y.classList.remove("on"));load(a,b,fmtd(a)+" – "+fmtd(b));};
-$("s-net").onclick=()=>{SORT="net";$("s-net").classList.add("on");$("s-pot").classList.remove("on");if(CUR)render($("stand").textContent);};
-$("s-pot").onclick=()=>{SORT="pot";$("s-pot").classList.add("on");$("s-net").classList.remove("on");if(CUR)render($("stand").textContent);};
+function setSort(k){SORT=k;["net","profit","pot"].forEach(x=>$("s-"+x).classList.toggle("on",x===k));if(CUR)render();}
+$("s-net").onclick=()=>setSort("net");
+$("s-profit").onclick=()=>setSort("profit");
+$("s-pot").onclick=()=>setSort("pot");
 (()=>{const[a,b]=win(30);load(a,b,"Letzte 30 Tage");})();
 </script></body></html>

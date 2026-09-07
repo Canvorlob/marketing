@@ -1,0 +1,111 @@
+<!doctype html><html lang=de><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1">
+<title>EU-Overview (ohne DACH) · 7 O'CLOCK</title><style>
+:root{--bg:#faf8f5;--card:#fff;--ink:#2b2b2b;--mut:#8a8378;--line:#e7e2d9;--green:#2f8f57;--amber:#c98a2b;--red:#c0492b;--gold:#b79b6e;--blue:#2f6f8f}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5}
+.wrap{max-width:1120px;margin:0 auto;padding:20px}
+.brand{font-size:11px;letter-spacing:.14em;color:var(--mut);font-weight:700}
+h1{font-size:23px;margin:2px 0 2px}.sub{color:var(--mut);font-size:13px;margin-bottom:12px}
+.filters{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-bottom:8px}
+.filters button{border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 11px;font-size:12.5px;cursor:pointer;font-weight:600;color:var(--ink)}
+.filters button.on{background:#2b2b2b;color:#fff;border-color:#2b2b2b}
+.cust{display:flex;gap:5px;align-items:center;color:var(--mut);font-size:12px}
+.cust input{border:1px solid var(--line);border-radius:6px;padding:5px 7px;font-size:12px}
+#stand{font-size:12px;color:var(--mut);margin:6px 0 10px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(158px,1fr));gap:12px;margin:4px 0 4px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 15px}
+.kpi .t{font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--gold);font-weight:700}
+.kpi .v{font-size:22px;font-weight:800;margin-top:3px;color:#1c1c1c}
+.kpi .s{font-size:11px;color:var(--mut);margin-top:3px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-top:16px}
+h2{font-size:15px;margin:0 0 4px;border-bottom:1px solid var(--line);padding-bottom:8px}
+.seg{display:inline-flex;gap:4px;margin:8px 0}
+.seg button{border:1px solid var(--line);background:#fff;border-radius:7px;padding:4px 10px;font-size:12px;font-weight:600;cursor:pointer;color:var(--ink)}
+.seg button.on{background:var(--blue);color:#fff;border-color:var(--blue)}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line)}
+th{color:var(--mut);font-weight:600;font-size:11px}
+td.n,th.n{text-align:right}.muted{color:var(--mut)}
+.up{color:var(--green)}.down{color:var(--red)}
+.note{background:#eef2f4;border-left:4px solid var(--blue);padding:9px 12px;border-radius:6px;font-size:12px;margin-top:12px;color:var(--dark)}
+.foot{color:var(--mut);font-size:11px;margin-top:12px}
+</style></head><body><div class=wrap>
+<div class=brand>7 O'CLOCK · CONTROLLING</div><h1>EU-Overview <span style="font-size:13px;color:var(--mut);font-weight:400">— alle Länder außer DE / AT / CH</span></h1>
+<div class=sub>Wo liegt Auslands-Potenzial? Umsatz, Neukunden, CVR &amp; CAC nur für Nicht-DACH. Live aus Shopify + Meta, täglich aktualisiert.</div>
+<div class=filters>
+ <button data-w=7>7 Tage</button><button data-w=30 class=on>30 Tage</button><button data-w=90>90 Tage</button>
+ <span class=cust>| eigener: <input type=date id=d1><input type=date id=d2><button id=dgo>OK</button></span>
+</div>
+<div id=stand>lädt …</div>
+<div class=cards id=cards></div>
+<div class=card><h2>Länder</h2>
+<div class=seg><span style="font-size:11px;color:var(--mut);font-weight:700;text-transform:uppercase;margin-right:6px;align-self:center">Sortieren</span><button id=s-net class=on>nach Umsatz</button><button id=s-pot>nach Potenzial</button></div>
+<table><thead><tr><th>Land</th><th class=n>Umsatz</th><th class=n>Δ vs. Vorp.</th><th class=n>Best.</th><th class=n>AOV</th><th class=n>Sessions</th><th class=n>CVR</th><th class=n>Neukunden</th><th class=n>Potenzial €</th></tr></thead><tbody id=ctybody></tbody></table>
+<div class=note><b>Potenzial €</b> = geschätzter Mehrumsatz, wenn das Land seine CVR auf 1,5 % höbe (Sessions × fehlende CVR × AOV). Große Zahl = viel Traffic, der schlecht konvertiert → Lokalisierung/Versand/Zahlarten prüfen. <b>Δ vs. Vorp.</b> = Umsatzwachstum ggü. gleich langem Vorzeitraum.</div></div>
+<div class=card><h2>Kategorie-Mix EU</h2><table><thead><tr><th>Kategorie</th><th class=n>Umsatz (netto)</th><th class=n>Anteil</th></tr></thead><tbody id=catbody></tbody></table></div>
+<div class=foot>Umsatz = netto + Versanderlöse · CVR = Checkouts ÷ Sessions · CAC/MER auf Basis Meta-EU-Kampagnen · 7 O'CLOCK Controlling</div>
+</div>
+<script>
+const W="https://rohertrag-worker.can-11b.workers.dev/eu.json";
+const TARGET=0.015; // Ziel-CVR fürs Potenzial
+let CUR=null,PREV={},SORT="net";
+const $=id=>document.getElementById(id);
+const nf=n=>Math.round(n||0).toLocaleString("de-DE");
+const eur=x=>"€"+nf(x);
+const de1=x=>(x||0).toLocaleString("de-DE",{minimumFractionDigits:1,maximumFractionDigits:1});
+const de2=x=>(x||0).toLocaleString("de-DE",{minimumFractionDigits:2,maximumFractionDigits:2});
+const pad=n=>String(n).padStart(2,"0");
+const iso=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+const fmtd=s=>{let p=s.split("-");return p[2]+"."+p[1]+"."+p[0];};
+function win(w){const e=new Date();e.setDate(e.getDate()-1);const s=new Date(e);s.setDate(s.getDate()-(w-1));return[iso(s),iso(e)];}
+function prevWin(a,b){const s=new Date(a),e=new Date(b);const len=Math.round((e-s)/86400000)+1;const pe=new Date(s);pe.setDate(pe.getDate()-1);const ps=new Date(pe);ps.setDate(ps.getDate()-(len-1));return[iso(ps),iso(pe)];}
+function kpi(t,v,s){return "<div class=kpi><div class=t>"+t+"</div><div class=v>"+v+"</div><div class=s>"+(s||"")+"</div></div>";}
+function load(a,b,label){
+ $("stand").textContent="lädt "+label+" …";
+ const [pa,pb]=prevWin(a,b);
+ Promise.all([
+   fetch(W+"?since="+a+"&until="+b).then(r=>r.json()),
+   fetch(W+"?since="+pa+"&until="+pb).then(r=>r.json())
+ ]).then(([cur,prev])=>{
+   CUR=cur; PREV={}; (prev.countries||[]).forEach(c=>PREV[c.c]=c.net); CUR.prevNet=(prev.eu?prev.eu.net+prev.eu.ship:0);
+   render(label,a,b);
+ }).catch(e=>{$("stand").textContent="Fehler: "+e;});
+}
+function render(label,a,b){
+ const e=CUR.eu, ns=e.net+e.ship, o=e.orders, cust=e.newc+e.retc;
+ const aov=o?ns/o:0, cvr=e.sessions?e.completed/e.sessions*100:0;
+ const sp=CUR.metaEuSpend||0, cac=e.newc?sp/e.newc:0, mer=sp?ns/sp:0;
+ const quote=cust?e.newc/cust*100:0;
+ const dGrow=CUR.prevNet?((ns-CUR.prevNet)/CUR.prevNet*100):null;
+ $("cards").innerHTML=
+  kpi("Umsatz (EU)",eur(ns),"netto+Versand"+(dGrow!=null?" · "+(dGrow>=0?'+':'')+de1(dGrow)+"% vs. Vorp.":""))+
+  kpi("Bestellungen",nf(o),eur(aov)+" AOV")+
+  kpi("Neukunden",nf(e.newc),de1(quote)+" % Quote")+
+  kpi("CVR",de2(cvr)+" %","Checkouts ÷ Sessions")+
+  kpi("Sessions",nf(e.sessions),"Nicht-DACH")+
+  kpi("Meta-Spend (EU)",eur(sp),"EU-Kampagnen")+
+  kpi("CAC (EU)",eur(cac),"Spend ÷ Neukunden")+
+  kpi("MER (EU)",de2(mer),"Umsatz ÷ Spend");
+ // Länder
+ let rows=(CUR.countries||[]).map(c=>{
+   const cns=c.net+c.ship, caov=c.orders?cns/c.orders:aov, ccvr=c.sessions?c.completed/c.sessions:0;
+   const pot=c.sessions*Math.max(0,TARGET-ccvr)*caov;
+   const pv=PREV[c.c], grow=(pv&&pv>0)?((c.net-pv)/pv*100):null;
+   return {c:c.c,ns:cns,orders:c.orders,aov:caov,sessions:c.sessions,cvr:ccvr*100,newc:c.newc,pot,grow};
+ }).filter(x=>x.ns>0);
+ rows.sort((x,y)=>SORT==="pot"?y.pot-x.pot:y.ns-x.ns);
+ $("ctybody").innerHTML=rows.slice(0,25).map(x=>{
+   const gg=x.grow==null?'<span class=muted>–</span>':('<span class="'+(x.grow>=0?'up':'down')+'">'+(x.grow>=0?'+':'')+de1(x.grow)+' %</span>');
+   return "<tr><td>"+x.c+"</td><td class=n>"+eur(x.ns)+"</td><td class=n>"+gg+"</td><td class=n>"+nf(x.orders)+"</td><td class=n>"+eur(x.aov)+"</td><td class=n>"+nf(x.sessions)+"</td><td class=n>"+de2(x.cvr)+" %</td><td class=n>"+nf(x.newc)+"</td><td class=n>"+(x.pot>50?"<b>"+eur(x.pot)+"</b>":'<span class=muted>'+eur(x.pot)+'</span>')+"</td></tr>";
+ }).join("");
+ // Kategorie
+ const cats=CUR.cats||{}; const ct=Object.entries(cats).filter(([k,v])=>v>0).sort((a,b)=>b[1]-a[1]); const tot=ct.reduce((s,[k,v])=>s+v,0);
+ $("catbody").innerHTML=ct.slice(0,12).map(([k,v])=>"<tr><td>"+(k||"—")+"</td><td class=n>"+eur(v)+"</td><td class=n>"+de1(tot?v/tot*100:0)+" %</td></tr>").join("");
+ const gen=CUR.generatedAt?new Date(CUR.generatedAt):null;
+ $("stand").innerHTML="<b>"+fmtd(a)+" – "+fmtd(b)+"</b> · "+rows.length+" Länder"+(gen?" · Stand "+pad(gen.getDate())+"."+pad(gen.getMonth()+1)+". "+pad(gen.getHours())+":"+pad(gen.getMinutes()):"");
+}
+document.querySelectorAll(".filters button[data-w]").forEach(x=>x.onclick=()=>{document.querySelectorAll(".filters button[data-w]").forEach(y=>y.classList.remove("on"));x.classList.add("on");const[a,b]=win(+x.dataset.w);load(a,b,"Letzte "+x.dataset.w+" Tage");});
+$("dgo").onclick=()=>{const a=$("d1").value,b=$("d2").value;if(!a||!b)return;document.querySelectorAll(".filters button[data-w]").forEach(y=>y.classList.remove("on"));load(a,b,fmtd(a)+" – "+fmtd(b));};
+$("s-net").onclick=()=>{SORT="net";$("s-net").classList.add("on");$("s-pot").classList.remove("on");if(CUR)render($("stand").textContent);};
+$("s-pot").onclick=()=>{SORT="pot";$("s-pot").classList.add("on");$("s-net").classList.remove("on");if(CUR)render($("stand").textContent);};
+(()=>{const[a,b]=win(30);load(a,b,"Letzte 30 Tage");})();
+</script></body></html>

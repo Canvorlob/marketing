@@ -1,0 +1,107 @@
+<!doctype html><html lang=de><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1">
+<title>Google Ads — Steuerung · 7 O'CLOCK</title><style>
+:root{--bg:#faf8f5;--card:#fff;--ink:#2b2b2b;--mut:#8a8378;--line:#e7e2d9;--green:#2f8f57;--amber:#c98a2b;--red:#c0492b;--teal:#2f7f8f;--gold:#b79b6e;--amberbg:#fbf3e2;--chipg:#e6f2ea;--chipa:#fbf3e2;--chipr:#f8e7e2;--chipt:#e5f0f2;--chipgr:#eee}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5}
+.wrap{max-width:1080px;margin:0 auto;padding:20px}
+.brand{font-size:11px;letter-spacing:.12em;color:var(--mut);font-weight:700}
+h1{font-size:22px;margin:2px 0 2px}.sub{color:var(--mut);font-size:13px;margin-bottom:12px}
+.filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px}
+.filters button{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;padding:7px 12px;font-size:13px;cursor:pointer;font-weight:600}
+.filters button.on{background:#2b2b2b;color:#fff;border-color:#2b2b2b}
+.cust{display:flex;gap:6px;align-items:center;margin-left:4px;color:var(--mut);font-size:12px}
+.cust input{border:1px solid var(--line);border-radius:6px;padding:5px 7px;font-size:12px;background:#fff}
+#stand{color:var(--mut);font-size:12px;margin:6px 0 10px}
+.cards{display:flex;gap:12px;flex-wrap:wrap;margin:4px 0 4px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px 16px;flex:1;min-width:150px}
+.kpi .t{font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--gold);font-weight:700}
+.kpi .v{font-size:24px;font-weight:800;margin-top:3px;color:#1c1c1c}
+.kpi .s{font-size:11px;color:var(--mut);margin-top:3px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-top:14px}
+h2{font-size:15px;margin:0 0 10px;border-bottom:1px solid var(--line);padding-bottom:8px}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line)}
+th{color:var(--mut);font-weight:600;font-size:11px}
+td.n,th.n{text-align:right}.muted{color:var(--mut)}.sm{font-size:11px}.ratio{font-weight:700}
+.chip{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700}
+.c-green{background:var(--chipg);color:var(--green)}.c-amber{background:var(--chipa);color:var(--amber)}
+.c-red{background:var(--chipr);color:var(--red)}.c-teal{background:var(--chipt);color:var(--teal)}.c-grey,.c-mut{background:var(--chipgr);color:var(--mut)}
+.note{background:var(--amberbg);border-left:3px solid var(--amber);padding:9px 12px;border-radius:6px;font-size:12px;margin-top:12px}
+.foot{color:var(--mut);font-size:11px;margin-top:12px}
+</style></head><body><div class=wrap>
+<div class=brand>7 O'CLOCK · GOOGLE ADS</div><h1>Google Ads — Steuerung</h1>
+<div class=sub>Feed-ROAS je Kampagne vs. Break-even — Entscheidungshilfe für Budget hoch/halten/kürzen. Live aus Google Ads, aktualisiert sich täglich.</div>
+<div class=filters>
+ <button data-w=7 class=on>7 Tage</button><button data-w=14>14 Tage</button><button data-w=30>30 Tage</button><button data-w=90>90 Tage</button>
+ <span class=cust>| eigener: <input type=date id=d1><input type=date id=d2><button id=dgo>OK</button></span>
+</div>
+<div id=stand>lädt …</div>
+<div class=cards id=cards></div>
+<div class=card><h2>Kampagnen — Feed-ROAS je Kategorie</h2>
+<table><thead><tr><th>Kampagne</th><th class=n>Spend</th><th class=n>ROAS</th><th class=n>Break-even</th><th class=n>Ratio</th><th>Aktion</th><th class=n>Δ Budget</th><th>Hinweis</th></tr></thead>
+<tbody id=gbody></tbody></table>
+<div id=gfoot class=note></div></div>
+<div class=foot>Datenquelle Google Ads API · 7 O'CLOCK Controlling</div>
+</div>
+<script>
+const WCPT="https://rohertrag-worker.can-11b.workers.dev/cockpit.json";
+const BEROAS={"Gläser":1.98,"Geschirr":2.55,"Keramikbecher":2.15,"Bettwäsche":2.12,"Accessoires":2.59,"Vasen":2.64,"Bloom":1.81,"Broad":2.20};
+const eur=n=>"€"+Math.round(n||0).toLocaleString("de-DE");
+const de=n=>(n==null||isNaN(n))?"–":n.toLocaleString("de-DE",{minimumFractionDigits:2,maximumFractionDigits:2});
+const fmtDate=d=>d.toISOString().slice(0,10);
+const fmtd=s=>{let p=s.split("-");return p[2]+"."+p[1]+"."+p[0];};
+function win(w){const end=new Date();end.setDate(end.getDate()-1);const start=new Date(end);start.setDate(start.getDate()-(w-1));return{since:fmtDate(start),until:fmtDate(end)};}
+function mcat(n){n=(n||"").toLowerCase();if(n.includes("geschirr")||n.includes("niasparset"))return"Geschirr";if(n.includes("bettw"))return"Bettwäsche";if(n.includes("vasen"))return"Vasen";if(n.includes("bloom")||n.includes("blume"))return"Bloom";if(n.includes("wunschset")||n.includes("gläser")||n.includes("glaeser")||n.includes("bundle")||n.includes("bestseller"))return"Gläser";return"Broad";}
+function gBE(n){n=(n||"").toLowerCase();if(n.includes("brand")||n.includes("search"))return null;if(n.includes("asset-only")&&(n.includes("bettw")||n.includes("sonstiges")))return null;if(n.includes("sonstiges"))return null;if(n.includes("geschirr"))return 2.55;if(n.includes("bettw"))return 2.12;if(n.includes("tassen")||n.includes("kannen"))return 2.15;if(n.includes("vorratsgläser")||n.includes("vorratsglaeser"))return 2.02;if(n.includes("accessoires"))return 2.59;if(n.includes("kunstblume")||n.includes("bloom"))return 1.81;if(n.includes("gläser")||n.includes("glaeser"))return 1.98;return null;}
+function gCat(n){n=(n||"").toLowerCase();if(n.includes("brand")||n.includes("search"))return null;if(n.includes("asset-only")&&(n.includes("bettw")||n.includes("sonstiges")))return null;if(n.includes("sonstiges"))return null;if(n.includes("geschirr"))return"Geschirr";if(n.includes("bettw"))return"Bettwäsche";if(n.includes("tassen")||n.includes("kannen"))return"Keramikbecher";if(n.includes("vorratsgläser"))return"Aufbewahrungsgläser";if(n.includes("accessoires"))return"Accessoires";if(n.includes("kunstblume"))return"Bloom";if(n.includes("gläser")||n.includes("glaeser"))return"Gläser";return null;}
+function gfeedCV(google,cat){const keys={Geschirr:["feed-only | geschirr"],Gläser:["feed-only | gläser","vorratsgläser"],Bettwäsche:["bettwäsche | feed"],Keramikbecher:["tassen & kannen"],Bloom:["kunstblumen"]}[cat]||[];return google.filter(g=>keys.some(k=>g.name.toLowerCase().includes(k))).reduce((a,g)=>a+g.cv,0);}
+function pctStep(r){if(r==null||isNaN(r))return["–","c-mut"];if(r>=2.2)return["+30 %","c-green"];if(r>=1.5)return["+20 %","c-green"];if(r>=1.2)return["+10 %","c-teal"];if(r>=1.0)return["0 %","c-mut"];if(r>=0.8)return["−20 %","c-red"];if(r>=0.5)return["−40 %","c-red"];return["Stop","c-red"];}
+function decide(r){if(r==null||isNaN(r))return["PRÜFEN","c-grey"];if(r>=1.5)return["SKALIEREN","c-green"];if(r>=1.2)return["HALTEN","c-teal"];if(r>=1.0)return["BEOBACHTEN","c-amber"];return["KÜRZEN","c-red"];}
+function chip(t,c){return `<span class="chip ${c}">${t}</span>`;}
+function budgetCell(cat,ratio,gErr,catDB){let r=pctStep(ratio),t=r[0],c=r[1];const pos=/\+/.test(t);const feed=["Bloom","Geschirr","Gläser","Bettwäsche","Keramikbecher"].includes(cat);if(pos&&catDB&&catDB[cat]!=null&&catDB[cat]<=0)return["nicht skal.","c-red"];return[t,c];}
+function compute(j){
+ const scal=j.scal||{net:0}; const pt=j.pt||{}; const camps=Array.isArray(j.camps)?j.camps:[]; const google=(Array.isArray(j.google)?j.google:[]).map(x=>({name:x.name,spend:x.cost,cv:x.cv,roas:x.cost>0?x.cv/x.cost:0}));
+ const catrev={"Geschirr":0,"Gläser":0,"Keramikbecher":0,"Bettwäsche":0,"Vasen":0,"Bloom":0};
+ for(const k in pt){const n=(k||"").toLowerCase(),v=pt[k]||0;
+  if(n.includes("geschirr"))catrev["Geschirr"]+=v;
+  else if(n.includes("trinkglas")||n.includes("weinglas")||n.includes("karaffe"))catrev["Gläser"]+=v;
+  else if(n.includes("keramik becher")||n==="tassen"||n.includes("espresso")||n.includes("untertasse"))catrev["Keramikbecher"]+=v;
+  else if(n.includes("bettw"))catrev["Bettwäsche"]+=v;
+  else if(n==="vasen")catrev["Vasen"]+=v;
+  else if(n.includes("kunstblume"))catrev["Bloom"]+=v;}
+ const meta=camps.map(c=>({cat:mcat(c.name),spend:c.spend,roas:c.roas}));
+ const catoaf={};
+ ["Bloom","Bettwäsche","Geschirr","Gläser","Keramikbecher","Vasen"].forEach(cat=>{const mc=meta.filter(m=>m.cat===cat).reduce((a,m)=>a+m.spend*m.roas,0);const gc=gfeedCV(google,cat);const dn=(catrev[cat]||0)*1.19;const f=dn>0?Math.max(1,(mc+gc)/dn):1;if(f>1.05)catoaf[cat]=+f.toFixed(2);});
+ const catDB={};
+ ["Bloom","Bettwäsche","Geschirr","Gläser","Keramikbecher","Vasen"].forEach(cat=>{const be=BEROAS[cat];if(!be)return;const margin=1.19/be;const ms=meta.filter(m=>m.cat===cat).reduce((a,m)=>a+m.spend,0);const gs=google.filter(x=>gCat(x.name)===cat).reduce((a,x)=>a+(x.spend||0),0);catDB[cat]=Math.round((catrev[cat]||0)*margin-(ms+gs));});
+ return {google,catoaf,catDB,gErr:j.gErr||null,generatedAt:j.generatedAt};
+}
+function render(W,label){
+ const g=W.google;
+ const tot=g.reduce((a,x)=>a+(x.spend||0),0), cv=g.reduce((a,x)=>a+(x.cv||0),0), roas=tot?cv/tot:0;
+ const feed=g.filter(x=>gBE(x.name)!=null), feedSp=feed.reduce((a,x)=>a+x.spend,0), feedCv=feed.reduce((a,x)=>a+x.cv,0);
+ document.getElementById("cards").innerHTML=
+  kpi("Google-Spend",eur(tot),g.length+" Kampagnen")+
+  kpi("Conversion-Wert",eur(cv),"Google-attribuiert")+
+  kpi("ROAS (blended)",de(roas),"Wert ÷ Spend")+
+  kpi("Feed-ROAS",de(feedSp?feedCv/feedSp:0),"nur steuerbare Feeds");
+ document.getElementById("gbody").innerHTML=g.length?g.slice().sort((a,b)=>(b.spend||0)-(a.spend||0)).map(x=>{
+  const be=gBE(x.name),gc=gCat(x.name),sp=`<td class=n>${eur(x.spend||0)}</td>`;
+  if(be==null)return `<tr><td>${x.name}</td>${sp}<td class=n>${de(x.roas)}</td><td class="n muted">–</td><td class="n muted">–</td><td>${chip("PRÜFEN","c-grey")}</td><td class="n muted">–</td><td class="muted sm">Marken/gemischt — nicht skalieren</td></tr>`;
+  const oaf=(gc&&W.catoaf[gc]&&W.catoaf[gc]>1.05)?W.catoaf[gc]:1,adj=x.roas/oaf,ratio=adj/be;const[a,ac]=decide(ratio);const[pt,pc]=budgetCell(gc,ratio,W.gErr,W.catDB);
+  const rc=oaf>1?`${de(x.roas)}<span class="muted sm">→${de(adj)}</span><sup style="color:var(--amber)">*</sup>`:de(x.roas);
+  const note=ratio<1?"unter BE — kappen":(ratio>=1.5?"über BE — Budget hoch":"knapp über BE — halten");
+  return `<tr><td>${x.name}</td>${sp}<td class=n>${rc}</td><td class="n muted">${de(be)}</td><td class="n ratio">${de(ratio)}</td><td>${chip(a,ac)}</td><td class=n>${chip(pt,pc)}</td><td class="muted sm">${note}</td></tr>`;
+ }).join(""):`<tr><td colspan=8 class=muted>${W.gErr?("Google nicht verfügbar: "+W.gErr):"keine Google-Daten"}</td></tr>`;
+ document.getElementById("gfoot").innerHTML='<b>Ratio = ROAS ÷ Break-even-ROAS.</b> Break-even je Kategorie ist der Punkt, ab dem die Kampagne Gewinn macht. <b>*</b> = attributions-bereinigt: bei Kategorien, wo Meta+Google zusammen mehr Umsatz beanspruchen als real anfiel, wird der Google-ROAS gedämpft (Feed greift oft bestehende Nachfrage ab). <b>Δ Budget:</b> ≥2,2→+30 · 1,5–2,2→+20 · 1,2–1,5→+10 · 1,0–1,2→0 · 0,8–1,0→−20 · &lt;0,8→−40/Stop (max ±30 %/Schritt). Marken-/Search-/Sonstiges-Kampagnen: keine Feed-Steuerung.';
+ const gen=W.generatedAt?new Date(W.generatedAt):null;
+ document.getElementById("stand").innerHTML="<b>"+label+"</b> · live abgerufen"+(gen?" "+gen.toLocaleString("de-DE"):"")+(W.gErr?' · <span style="color:var(--amber)">Google übersprungen</span>':'');
+}
+function kpi(t,v,s){return "<div class=kpi><div class=t>"+t+"</div><div class=v>"+v+"</div><div class=s>"+s+"</div></div>";}
+function load(since,until,label){
+ document.getElementById("stand").textContent="lädt "+label+" …";
+ fetch(WCPT+"?since="+since+"&until="+until).then(r=>r.json()).then(j=>render(compute(j),label)).catch(e=>{document.getElementById("stand").textContent="Fehler: "+e;});
+}
+document.querySelectorAll(".filters button[data-w]").forEach(b=>b.onclick=()=>{document.querySelectorAll(".filters button[data-w]").forEach(x=>x.classList.remove("on"));b.classList.add("on");const{since,until}=win(+b.dataset.w);load(since,until,"Letzte "+b.dataset.w+" Tage");});
+document.getElementById("dgo").onclick=()=>{const a=document.getElementById("d1").value,b=document.getElementById("d2").value;if(!a||!b)return;document.querySelectorAll(".filters button[data-w]").forEach(x=>x.classList.remove("on"));load(a,b,fmtd(a)+" – "+fmtd(b));};
+(()=>{const{since,until}=win(7);load(since,until,"Letzte 7 Tage");})();
+</script></body></html>

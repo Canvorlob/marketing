@@ -110,7 +110,8 @@ function prevRange(rng){ // gleich langer Vorzeitraum direkt vor A
  return p0>=0?[p0,p1]:null;}
 function arrowHtml(val,p,better){
  if(p==null||!isFinite(p)||!isFinite(val)||p===0)return "";
- let dp=dpct(val,p);let dir=dp>0?"▲":(dp<0?"▼":"■");
+ let dp=dpct(val,p);if(Math.abs(dp)<0.05)dp=0;
+ let dir=dp>0?"▲":(dp<0?"▼":"■");
  let good=(better==="down")?dp<0:dp>0;let col=dp===0?'var(--mut)':(good?'var(--green)':'var(--red)');
  return "<div class=cmp><span style=\"color:"+col+";font-weight:700\">"+dir+" "+(dp>=0?'+':'')+de1(dp)+" %</span> <span style='color:var(--mut)'>vs. Vorperiode</span></div>";}
 function card(t,val,lbl,b,fmtv,better,p){

@@ -78,6 +78,7 @@ function render(label,a,b){
  const db=e.net*MARGE, gewinn=db-sp;
  const quote=cust?e.newc/cust*100:0;
  const dGrow=CUR.prevNet?((ns-CUR.prevNet)/CUR.prevNet*100):null;
+ const totalPot=(CUR.countries||[]).reduce((a,c)=>{const cns=c.net+c.ship,caov=c.orders?cns/c.orders:aov,ccvr=c.sessions?c.completed/c.sessions:0;return a+c.sessions*Math.max(0,TARGET-ccvr)*caov;},0);
  $("cards").innerHTML=
   kpi("Umsatz (EU)",eur(ns),"netto+Versand"+(dGrow!=null?" · "+(dGrow>=0?'+':'')+de1(dGrow)+"% vs. Vorp.":""))+
   kpi("Ad-Spend (EU)",eur(sp),"Meta, Nicht-DACH")+
@@ -86,7 +87,8 @@ function render(label,a,b){
   kpi("MER (EU)",de2(mer),"BE bei 1,85")+
   kpi("CAC (EU)",eur(cac),"Spend ÷ Neukunden")+
   kpi("CVR",de2(cvr)+" %","Checkouts ÷ Sessions")+
-  kpi("Neukunden",nf(e.newc),de1(quote)+" % Quote");
+  kpi("Neukunden",nf(e.newc),de1(quote)+" % Quote")+
+  kpi("Umsatz-Potenzial","<span style='color:var(--blue)'>+"+eur(totalPot)+"</span>","bei CVR-Lift auf 1,5 %");
  // Länder
  let rows=(CUR.countries||[]).map(c=>{
    const cns=c.net+c.ship, caov=c.orders?cns/c.orders:aov, ccvr=c.sessions?c.completed/c.sessions:0;

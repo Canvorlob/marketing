@@ -105,32 +105,43 @@ function agg(rng){
   allTime:base, quote:kunden?nw/kunden*100:0, aov:kunden?netship/kunden:0, ncAov:nw?ncr/nw:0,
   cac:nw?sp/nw:0, cacAll:kunden?sp/kunden:0, cpo:orders?sp/orders:0, cvr:ses?comp/ses*100:0, ncCvr:ses?nw/ses*100:0, ordCvr:ses?pord/ses*100:0};}
 let A={spec:30,label:"30 Tage"},B={spec:"",label:""};
-function card(t,val,lbl,b,fmtv,better){
+function prevRange(rng){ // gleich langer Vorzeitraum direkt vor A
+ if(!rng)return null;let[i0,i1]=rng;let len=i1-i0+1;let p1=i0-1,p0=i0-len;
+ return p0>=0?[p0,p1]:null;}
+function arrowHtml(val,p,better){
+ if(p==null||!isFinite(p)||!isFinite(val)||p===0)return "";
+ let dp=dpct(val,p);let dir=dp>0?"▲":(dp<0?"▼":"■");
+ let good=(better==="down")?dp<0:dp>0;let col=dp===0?'var(--mut)':(good?'var(--green)':'var(--red)');
+ return "<div class=cmp><span style=\"color:"+col+";font-weight:700\">"+dir+" "+(dp>=0?'+':'')+de1(dp)+" %</span> <span style='color:var(--mut)'>vs. Vorperiode</span></div>";}
+function card(t,val,lbl,b,fmtv,better,p){
+ let arrow=arrowHtml(val,p,better);
  let cmp="";
  if(b!=null&&isFinite(b)){let dp=dpct(val,b);let good=(better==="down")?dp<0:dp>0;
   cmp="<div class=cmp>B: "+fmtv(b)+" · <b style=\"color:"+(dp===0?'var(--mut)':(good?'var(--green)':'var(--red)'))+"\">"+(dp>=0?'+':'')+de1(dp)+" %</b></div>";}
- return "<div class=card><div class=ct>"+t+"</div><div class=big>"+fmtv(val)+"</div><div class=lbl>"+lbl+"</div>"+cmp+"</div>";}
+ return "<div class=card><div class=ct>"+t+"</div><div class=big>"+fmtv(val)+"</div><div class=lbl>"+lbl+"</div>"+arrow+cmp+"</div>";}
 function render(){
  if(!DAYS.length){return;}
- let a=agg(idxRange(A.spec)),b=B.spec?agg(idxRange(B.spec)):null;
+ let arng=idxRange(A.spec);
+ let a=agg(arng),b=B.spec?agg(idxRange(B.spec)):null,p=agg(prevRange(arng));
  if(!a){$("range").textContent="Zeitraum ungültig";return;}
- $("range").innerHTML="<b>Zeitraum A:</b> "+fmtd(a.from)+" – "+fmtd(a.to)+" · "+(a.i1-a.i0+1)+" Tage"+(b?" &nbsp;|&nbsp; <b style='color:var(--blue)'>Vergleich B:</b> "+fmtd(b.from)+" – "+fmtd(b.to):"");
+ const pOk=!!p;
+ $("range").innerHTML="<b>Zeitraum A:</b> "+fmtd(a.from)+" – "+fmtd(a.to)+" · "+(a.i1-a.i0+1)+" Tage"+(p?" &nbsp;<span style='color:var(--mut)'>· Pfeil = Δ vs. Vorperiode "+fmtd(p.from)+"–"+fmtd(p.to)+"</span>":"")+(b?" &nbsp;|&nbsp; <b style='color:var(--blue)'>Vergleich B:</b> "+fmtd(b.from)+" – "+fmtd(b.to):"");
  const ncOk=a.nco>0;
  let c="";
- c+=card("Kunden gesamt (all-time)",a.allTime,"kumulierte Basis bis "+fmtd(a.to),b?b.allTime:null,eur=>nf(eur),"up");
- c+=card("Neukunden",a.nw,"Erstkäufer im Zeitraum",b?b.nw:null,nf,"up");
- c+=card("Neukundenquote",a.quote,"von allen Käufern",b?b.quote:null,pct,"up");
+ c+=card("Kunden gesamt (all-time)",a.allTime,"kumulierte Basis bis "+fmtd(a.to),b?b.allTime:null,eur=>nf(eur),"up",pOk?p.allTime:null);
+ c+=card("Neukunden",a.nw,"Erstkäufer im Zeitraum",b?b.nw:null,nf,"up",pOk?p.nw:null);
+ c+=card("Neukundenquote",a.quote,"von allen Käufern",b?b.quote:null,pct,"up",pOk?p.quote:null);
  const pct2=x=>de2(x)+" %";
- c+=card("CVR (getrackt)",a.ses?a.cvr:NaN,a.ses?"Checkouts ÷ Sessions (Shopify)":"keine Session-Daten",(b&&b.ses)?b.cvr:null,x=>isFinite(x)?pct2(x):"–","up");
- c+=card("CVR (Bestellungen)",a.ses?a.ordCvr:NaN,a.ses?"bezahlte Best. ÷ Sessions":"keine Session-Daten",(b&&b.ses)?b.ordCvr:null,x=>isFinite(x)?pct2(x):"–","up");
- c+=card("Neukunden-CVR",a.ses?a.ncCvr:NaN,a.ses?"Neukunden ÷ Sessions":"keine Session-Daten",(b&&b.ses)?b.ncCvr:null,x=>isFinite(x)?pct2(x):"–","up");
- c+=card("AOV",a.aov,"Ø Bestellwert je Kunde",b?b.aov:null,eur,"up");
- c+=card("Neukunden-AOV",ncOk?a.ncAov:NaN,ncOk?"Ø Bestellwert je Neukunde":"wird berechnet…",(b&&b.nco>0)?b.ncAov:null,x=>isFinite(x)?eur(x):"–","up");
- c+=card("Neukunden-Umsatz",ncOk?a.ncr:NaN,ncOk?"Summe Erstbestellungen":"wird berechnet…",(b&&b.nco>0)?b.ncr:null,x=>isFinite(x)?eur(x):"–","up");
- c+=card("CAC (Neukunden)",a.cac,"Spend ÷ Neukunden",b?b.cac:null,eur,"down");
- c+=card("CAC (alle Kunden)",a.cacAll,"Spend ÷ alle Kunden",b?b.cacAll:null,eur,"down");
- c+=card("Umsatz",a.netship,"netto + Versand · "+nf(a.orders)+" Best.",b?b.netship:null,eur,"up");
- c+=card("Marketing-Spend",a.sp,"Meta+Google+IFM · CPO "+eur(a.cpo),b?b.sp:null,eur,"down");
+ c+=card("CVR (getrackt)",a.ses?a.cvr:NaN,a.ses?"Checkouts ÷ Sessions (Shopify)":"keine Session-Daten",(b&&b.ses)?b.cvr:null,x=>isFinite(x)?pct2(x):"–","up",(pOk&&p.ses)?p.cvr:null);
+ c+=card("CVR (Bestellungen)",a.ses?a.ordCvr:NaN,a.ses?"bezahlte Best. ÷ Sessions":"keine Session-Daten",(b&&b.ses)?b.ordCvr:null,x=>isFinite(x)?pct2(x):"–","up",(pOk&&p.ses)?p.ordCvr:null);
+ c+=card("Neukunden-CVR",a.ses?a.ncCvr:NaN,a.ses?"Neukunden ÷ Sessions":"keine Session-Daten",(b&&b.ses)?b.ncCvr:null,x=>isFinite(x)?pct2(x):"–","up",(pOk&&p.ses)?p.ncCvr:null);
+ c+=card("AOV",a.aov,"Ø Bestellwert je Kunde",b?b.aov:null,eur,"up",pOk?p.aov:null);
+ c+=card("Neukunden-AOV",ncOk?a.ncAov:NaN,ncOk?"Ø Bestellwert je Neukunde":"wird berechnet…",(b&&b.nco>0)?b.ncAov:null,x=>isFinite(x)?eur(x):"–","up",(pOk&&p.nco>0)?p.ncAov:null);
+ c+=card("Neukunden-Umsatz",ncOk?a.ncr:NaN,ncOk?"Summe Erstbestellungen":"wird berechnet…",(b&&b.nco>0)?b.ncr:null,x=>isFinite(x)?eur(x):"–","up",(pOk&&p.nco>0)?p.ncr:null);
+ c+=card("CAC (Neukunden)",a.cac,"Spend ÷ Neukunden",b?b.cac:null,eur,"down",pOk?p.cac:null);
+ c+=card("CAC (alle Kunden)",a.cacAll,"Spend ÷ alle Kunden",b?b.cacAll:null,eur,"down",pOk?p.cacAll:null);
+ c+=card("Umsatz",a.netship,"netto + Versand · "+nf(a.orders)+" Best.",b?b.netship:null,eur,"up",pOk?p.netship:null);
+ c+=card("Marketing-Spend",a.sp,"Meta+Google+IFM · CPO "+eur(a.cpo),b?b.sp:null,eur,"down",pOk?p.sp:null);
  $("cards").innerHTML=c;
  // table
  let two=!!b;

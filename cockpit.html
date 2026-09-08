@@ -230,6 +230,7 @@ async function googleData(since,until){ const sub=await call(T_GSUB,{ds_id:"AW",
 async function fetchWindow(since,until){
   const j=await (await fetch(WCPT+"?since="+since+"&until="+until)).json();
   const scal=j.scal||{net:0,gross:0,orders:0,ship:0};
+  { const wd=Math.round((Date.parse(until)-Date.parse(since))/864e5)+1; if(j.paidOrders!=null && j.paidDays>=wd*0.8) scal.orders=j.paidOrders; } // bezahlte Orders (0€ raus) nur bei voller nc_daily-Deckung, sonst roh
   const pt=j.pt||{}, reg=j.reg||{};
   const mtot=+j.metaTotal||0; const camps=Array.isArray(j.camps)?j.camps:[]; const goog=Array.isArray(j.google)?j.google:[];
   const metaErr=j.metaErr||null; const GERR=j.gErr||null;

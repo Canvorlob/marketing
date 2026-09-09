@@ -1,0 +1,149 @@
+<!doctype html><html lang=de><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1">
+<title>Szenario · 7 O'CLOCK</title><style>
+:root{--bg:#faf8f5;--card:#fff;--ink:#2b2b2b;--mut:#8a8378;--line:#e7e2d9;--green:#2f8f57;--red:#c0492b;--gold:#b79b6e;--dark:#4a4335;--blue:#2f6f8f}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5}
+.wrap{max-width:1080px;margin:0 auto;padding:20px}
+.brand{font-size:11px;letter-spacing:.14em;color:var(--mut);font-weight:700}
+h1{font-size:23px;margin:2px 0 2px}.sub{color:var(--mut);font-size:13px;margin-bottom:12px}
+.bar{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+.flab{font-size:11px;color:var(--mut);font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-right:2px}
+.bar button{border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 11px;font-size:12.5px;cursor:pointer;font-weight:600;color:var(--ink)}
+.bar button.on{background:#2b2b2b;color:#fff;border-color:#2b2b2b}
+#stand{font-size:12px;color:var(--mut);margin:0 0 12px}
+.res{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px}
+.rbox{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.rbox.hot{border:2px solid var(--gold);background:linear-gradient(180deg,#fffdf8,#fff)}
+.rt{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--gold);font-weight:700}
+.rv{font-size:28px;font-weight:800;margin-top:3px;color:#1c1c1c}
+.rs{font-size:12px;color:var(--mut);margin-top:3px}
+.sec{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-top:16px}
+h2{font-size:15px;margin:0 0 10px;border-bottom:1px solid var(--line);padding-bottom:8px}
+.levers{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px 22px}
+.lev label{font-size:12.5px;font-weight:600;color:var(--dark);display:flex;justify-content:space-between}
+.lev .cur{color:var(--blue);font-weight:800}
+.lev input[type=range]{width:100%;margin:6px 0 0}
+.lev .row{display:flex;align-items:center;gap:8px;margin-top:5px}
+.lev input[type=number]{width:110px;border:1px solid var(--line);border-radius:6px;padding:5px 7px;font-size:13px}
+.lev .hint{font-size:11px;color:var(--mut)}
+table{width:100%;border-collapse:collapse;font-size:13px}td,th{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line)}
+td.n,th.n{text-align:right}
+.up{color:var(--green)}.down{color:var(--red)}
+.foot{color:var(--mut);font-size:11px;margin-top:12px}
+#reset{border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 12px;font-size:12.5px;cursor:pointer;font-weight:600}
+</style></head><body><div class=wrap>
+<div class=brand>7 O'CLOCK · CONTROLLING</div><h1>Szenario-Simulator</h1>
+<div class=sub>Was-wäre-wenn: verändere Marketing, Kosten oder Wareneinsatz und sieh sofort die Gewinnauswirkung. Basis = echte Ist-Zahlen des Zeitraums. Ändert nichts an den Live-Daten.</div>
+<div class=bar>
+ <span class=flab>Basis-Zeitraum</span>
+ <button data-a=7>7 Tage</button><button data-a=30 class=on>30 Tage</button><button data-a=90>90 Tage</button><span id=months></span>
+ <span style="flex:1"></span><button id=reset>↺ Zurücksetzen</button>
+</div>
+<div id=stand>lädt …</div>
+<div class=res>
+ <div class=rbox><div class=rt>Gewinn IST (Basis)</div><div class=rv id=g0>·</div><div class=rs id=g0s>Zeitraum-Gewinn</div></div>
+ <div class="rbox hot"><div class=rt>Gewinn SZENARIO</div><div class=rv id=g1>·</div><div class=rs id=g1s>mit deinen Änderungen</div></div>
+ <div class=rbox><div class=rt>Auswirkung</div><div class=rv id=gd>·</div><div class=rs id=gds>Δ Gewinn</div></div>
+</div>
+<div class=sec><h2>Stellschrauben</h2><div class=levers id=levers></div></div>
+<div class=sec><h2>Vergleich IST → Szenario</h2><table id=tbl></table></div>
+<div class=foot id=legend></div>
+</div>
+<script>
+const SUM="https://rohertrag-worker.can-11b.workers.dev/summary.json";
+const CFGU="https://rohertrag-worker.can-11b.workers.dev/config.json";
+let BASE=null, CFG={ship:6.56,pack:0.80,payPct:0.0255,payFix:0.16,shopMonth:2500,fremdMonth:3000,fixMonth:158000}, DAYS=30, L={};
+const $=id=>document.getElementById(id);
+const nf=n=>Math.round(n||0).toLocaleString("de-DE");
+const money=x=>(x<0?"−€":"€")+nf(Math.abs(x));
+const de1=x=>(x||0).toLocaleString("de-DE",{minimumFractionDigits:1,maximumFractionDigits:1});
+const de2=x=>(x||0).toLocaleString("de-DE",{minimumFractionDigits:2,maximumFractionDigits:2});
+const pad=n=>String(n).padStart(2,"0");
+const iso=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+const fmtd=s=>{let p=s.split("-");return p[2]+"."+p[1]+"."+p[0];};
+function win(w){const e=new Date();e.setDate(e.getDate()-1);const s=new Date(e);s.setDate(s.getDate()-(w-1));return[iso(s),iso(e)];}
+// Stellschrauben-Definition
+function defaultLevers(){
+ const b=BASE, cogsPct=b.net>0?b.cogs/b.net*100:30, mer=b.spend>0?(b.net+b.ship)/b.spend:3;
+ L={org:0, adPct:0, mer:Math.round(mer*10)/10, cogsPct:Math.round(cogsPct*10)/10,
+    ship:CFG.ship, pack:CFG.pack, payPct:CFG.payPct*100, payFix:CFG.payFix,
+    shopMonth:CFG.shopMonth, fremdMonth:CFG.fremdMonth, fixMonth:CFG.fixMonth};
+}
+// Kosten + Gewinn für einen Satz Werte
+function calc(net,ship,orders,cogs,spend,ifm,c,days){
+ const dhl=orders*c.ship, pack=orders*c.pack, pay=(c.payPct/100)*((net+ship)*1.19)+c.payFix*orders;
+ const shop=c.shopMonth/30*days, fremd=c.fremdMonth/30*days, fix=c.fixMonth*12/365*days;
+ const umsatz=net+ship;
+ const gewinn=umsatz-cogs-dhl-pack-pay-shop-fremd-spend-ifm-fix;
+ return {umsatz,net,ship,orders,cogs,dhl,pack,pay,shop,fremd,spend,ifm,fix,gewinn};
+}
+function scenario(){
+ const b=BASE, days=b.days;
+ // IST
+ const ist=calc(b.net,b.ship,b.orders,b.cogs,b.spend,b.ifm,{ship:CFG.ship,pack:CFG.pack,payPct:CFG.payPct*100,payFix:CFG.payFix,shopMonth:CFG.shopMonth,fremdMonth:CFG.fremdMonth,fixMonth:CFG.fixMonth},days);
+ // SZENARIO
+ const spend_s=b.spend*(1+L.adPct/100);
+ const dSpend=spend_s-b.spend;
+ const umsatz0=b.net+b.ship;
+ const umsatz_s=umsatz0*(1+L.org/100)+dSpend*L.mer;      // organisch + marketing-getrieben (via MER-Annahme)
+ const scale=umsatz0>0?umsatz_s/umsatz0:1;
+ const net_s=b.net*scale, ship_s=b.ship*scale, orders_s=b.orders*scale, ifm_s=b.ifm*scale;
+ const cogs_s=net_s*(L.cogsPct/100);
+ const cs={ship:L.ship,pack:L.pack,payPct:L.payPct,payFix:L.payFix,shopMonth:L.shopMonth,fremdMonth:L.fremdMonth,fixMonth:L.fixMonth};
+ const sz=calc(net_s,ship_s,orders_s,cogs_s,spend_s,ifm_s,cs,days);
+ return {ist,sz};
+}
+function render(){
+ if(!BASE)return;
+ const {ist,sz}=scenario();
+ $("g0").textContent=money(ist.gewinn);$("g0").className="rv "+(ist.gewinn>=0?"up":"down");
+ $("g1").textContent=money(sz.gewinn);$("g1").className="rv "+(sz.gewinn>=0?"up":"down");
+ const d=sz.gewinn-ist.gewinn;
+ $("gd").textContent=(d>=0?"+":"−")+"€"+nf(Math.abs(d));$("gd").className="rv "+(d>=0?"up":"down");
+ $("gds").textContent=(d>=0?"Mehr":"Weniger")+" Gewinn ggü. IST";
+ $("g0s").textContent="Marge "+de1(ist.umsatz?ist.gewinn/ist.umsatz*100:0)+" %";
+ $("g1s").textContent="Marge "+de1(sz.umsatz?sz.gewinn/sz.umsatz*100:0)+" %";
+ // Tabelle
+ const rows=[["Umsatz (netto+Versand)","umsatz",1],["− Wareneinsatz (COGS)","cogs",-1],["− DHL","dhl",-1],["− Verpackung","pack",-1],["− Payment","pay",-1],["− Shopify Plus","shop",-1],["− Fremddienstleistungen","fremd",-1],["− Meta+Google","spend",-1],["− Affiliate","ifm",-1],["− Fixkosten","fix",-1],["= Gewinn (EBITDA)","gewinn",1]];
+ $("tbl").innerHTML="<tr><th>Position</th><th class=n>IST</th><th class=n>Szenario</th><th class=n>Δ</th></tr>"+rows.map(r=>{
+  const a=ist[r[1]],b2=sz[r[1]],dd=b2-a;const bold=r[1]==="gewinn"?"font-weight:800;":"";
+  const dcol=r[1]==="gewinn"?(dd>=0?"var(--green)":"var(--red)"):"";
+  return "<tr style='"+bold+"'><td>"+r[0]+"</td><td class=n>"+money(a)+"</td><td class=n>"+money(b2)+"</td><td class=n style='color:"+dcol+"'>"+(dd>=0?"+":"−")+"€"+nf(Math.abs(dd))+"</td></tr>";
+ }).join("");
+}
+function buildLevers(){
+ const rng=(id,lab,val,min,max,step,unit,cur)=>'<div class=lev><label>'+lab+'<span class=cur id="lc_'+id+'">'+cur+'</span></label><input type=range id="l_'+id+'" min="'+min+'" max="'+max+'" step="'+step+'" value="'+val+'"></div>';
+ const num=(id,lab,val,step,hint)=>'<div class=lev><label>'+lab+'</label><div class=row><input type=number id="l_'+id+'" step="'+step+'" value="'+val+'"><span class=hint>'+(hint||"")+'</span></div></div>';
+ $("levers").innerHTML=
+  rng("org","Umsatz organisch",L.org,-50,100,1,"%",de1(L.org)+" %")
+ +rng("adPct","Marketing-Spend",L.adPct,-100,200,5,"%",de1(L.adPct)+" %")
+ +num("mer","↳ angenommener MER auf die Änderung",L.mer,0.1,"Umsatz je zusätzl. € (Ø jetzt: "+de1((BASE.net+BASE.ship)/(BASE.spend||1))+")")
+ +rng("cogsPct","Wareneinsatz (COGS % vom Netto)",L.cogsPct,10,60,0.5,"%",de1(L.cogsPct)+" %")
+ +num("ship","DHL €/Bestellung",L.ship,0.01)
+ +num("pack","Verpackung €/Bestellung",L.pack,0.01)
+ +num("payPct","Payment %",L.payPct,0.01)
+ +num("payFix","Payment € fix/Order",L.payFix,0.01)
+ +num("shopMonth","Shopify Plus €/Monat",L.shopMonth,10)
+ +num("fremdMonth","Fremddienstleistungen €/Monat",L.fremdMonth,10)
+ +num("fixMonth","Fixkosten €/Monat",L.fixMonth,100);
+ // Events
+ ["org","adPct","cogsPct"].forEach(k=>{const el=$("l_"+k);el.oninput=()=>{L[k]=parseFloat(el.value);$("lc_"+k).textContent=de1(L[k])+" %";render();};});
+ ["mer","ship","pack","payPct","payFix","shopMonth","fremdMonth","fixMonth"].forEach(k=>{const el=$("l_"+k);el.oninput=()=>{L[k]=parseFloat(el.value)||0;render();};});
+}
+function loadBase(a,b,label){
+ $("stand").textContent="lädt "+label+" …";
+ Promise.all([fetch(SUM+"?since="+a+"&until="+b).then(r=>r.json()),fetch(CFGU).then(r=>r.json()).catch(()=>CFG)]).then(([s,c])=>{
+  if(c)CFG=c;const D=s.days||[];
+  BASE={net:0,ship:0,orders:0,cogs:0,meta:0,goog:0,ifm:0,days:D.length,since:s.since,until:s.until};
+  D.forEach(x=>{BASE.net+=x.net;BASE.ship+=x.ship;BASE.orders+=x.orders;BASE.cogs+=x.cogs;BASE.meta+=x.meta;BASE.goog+=x.goog;BASE.ifm+=x.ifm;});
+  BASE.spend=BASE.meta+BASE.goog;
+  defaultLevers();buildLevers();render();
+  $("stand").innerHTML="<b>Basis: "+fmtd(s.since)+" – "+fmtd(s.until)+"</b> ("+D.length+" Tage) · echte Ist-Zahlen · Regler ändern nur die Simulation";
+ }).catch(e=>{$("stand").textContent="Fehler: "+e;});
+}
+function clearZ(){document.querySelectorAll(".bar button[data-a],#months button").forEach(y=>y.classList.remove("on"));}
+document.querySelectorAll(".bar button[data-a]").forEach(x=>x.onclick=()=>{clearZ();x.classList.add("on");const[a,b]=win(+x.dataset.a);loadBase(a,b,x.textContent);});
+(function(){const now=new Date(),y=now.getFullYear(),cm=now.getMonth();const names=["Jan","Feb","März","Apr","Mai","Juni","Juli","Aug","Sep","Okt","Nov","Dez"];let h="";for(let m=0;m<=cm;m++)h+='<button data-ym="'+y+'-'+pad(m+1)+'"'+(m===cm?' data-cur=1':'')+'>'+names[m]+'</button>';$("months").innerHTML=h;const e=new Date();e.setDate(e.getDate()-1);const yest=iso(e);$("months").querySelectorAll("button").forEach(x=>x.onclick=()=>{clearZ();x.classList.add("on");const ym=x.dataset.ym,[Y,M]=ym.split("-").map(Number),a=ym+"-01",b=x.dataset.cur?yest:iso(new Date(Y,M,0));loadBase(a,b,x.textContent);});})();
+$("reset").onclick=()=>{defaultLevers();buildLevers();render();};
+$("legend").innerHTML="So rechnet der Simulator: <b>Marketing-Spend</b> ± % erzeugt Zusatzumsatz über den <b>angenommenen MER</b> (Umsatz je zusätzlich ausgegebenem €). <b>Umsatz organisch</b> skaliert Umsatz &amp; mengenabhängige Kosten ohne Mehr-Spend. Variable Kosten (COGS, DHL, Verpackung, Payment, Affiliate) skalieren mit dem Umsatz; Shopify Plus, Fremddienstleistungen &amp; Fixkosten sind fix. COGS-Quote &amp; alle Kostenwerte frei überschreibbar. Nichts wird gespeichert — reine Simulation.";
+(()=>{const[a,b]=win(30);loadBase(a,b,"30 Tage");})();
+</script></body></html>

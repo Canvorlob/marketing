@@ -65,7 +65,8 @@ const WORKER="https://rohertrag-worker.can-11b.workers.dev/data.json";
 const PIECOL=["#b79b6e","#2f7f8f","#c98a2b","#2f8f57","#7c6f9c","#c0492b","#5a8f6a","#c58f8f","#4a6d8c","#9c6b4a","#b9ad99","#8a8378"];
 let LAST=DATA[DATA.length-1][0],FIRST=DATA[0][0];
 const fmtd=s=>{let p=s.split("-");return p[2]+"."+p[1]+"."+p[0];};
-const SHIP=6.56,PACK=0.80,PAY_PCT=0.0255,PAY_FIX=0.16,VAT=1.19,FREMD=100,SHOP=2500/30;
+let SHIP=6.56,PACK=0.80,PAY_PCT=0.0255,PAY_FIX=0.16,FREMD=100,SHOP=2500/30;const VAT=1.19;
+function applyCfgR(c){if(!c)return;if(c.ship!=null)SHIP=+c.ship;if(c.pack!=null)PACK=+c.pack;if(c.payPct!=null)PAY_PCT=+c.payPct;if(c.payFix!=null)PAY_FIX=+c.payFix;if(c.fremdMonth!=null)FREMD=+c.fremdMonth/30;if(c.shopMonth!=null)SHOP=+c.shopMonth/30;}
 const nf=n=>Math.round(n||0).toLocaleString("de-DE");
 const eur=x=>"€"+nf(x);
 const money=x=>(x<0?"−€":"€")+nf(Math.abs(x));
@@ -199,9 +200,11 @@ function boot(genISO){
 }
 // Beim Öffnen frische Worker-Daten laden; bei Ausfall Fallback auf eingebaute Daten
 (function(){
- fetch(WORKER+"?t="+Date.now()).then(function(r){return r.json();}).then(function(p){
-  if(p&&p.data&&p.data.length){ DATA=p.data; if(p.cats)CATSDATA=p.cats; if(p.catOrder&&p.catOrder.length)CATLABELS=p.catOrder; boot(p.generatedAt); }
-  else boot(null);
- }).catch(function(){ boot(null); });
+ fetch("https://rohertrag-worker.can-11b.workers.dev/config.json").then(function(r){return r.json();}).then(applyCfgR).catch(function(){}).finally(function(){
+  fetch(WORKER+"?t="+Date.now()).then(function(r){return r.json();}).then(function(p){
+   if(p&&p.data&&p.data.length){ DATA=p.data; if(p.cats)CATSDATA=p.cats; if(p.catOrder&&p.catOrder.length)CATLABELS=p.catOrder; boot(p.generatedAt); }
+   else boot(null);
+  }).catch(function(){ boot(null); });
+ });
 })();
 </script></div></body></html>

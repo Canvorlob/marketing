@@ -64,6 +64,7 @@ const TILES=[
  {k:"gewinn",ic:"⭐",nm:"Gewinn (EBITDA)",better:"up",hot:true,pct:true,f:GEWINN},
  {k:"gesamt",ic:"💰",nm:"Gesamtumsatz",better:"up",f:x=>x.net+x.ship+x.tax},
  {k:"netto",ic:"🧾",nm:"Nettoumsatz",better:"up",f:x=>x.net+x.ship},
+ {k:"orders",ic:"📥",nm:"Bestellungen",better:"up",count:true,f:x=>x.orders},
  {k:"steuer",ic:"🏛️",nm:"Steuer",better:"flat",f:x=>x.tax},
  {k:"dhl",ic:"📦",nm:"DHL-Kosten",better:"down",f:x=>x.orders*SHIP},
  {k:"cogs",ic:"🏭",nm:"Wareneinsatz (COGS)",better:"down",pct:true,f:x=>x.cogs},
@@ -79,7 +80,8 @@ const TILES=[
 const DESC={
  gewinn:"Nettoumsatz − alle Kostenblöcke unten (ohne Steuer)",
  gesamt:"Netto + Versanderlöse + Steuer",
- netto:"Nettoumsatz + Versanderlöse (ohne MwSt)",
+ netto:"Netto + Versanderlöse (ohne MwSt)",
+ orders:"Anzahl Bestellungen (Shopify)",
  steuer:"MwSt (aus Shopify)",
  dhl:"6,56 € × Bestellungen",
  cogs:"Wareneinsatz — live aus Shopify",
@@ -131,7 +133,7 @@ function render(){
   const prevTotal=prevDaily.reduce((a,x)=>a+x.v,0);
   const delta=dpct(total,prevTotal);
   const cb=bucket(curDaily,GRP),pb=bucket(prevDaily,GRP);
-  const money=(total<0?"−€":"€")+nf(Math.abs(total));
+  const money=t.count?nf(total):((total<0?"−€":"€")+nf(Math.abs(total)));
   const valStyle=t.hot?("color:"+(total>=0?"var(--green)":"var(--red)")):"";
   const tileStyle=t.hot?' style="border:2px solid var(--gold);grid-column:1/-1;background:linear-gradient(180deg,#fffdf8,#fff)"':'';
   const desc='<div class=desc>'+(DESC[t.k]||"")+'</div>';

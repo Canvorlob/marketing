@@ -59,6 +59,7 @@ function render(){
  h+=tile("info","📦","Bestellungen gesamt",nf(c.bestellungen),"Aufträge im Zeitraum",c.bestellungen,p.bestellungen,"up");
  h+=tile("good","✅","Pakete verpackt",nf(c.verpackt),"Versandlabel erstellt / fulfilled",c.verpackt,p.verpackt,"up");
  h+=tile(CUR.ueberfaellig>0?"bad":"good","⏰","Überfällig (&gt; 3 Tage)",nf(CUR.ueberfaellig),"offen &amp; 3–90 T alt · <b>aktueller Stand</b>",null,null,null);
+ h+=tile((CUR.aeltesteTage||0)>7?"bad":"info","📅","Älteste offene Bestellung",nf(CUR.aeltesteTage)+" T",(CUR.aeltesteDatum?"seit "+fmtd(CUR.aeltesteDatum)+" · ":"")+"offen &amp; unverschickt · <b>Live</b>",null,null,null);
  h+=tile("gold","🍽️","Geschirrset-Bestellungen",nf(g.gesamt),"eigenes Label, gesondert gepackt",g.gesamt,gp.gesamt,"up");
  h+=tile("gold","🎁","Geschirrsets verpackt",nf(g.gepackt),"offen: "+nf(g.offen)+" · teilweise: "+nf(g.partial)+" (von "+nf(g.gesamt)+")",g.gepackt,gp.gepackt,"up");
  $("grid").innerHTML=h;

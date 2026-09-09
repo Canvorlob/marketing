@@ -63,8 +63,8 @@ const fmtd=s=>{let p=s.split("-");return p[2]+"."+p[1]+"."+p[0];};
 function win(w){const e=new Date();e.setDate(e.getDate()-1);const s=new Date(e);s.setDate(s.getDate()-(w-1));return[iso(s),iso(e)];}
 // Stellschrauben-Definition
 function defaultLevers(){
- const b=BASE, cogsPct=b.net>0?b.cogs/b.net*100:30, mer=b.spend>0?(b.net+b.ship)/b.spend:3;
- L={org:0, adPct:0, mer:Math.round(mer*10)/10, cogsPct:cogsPct,
+ const b=BASE, umsatz0=b.net+b.ship, cogsPct=b.net>0?b.cogs/b.net*100:30, mktPct=umsatz0>0?b.spend/umsatz0*100:0;
+ L={umsatz:umsatz0, mktPct:mktPct, cogsPct:cogsPct,
     ship:CFG.ship, pack:CFG.pack, payPct:CFG.payPct*100, payFix:CFG.payFix,
     shopMonth:CFG.shopMonth, fremdMonth:CFG.fremdMonth, fixMonth:CFG.fixMonth};
 }
@@ -80,14 +80,13 @@ function scenario(){
  const b=BASE, days=b.days;
  // IST
  const ist=calc(b.net,b.ship,b.orders,b.cogs,b.spend,b.ifm,{ship:CFG.ship,pack:CFG.pack,payPct:CFG.payPct*100,payFix:CFG.payFix,shopMonth:CFG.shopMonth,fremdMonth:CFG.fremdMonth,fixMonth:CFG.fixMonth},days);
- // SZENARIO
- const spend_s=b.spend*(1+L.adPct/100);
- const dSpend=spend_s-b.spend;
+ // SZENARIO (absolute Regler)
  const umsatz0=b.net+b.ship;
- const umsatz_s=umsatz0*(1+L.org/100)+dSpend*L.mer;      // organisch + marketing-getrieben (via MER-Annahme)
+ const umsatz_s=L.umsatz;
  const scale=umsatz0>0?umsatz_s/umsatz0:1;
  const net_s=b.net*scale, ship_s=b.ship*scale, orders_s=b.orders*scale, ifm_s=b.ifm*scale;
  const cogs_s=net_s*(L.cogsPct/100);
+ const spend_s=umsatz_s*(L.mktPct/100);
  const cs={ship:L.ship,pack:L.pack,payPct:L.payPct,payFix:L.payFix,shopMonth:L.shopMonth,fremdMonth:L.fremdMonth,fixMonth:L.fixMonth};
  const sz=calc(net_s,ship_s,orders_s,cogs_s,spend_s,ifm_s,cs,days);
  return {ist,sz};
@@ -111,13 +110,14 @@ function render(){
  }).join("");
 }
 function buildLevers(){
- const rng=(id,lab,val,min,max,step,unit,cur)=>'<div class=lev><label>'+lab+'<span class=cur id="lc_'+id+'">'+cur+'</span></label><input type=range id="l_'+id+'" min="'+min+'" max="'+max+'" step="'+step+'" value="'+val+'"></div>';
+ const b=BASE, umsatz0=b.net+b.ship;
+ const rng=(id,lab,val,min,max,step,cur)=>'<div class=lev><label>'+lab+'<span class=cur id="lc_'+id+'">'+cur+'</span></label><input type=range id="l_'+id+'" min="'+min+'" max="'+max+'" step="'+step+'" value="'+val+'"></div>';
  const num=(id,lab,val,step,hint)=>'<div class=lev><label>'+lab+'</label><div class=row><input type=number id="l_'+id+'" step="'+step+'" value="'+val+'"><span class=hint>'+(hint||"")+'</span></div></div>';
+ const uStep=Math.max(1,Math.round(umsatz0/300));
  $("levers").innerHTML=
-  rng("org","Umsatz organisch",L.org,-50,100,1,"%",de1(L.org)+" %")
- +rng("adPct","Marketing-Spend",L.adPct,-100,200,5,"%",de1(L.adPct)+" %")
- +num("mer","↳ angenommener MER auf die Änderung",L.mer,0.1,"Umsatz je zusätzl. € (Ø jetzt: "+de1((BASE.net+BASE.ship)/(BASE.spend||1))+")")
- +rng("cogsPct","Wareneinsatz (COGS % vom Netto)",L.cogsPct,10,60,0.5,"%",de1(L.cogsPct)+" %")
+  rng("umsatz","Umsatz (netto+Versand)",L.umsatz,0,Math.round(umsatz0*2)||1000,uStep,money(L.umsatz))
+ +rng("mktPct","Marketing-Spend (% vom Umsatz)",L.mktPct,0,60,0.1,de1(L.mktPct)+" % · "+money(L.umsatz*L.mktPct/100))
+ +rng("cogsPct","Wareneinsatz (COGS % vom Netto)",L.cogsPct,10,60,0.1,de1(L.cogsPct)+" %")
  +num("ship","DHL €/Bestellung",L.ship,0.01)
  +num("pack","Verpackung €/Bestellung",L.pack,0.01)
  +num("payPct","Payment %",L.payPct,0.01)
@@ -125,9 +125,11 @@ function buildLevers(){
  +num("shopMonth","Shopify Plus €/Monat",L.shopMonth,10)
  +num("fremdMonth","Fremddienstleistungen €/Monat",L.fremdMonth,10)
  +num("fixMonth","Fixkosten €/Monat",L.fixMonth,100);
- // Events
- ["org","adPct","cogsPct"].forEach(k=>{const el=$("l_"+k);el.oninput=()=>{L[k]=parseFloat(el.value);$("lc_"+k).textContent=de1(L[k])+" %";render();};});
- ["mer","ship","pack","payPct","payFix","shopMonth","fremdMonth","fixMonth"].forEach(k=>{const el=$("l_"+k);el.oninput=()=>{L[k]=parseFloat(el.value)||0;render();};});
+ // Events: absolute Regler mit Live-Anzeige des echten Werts
+ $("l_umsatz").oninput=()=>{L.umsatz=parseFloat($("l_umsatz").value)||0;$("lc_umsatz").textContent=money(L.umsatz);$("lc_mktPct").textContent=de1(L.mktPct)+" % · "+money(L.umsatz*L.mktPct/100);render();};
+ $("l_mktPct").oninput=()=>{L.mktPct=parseFloat($("l_mktPct").value)||0;$("lc_mktPct").textContent=de1(L.mktPct)+" % · "+money(L.umsatz*L.mktPct/100);render();};
+ $("l_cogsPct").oninput=()=>{L.cogsPct=parseFloat($("l_cogsPct").value)||0;$("lc_cogsPct").textContent=de1(L.cogsPct)+" %";render();};
+ ["ship","pack","payPct","payFix","shopMonth","fremdMonth","fixMonth"].forEach(k=>{const el=$("l_"+k);el.oninput=()=>{L[k]=parseFloat(el.value)||0;render();};});
 }
 function loadBase(a,b,label){
  $("stand").textContent="lädt "+label+" …";
@@ -144,6 +146,6 @@ function clearZ(){document.querySelectorAll(".bar button[data-a],#months button"
 document.querySelectorAll(".bar button[data-a]").forEach(x=>x.onclick=()=>{clearZ();x.classList.add("on");const[a,b]=win(+x.dataset.a);loadBase(a,b,x.textContent);});
 (function(){const now=new Date(),y=now.getFullYear(),cm=now.getMonth();const names=["Jan","Feb","März","Apr","Mai","Juni","Juli","Aug","Sep","Okt","Nov","Dez"];let h="";for(let m=0;m<=cm;m++)h+='<button data-ym="'+y+'-'+pad(m+1)+'"'+(m===cm?' data-cur=1':'')+'>'+names[m]+'</button>';$("months").innerHTML=h;const e=new Date();e.setDate(e.getDate()-1);const yest=iso(e);$("months").querySelectorAll("button").forEach(x=>x.onclick=()=>{clearZ();x.classList.add("on");const ym=x.dataset.ym,[Y,M]=ym.split("-").map(Number),a=ym+"-01",b=x.dataset.cur?yest:iso(new Date(Y,M,0));loadBase(a,b,x.textContent);});})();
 $("reset").onclick=()=>{defaultLevers();buildLevers();render();};
-$("legend").innerHTML="So rechnet der Simulator: <b>Marketing-Spend</b> ± % erzeugt Zusatzumsatz über den <b>angenommenen MER</b> (Umsatz je zusätzlich ausgegebenem €). <b>Umsatz organisch</b> skaliert Umsatz &amp; mengenabhängige Kosten ohne Mehr-Spend. Variable Kosten (COGS, DHL, Verpackung, Payment, Affiliate) skalieren mit dem Umsatz; Shopify Plus, Fremddienstleistungen &amp; Fixkosten sind fix. COGS-Quote &amp; alle Kostenwerte frei überschreibbar. Nichts wird gespeichert — reine Simulation.";
+$("legend").innerHTML="So rechnet der Simulator: Die Regler stehen auf den <b>echten Ist-Werten</b> des Zeitraums — <b>Umsatz</b> in €, <b>Marketing-Spend</b> als % vom Umsatz, <b>Wareneinsatz</b> als COGS-Quote. Schieben verändert den Wert. Beim Umsatz skalieren die mengenabhängigen Kosten (COGS, DHL, Verpackung, Payment, Affiliate) mit; Shopify Plus, Fremddienstleistungen &amp; Fixkosten bleiben fix. Marketing &amp; Umsatz sind getrennte Regler (kein automatischer Umsatz-Effekt aus mehr Spend — beides bewusst selbst setzen). Alle Kostenwerte frei überschreibbar. Nichts wird gespeichert — reine Simulation.";
 (()=>{const[a,b]=win(30);loadBase(a,b,"30 Tage");})();
 </script></body></html>

@@ -90,6 +90,7 @@ td.n,th.n{text-align:right}
     <div class="merbox"><div class="big" id="mer-val">&middot;</div><div class="lbl">Blended MER (netto+Vers.)</div></div>
     <div class="merbox" style="background:#fff;border:1px dashed var(--line)"><div class="big" id="be-val" style="color:var(--mut);font-size:26px">1,85</div><div class="lbl">Break-even-MER</div></div>
     <div class="merbox"><div class="big" id="db-val" style="font-size:26px;color:var(--green)">&middot;</div><div class="lbl">&euro; DB nach Werbung</div><div class="sm muted" style="margin-top:4px">Netto &times; 54,1 % &minus; Ad-Spend &middot; vor Fixkosten</div></div>
+    <div class="merbox" style="background:#fff;border:1px dashed var(--line)"><div class="big" id="k-profit" style="font-size:26px">&middot;</div><div class="lbl">Gewinn im Zeitraum (EBITDA)</div><div class="sm muted" id="k-profit-sub" style="margin-top:4px">nach anteiligen Fixkosten</div></div>
     <div class="txt">
       <div id="mer-verdict" style="font-weight:700;margin-bottom:4px">&hellip;</div>
       <div class="muted sm">Die einzige attributions-freie Wahrheit: Shopify-Nettoumsatz &divide; gesamter Ad-Spend. <b>MER sagt, ob du Gas geben darfst; ROAS&divide;BE sagt, auf welche Kampagne.</b></div>
@@ -274,6 +275,23 @@ function budgetCell(cat,ratio,gErr,catDB){ let r=pctStep(ratio); let t=r[0],c=r[
   if(pos&&gErr&&feed) return ["pr&uuml;fen","c-amber",true];
   if(pos&&catDB&&catDB[cat]!=null&&catDB[cat]<=0) return ["nicht skal.","c-red",true];
   return [t,c,false]; }
+function updateProfitCard(W){
+  const el=document.getElementById("k-profit"); if(!el)return;
+  const sub=document.getElementById("k-profit-sub");
+  if(W.metaErr){ el.textContent="—"; el.style.color="var(--mut)"; if(sub)sub.textContent="Meta-Connector getrennt"; return; }
+  const matI=(parseFloat(document.getElementById('pm-mat').value)||30)/100;
+  const fixI=parseFloat(document.getElementById('pm-fix').value)||158000;
+  const SHIPPAYPACK=0.155;
+  const net=W.net||0, ship=W.ship||0, spend=W.metaTotal+W.googleTotal;
+  const ifmRate=net>0&&W.ifm!=null?W.ifm/net:0.009;
+  const dbExM=1-matI-SHIPPAYPACK-ifmRate;
+  const prCost=(W.freePrRetail||0)*matI;
+  const pdays=Math.max(1,curDays||7);
+  const fixP=(fixI*12/365)*pdays;                       // Fixkosten anteilig pro Tag
+  const profit=net*dbExM+ship-spend-prCost-fixP;
+  el.textContent=(profit>=0?"+":"")+eur(profit); el.style.color=profit>=0?"var(--green)":"var(--red)";
+  if(sub) sub.innerHTML=pdays+" Tag"+(pdays>1?"e":"")+" &middot; Fixk. anteilig "+eur(fixP)+" &middot; Gratis-PR "+eur(prCost)+" &middot; Affiliate "+de(ifmRate*100)+" %";
+}
 function render(W,label,k){
   const spend=W.metaTotal+W.googleTotal;
   const netAll=W.net+(W.ship||0);                 // Umsatz netto + Versanderlöse (kommt real rein)
@@ -289,6 +307,7 @@ function render(W,label,k){
   document.getElementById("k-spend").textContent=eur(spend);
   document.getElementById("k-split").textContent=eur(W.metaTotal)+" / "+eur(W.googleTotal);
   document.getElementById("k-ord").textContent=W.orders.toLocaleString("de-DE");
+  lastW=W; updateProfitCard(W);
   let v,c; if(W.metaErr){v="⚠ Meta-Connector getrennt — bitte neu verbinden (Einstellungen → Connectors → Meta), dann oben aktualisieren. Ohne Meta sind MER & Meta-Tabelle unvollständig; Shopify & Google unten stimmen.";c="var(--red)";}else if(mer>=2.4){v="Grün — komfortabel über Break-even (~"+de(beAll)+"). Gas geben erlaubt.";c="var(--green)";}else if(mer>=1.85){v="Gelb — über Break-even, aber Puffer schrumpft. Vorsichtig skalieren.";c="var(--amber)";}else{v="Rot — unter Break-even-MER. Bremsen, Budget umschichten.";c="var(--red)";}
   const mv=document.getElementById("mer-verdict"); mv.textContent=v; mv.style.color=c;
   // Region
@@ -406,7 +425,7 @@ function selectWindow(k){ document.querySelectorAll("#filters button[data-w]").f
 document.querySelectorAll("#filters button[data-w]").forEach(b=>b.addEventListener("click",()=>selectWindow(b.dataset.w)));
 document.getElementById("dgo").addEventListener("click",()=>{ const a=document.getElementById("d1").value,b=document.getElementById("d2").value; if(!a||!b)return; curDays=Math.max(1,Math.round((new Date(b)-new Date(a))/86400000)+1); document.querySelectorAll("#filters button[data-w]").forEach(x=>x.classList.remove("on")); load(a,b,a+" – "+b,"cust"); });
 // Gewinn-Block: Eingaben merken + neu rechnen
-document.getElementById("pm-go").addEventListener("click",()=>{ try{localStorage.setItem("pm_fix",document.getElementById("pm-fix").value);localStorage.setItem("pm_mat",document.getElementById("pm-mat").value);}catch(e){} renderMonth(); });
+document.getElementById("pm-go").addEventListener("click",()=>{ try{localStorage.setItem("pm_fix",document.getElementById("pm-fix").value);localStorage.setItem("pm_mat",document.getElementById("pm-mat").value);}catch(e){} renderMonth(); if(lastW)updateProfitCard(lastW); });
 try{ const _f=localStorage.getItem("pm_fix"),_m=localStorage.getItem("pm_mat"); if(_f)document.getElementById("pm-fix").value=_f; if(_m)document.getElementById("pm-mat").value=_m; }catch(e){}
 // Kampagnen-Tabellen: 7 Tage · Gewinn-Block: immer laufender Monat
 selectWindow("7");

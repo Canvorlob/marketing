@@ -1,0 +1,67 @@
+<!doctype html><html lang=de><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1">
+<title>Lager-Dashboard · 7 O'CLOCK</title><style>
+:root{--bg:#faf8f5;--card:#fff;--ink:#2b2b2b;--mut:#8a8378;--line:#e7e2d9;--green:#2f8f57;--red:#c0492b;--amber:#c98a2b;--gold:#b79b6e;--dark:#4a4335;--blue:#2f6f8f}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5}
+.wrap{max-width:1080px;margin:0 auto;padding:20px}
+.brand{font-size:11px;letter-spacing:.14em;color:var(--mut);font-weight:700}
+h1{font-size:23px;margin:2px 0 2px}.sub{color:var(--mut);font-size:13px;margin-bottom:12px}
+#stand{font-size:12px;color:var(--mut);margin:6px 0 14px}
+.sec-h{font-size:13px;font-weight:800;color:#4a4335;margin:16px 0 10px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.tile{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 15px;border-left:4px solid var(--line)}
+.tile.good{border-left-color:var(--green)}.tile.warn{border-left-color:var(--amber)}.tile.bad{border-left-color:var(--red)}.tile.info{border-left-color:var(--blue)}
+.t{font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--gold);font-weight:700}
+.v{font-size:30px;font-weight:800;margin-top:4px;color:#1c1c1c}
+.d{font-size:11.5px;color:var(--mut);margin-top:3px}
+.sec{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-top:16px}
+h2{font-size:15px;margin:0 0 10px;border-bottom:1px solid var(--line);padding-bottom:8px}
+table{width:100%;border-collapse:collapse;font-size:13px}td,th{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line)}
+td.n,th.n{text-align:right}
+.warnbox{background:#f5f1e8;border-left:4px solid var(--blue);padding:12px 14px;border-radius:8px;font-size:13px;color:var(--dark)}
+.foot{color:var(--mut);font-size:11px;margin-top:14px}
+</style></head><body><div class=wrap>
+<div class=brand>7 O'CLOCK · LAGER</div><h1>Lager-Dashboard</h1>
+<div class=sub>Tagesarbeit im Lager auf einen Blick — Pick &amp; Pack sowie Bestand &amp; Meldebestand. Live aus JTL-Wawi.</div>
+<div id=stand>lädt …</div>
+<div id=body></div>
+<div class=foot>Datenquelle: JTL-Wawi API (Push alle paar Minuten) · überfällig = offen &gt; 3 Tage · Reichweite = Bestand ÷ Ø-Abverkauf letzte 14 Tage · 7 O'CLOCK Lager</div>
+</div>
+<script>
+const W="https://rohertrag-worker.can-11b.workers.dev/lager.json";
+const $=id=>document.getElementById(id);
+const nf=n=>Math.round(n||0).toLocaleString("de-DE");
+const pad=n=>String(n).padStart(2,"0");
+function tile(cls,t,v,d){return '<div class="tile '+cls+'"><div class=t>'+t+'</div><div class=v>'+v+'</div><div class=d>'+(d||"")+'</div></div>';}
+function render(x){
+ if(!x||x.empty||!x.pick){
+  $("stand").textContent="";
+  $("body").innerHTML='<div class=warnbox><b>Warte auf JTL-Anbindung.</b> Das Dashboard ist fertig und wird automatisch live, sobald das Push-Skript (Yagemi) die ersten JTL-Daten schickt. Bis dahin gibt es hier noch nichts zu sehen.</div>';
+  return;
+ }
+ const p=x.pick, b=x.bestand||{};
+ let h='<div class=sec-h>📋 Pick &amp; Pack</div><div class=grid>';
+ h+=tile("info","Offene Aufträge",nf(p.offen),"bezahlt & freigegeben, noch nicht versandt");
+ h+=tile("good","Versandfertig",nf(p.versandfertig),"alle Artikel auf Lager — jetzt pickbar");
+ h+=tile(p.wartendAufWare>0?"bad":"good","Wartend auf Ware",nf(p.wartendAufWare),"Fehlartikel — blockiert");
+ h+=tile(p.ueberfaellig>0?"bad":"good","Überfällig (>3 Tage)",nf(p.ueberfaellig),"Rückstand — Priorität");
+ h+=tile(p.aeltesteTage>3?"bad":"warn","Älteste offene",nf(p.aeltesteTage)+" T","Alter der ältesten offenen Bestellung");
+ h+=tile("good","Heute versandt",nf(p.heuteVersandt),"Pakete heute raus");
+ h+='</div>';
+ h+='<div class=sec-h>📦 Bestand &amp; Meldebestand</div><div class=grid>';
+ h+=tile(b.unterMeldebestand>0?"warn":"good","Unter Meldebestand",nf(b.unterMeldebestand),"nachbestellen/-produzieren");
+ h+=tile(b.ausverkauft>0?"bad":"good","Ausverkauft",nf(b.ausverkauft),"aktive Artikel mit Bestand 0");
+ h+=tile(b.baldLeer>0?"warn":"good","Bald leer",nf(b.baldLeer),"Reichweite unter Schwelle");
+ h+='</div>';
+ const k=b.kritisch||[];
+ if(k.length){
+  h+='<div class=sec><h2>Kritische Artikel (kleinste Reichweite)</h2><table><tr><th>Artikel</th><th>SKU</th><th class=n>Bestand</th><th class=n>Reichweite</th></tr>'+
+   k.slice(0,25).map(a=>'<tr><td>'+(a.name||"—")+'</td><td class=mut style="color:var(--mut)">'+(a.sku||"")+'</td><td class=n>'+nf(a.bestand)+'</td><td class=n style="color:'+((a.reichweiteTage||0)<=3?"var(--red)":((a.reichweiteTage||0)<=7?"var(--amber)":"var(--ink)"))+';font-weight:700">'+nf(a.reichweiteTage)+' T</td></tr>').join("")+'</table></div>';
+ }
+ $("body").innerHTML=h;
+ const g=x.generatedAt?new Date(x.generatedAt):(x.receivedAt?new Date(x.receivedAt):null);
+ let age="";if(g){const min=Math.round((Date.now()-g.getTime())/60000);age=" · Stand "+pad(g.getDate())+"."+pad(g.getMonth()+1)+". "+pad(g.getHours())+":"+pad(g.getMinutes())+(min<600?" ("+min+" Min alt)":"");}
+ $("stand").innerHTML="<b>Live aus JTL-Wawi</b>"+age;
+}
+fetch(W+"?cb="+Date.now()).then(r=>r.json()).then(render).catch(e=>{$("stand").textContent="Fehler: "+e;});
+setInterval(()=>fetch(W+"?cb="+Date.now()).then(r=>r.json()).then(render).catch(()=>{}),120000);
+</script></body></html>

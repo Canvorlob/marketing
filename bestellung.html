@@ -1,0 +1,80 @@
+<!doctype html><html lang=de><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1">
+<title>Bestellübersicht · 7 O'CLOCK</title><style>
+:root{--bg:#faf8f5;--card:#fff;--ink:#2b2b2b;--mut:#8a8378;--line:#e7e2d9;--green:#2f8f57;--red:#c0492b;--gold:#b79b6e;--dark:#4a4335;--blue:#2f6f8f}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5}
+.wrap{max-width:1080px;margin:0 auto;padding:20px}
+.brand{font-size:11px;letter-spacing:.14em;color:var(--mut);font-weight:700}
+h1{font-size:23px;margin:2px 0 2px}.sub{color:var(--mut);font-size:13px;margin-bottom:12px}
+.bar{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-bottom:8px}
+.flab{font-size:11px;color:var(--mut);font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-right:2px}
+.bar button{border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 11px;font-size:12.5px;cursor:pointer;font-weight:600;color:var(--ink)}
+.bar button.on{background:#2b2b2b;color:#fff;border-color:#2b2b2b}
+#stand{font-size:12px;color:var(--mut);margin:6px 0 12px}
+.sec-h{font-size:13px;font-weight:800;color:#4a4335;margin:6px 0 10px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:12px}
+.tile{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px 15px}
+.th{display:flex;align-items:flex-start;gap:6px;font-size:11.5px}
+.th .ic{font-size:14px;line-height:1.3}.th .nm{font-weight:600;color:#4a4335;flex:1;line-height:1.3}
+.badge{font-size:11px;font-weight:800;padding:1px 6px;border-radius:20px;white-space:nowrap}
+.val{font-size:26px;font-weight:800;color:#1c1c1c;margin:5px 0 2px}
+.desc{font-size:11px;color:var(--mut);line-height:1.35}
+.foot{color:var(--mut);font-size:11px;margin-top:14px}
+</style></head><body><div class=wrap>
+<div class=brand>7 O'CLOCK · CONTROLLING</div><h1>Bestellübersicht</h1>
+<div class=sub>Bestellungen nach Region (Versandland), Bloggerpakete &amp; Neusendungen — mit Veränderung zur Vorperiode. Live aus Shopify.</div>
+<div class=bar>
+ <span class=flab>Zeitraum</span>
+ <button data-a=7>7 Tage</button><button data-a=30 class=on>30 Tage</button><button data-a=90>90 Tage</button><span id=months></span>
+</div>
+<div id=stand>lädt …</div>
+<div class=sec-h>📦 Bestellungen</div>
+<div class=grid id=grid></div>
+<div class=foot id=legend></div>
+</div>
+<script>
+const W="https://rohertrag-worker.can-11b.workers.dev/orders.json";
+let CUR=null;
+const $=id=>document.getElementById(id);
+const nf=n=>Math.round(n||0).toLocaleString("de-DE");
+const eur=x=>"€"+nf(x);
+const de1=x=>(x||0).toLocaleString("de-DE",{minimumFractionDigits:1,maximumFractionDigits:1});
+const pad=n=>String(n).padStart(2,"0");
+const iso=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+const fmtd=s=>{let p=s.split("-");return p[2]+"."+p[1]+"."+p[0];};
+const dpct=(a,b)=>b?((a-b)/b*100):(a?100:0);
+function win(w){const e=new Date();e.setDate(e.getDate()-1);const s=new Date(e);s.setDate(s.getDate()-(w-1));return[iso(s),iso(e)];}
+function badge(a,b,better){
+ if(b==null||!isFinite(b)||b===0)return "";
+ let dp=dpct(a,b);if(Math.abs(dp)<0.05)dp=0;
+ const dir=dp>0?"▲":(dp<0?"▼":"■");
+ let col,bg;
+ if(better==="flat"||dp===0){col="#7a746a";bg="#efece5";}
+ else{const good=(better==="down")?dp<0:dp>0;col=good?"#1e6b3f":"#a13a22";bg=good?"#e6f2ea":"#f6e7e2";}
+ return '<span class=badge style="color:'+col+';background:'+bg+'">'+dir+" "+(dp>=0?"+":"")+de1(dp)+" %</span>";
+}
+function tile(ic,nm,val,desc,a,b,better){
+ return '<div class=tile><div class=th><span class=ic>'+ic+'</span><span class=nm>'+nm+'</span>'+badge(a,b,better)+'</div><div class=val>'+val+'</div><div class=desc>'+(desc||"")+'</div></div>';
+}
+function render(){
+ if(!CUR)return;const c=CUR.cur,p=CUR.prev;
+ const share=(x,t)=>t?de1(x/t*100)+" %":"–";
+ let h="";
+ h+=tile("📦","Gesamtbestellungen",nf(c.orders.total),"alle Kanäle &amp; Länder",c.orders.total,p.orders.total,"up");
+ h+=tile("🇩🇪","DACH (DE/AT/CH)",nf(c.orders.dach),share(c.orders.dach,c.orders.total)+" der Bestellungen",c.orders.dach,p.orders.dach,"up");
+ h+=tile("🌍","Nicht-DACH",nf(c.orders.nondach),share(c.orders.nondach,c.orders.total)+" der Bestellungen",c.orders.nondach,p.orders.nondach,"up");
+ h+=tile("💶","Bezahlte Bestellungen",nf(c.paid),"echte Nachfrage (0€ raus)",c.paid,p.paid,"up");
+ h+=tile("🎁","Bloggerpakete",nf(c.blogger.total),"DACH "+nf(c.blogger.dach)+" · Nicht-DACH "+nf(c.blogger.nondach)+" · Tag „Bloggerpaket“",c.blogger.total,p.blogger.total,"flat");
+ h+=tile("🔁","Neusendungen",nf(c.neusendung.total),"DACH "+nf(c.neusendung.dach)+" · Nicht-DACH "+nf(c.neusendung.nondach)+" · Kanal Resolvia.ai",c.neusendung.total,p.neusendung.total,"down");
+ const aov=c.paid?c.netship/c.paid:0, aovP=p.paid?p.netship/p.paid:0;
+ h+=tile("🧾","AOV",eur(aov),"Umsatz (netto+Versand) ÷ bezahlte Best.",aov,aovP,"up");
+ $("grid").innerHTML=h;
+ const gen=CUR.generatedAt?new Date(CUR.generatedAt):null;
+ $("stand").innerHTML="<b>"+fmtd(CUR.since)+" – "+fmtd(CUR.until)+"</b> · Badge = Δ vs. Vorperiode "+fmtd(CUR.prevSince)+"–"+fmtd(CUR.prevUntil)+(gen?" · Stand "+pad(gen.getDate())+"."+pad(gen.getMonth()+1)+". "+pad(gen.getHours())+":"+pad(gen.getMinutes()):"");
+}
+function load(a,b,label){$("stand").textContent="lädt "+label+" …";fetch(W+"?since="+a+"&until="+b).then(r=>r.json()).then(d=>{CUR=d;render();}).catch(e=>{$("stand").textContent="Fehler: "+e;});}
+function clearZ(){document.querySelectorAll(".bar button[data-a],#months button").forEach(y=>y.classList.remove("on"));}
+document.querySelectorAll(".bar button[data-a]").forEach(x=>x.onclick=()=>{clearZ();x.classList.add("on");const[a,b]=win(+x.dataset.a);load(a,b,x.textContent);});
+(function(){const now=new Date(),y=now.getFullYear(),cm=now.getMonth();const names=["Jan","Feb","März","Apr","Mai","Juni","Juli","Aug","Sep","Okt","Nov","Dez"];let h="";for(let m=0;m<=cm;m++)h+='<button data-ym="'+y+'-'+pad(m+1)+'"'+(m===cm?' data-cur=1':'')+'>'+names[m]+'</button>';h+='<button data-ytd=1>Jahr '+y+'</button>';$("months").innerHTML=h;const e=new Date();e.setDate(e.getDate()-1);const yest=iso(e);$("months").querySelectorAll("button").forEach(x=>x.onclick=()=>{clearZ();x.classList.add("on");if(x.dataset.ytd){load(y+"-01-01",yest,"Jahr "+y);return;}const ym=x.dataset.ym,[Y,M]=ym.split("-").map(Number),a=ym+"-01",b=x.dataset.cur?yest:iso(new Date(Y,M,0));load(a,b,x.textContent);});})();
+$("legend").innerHTML="Region = <b>Versandland</b> (funktioniert auch für 0€-Pakete ohne Rechnungsadresse). <b>Bloggerpakete</b> = Bestellungen mit Order-Tag „Bloggerpaket“. <b>Neusendungen</b> = Bestellungen über den Kanal Resolvia.ai (Ersatz/CS). <b>Bezahlte Bestellungen</b> = ohne 0€ (Blogger/Neusendungen/Ersatz). <b>AOV</b> = Umsatz ÷ bezahlte Bestellungen.";
+(()=>{const[a,b]=win(30);load(a,b,"30 Tage");})();
+</script></body></html>

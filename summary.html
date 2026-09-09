@@ -197,7 +197,7 @@ function buildMonthBtns(){
 }
 // ---- Annahmen bearbeiten (passwortgeschützt) ----
 const CFGURL="https://rohertrag-worker.can-11b.workers.dev/config";
-const FIELDS=[["ship","DHL €/Bestellung",0.01],["pack","Verpackung €/Bestellung",0.01],["payPct","Payment % (z.B. 2,55)",0.01],["payFix","Payment € fix/Order",0.01],["shopMonth","Shopify Plus €/Monat",10],["fremdMonth","Fremddienstleistungen €/Monat",10],["fixMonth","Fixkosten €/Monat",100],["matPct","Material % (Cockpit)",0.5],["shipPayPackPct","Versand/Zahlung/Verpackung % (Cockpit)",0.1]];
+const FIELDS=[["ship","DHL €/Bestellung",0.01],["pack","Verpackung €/Bestellung",0.01],["payPct","Payment % (z.B. 2,55)",0.01],["payFix","Payment € fix/Order",0.01],["shopMonth","Shopify Plus €/Monat",10],["fremdMonth","Fremddienstleistungen €/Monat",10],["fixMonth","Fixkosten €/Monat",100]];
 function buildEditFields(){
  $("editfields").innerHTML=FIELDS.map(f=>{const v=f[0]==="payPct"?CFG.payPct*100:CFG[f[0]];return '<label style="font-size:11.5px;color:var(--dark)">'+f[1]+'<input type=number step="'+f[2]+'" id="ef_'+f[0]+'" value="'+v+'" style="width:100%;border:1px solid var(--line);border-radius:6px;padding:6px 8px;margin-top:3px;font-size:13px"></label>';}).join("");
 }

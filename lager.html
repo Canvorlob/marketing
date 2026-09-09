@@ -5,63 +5,70 @@
 .wrap{max-width:1080px;margin:0 auto;padding:20px}
 .brand{font-size:11px;letter-spacing:.14em;color:var(--mut);font-weight:700}
 h1{font-size:23px;margin:2px 0 2px}.sub{color:var(--mut);font-size:13px;margin-bottom:12px}
-#stand{font-size:12px;color:var(--mut);margin:6px 0 14px}
-.sec-h{font-size:13px;font-weight:800;color:#4a4335;margin:16px 0 10px}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
-.tile{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 15px;border-left:4px solid var(--line)}
-.tile.good{border-left-color:var(--green)}.tile.warn{border-left-color:var(--amber)}.tile.bad{border-left-color:var(--red)}.tile.info{border-left-color:var(--blue)}
-.t{font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--gold);font-weight:700}
-.v{font-size:30px;font-weight:800;margin-top:4px;color:#1c1c1c}
-.d{font-size:11.5px;color:var(--mut);margin-top:3px}
-.sec{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-top:16px}
-h2{font-size:15px;margin:0 0 10px;border-bottom:1px solid var(--line);padding-bottom:8px}
-table{width:100%;border-collapse:collapse;font-size:13px}td,th{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line)}
-td.n,th.n{text-align:right}
-.warnbox{background:#f5f1e8;border-left:4px solid var(--blue);padding:12px 14px;border-radius:8px;font-size:13px;color:var(--dark)}
+.bar{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-bottom:8px}
+.flab{font-size:11px;color:var(--mut);font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-right:2px}
+.bar button{border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 11px;font-size:12.5px;cursor:pointer;font-weight:600;color:var(--ink)}
+.bar button.on{background:#2b2b2b;color:#fff;border-color:#2b2b2b}
+#stand{font-size:12px;color:var(--mut);margin:6px 0 12px}
+.sec-h{font-size:13px;font-weight:800;color:#4a4335;margin:14px 0 10px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:12px}
+.tile{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px 15px;border-left:4px solid var(--line)}
+.tile.good{border-left-color:var(--green)}.tile.bad{border-left-color:var(--red)}.tile.info{border-left-color:var(--blue)}.tile.gold{border-left-color:var(--gold)}
+.th{display:flex;align-items:flex-start;gap:6px;font-size:11.5px}
+.th .ic{font-size:14px;line-height:1.3}.th .nm{font-weight:600;color:#4a4335;flex:1;line-height:1.3}
+.badge{font-size:11px;font-weight:800;padding:1px 6px;border-radius:20px;white-space:nowrap}
+.val{font-size:28px;font-weight:800;color:#1c1c1c;margin:5px 0 2px}
+.desc{font-size:11px;color:var(--mut);line-height:1.35}
 .foot{color:var(--mut);font-size:11px;margin-top:14px}
 </style></head><body><div class=wrap>
 <div class=brand>7 O'CLOCK · LAGER</div><h1>Lager-Dashboard</h1>
-<div class=sub>Tagesarbeit im Lager auf einen Blick — Pick &amp; Pack sowie Bestand &amp; Meldebestand. Live aus JTL-Wawi.</div>
+<div class=sub>Pick &amp; Pack auf einen Blick. Live aus Shopify (mit Wawi synchronisiert). Zeitraum wählbar, Vergleich zur Vorperiode.</div>
+<div class=bar>
+ <span class=flab>Zeitraum</span>
+ <button data-a=1>Gestern</button><button data-a=7 class=on>7 Tage</button><button data-a=30>30 Tage</button><button data-a=90>90 Tage</button><span id=months></span>
+</div>
 <div id=stand>lädt …</div>
-<div id=body></div>
-<div class=foot>Datenquelle: JTL-Wawi API (Push alle paar Minuten) · überfällig = offen &gt; 3 Tage · Reichweite = Bestand ÷ Ø-Abverkauf letzte 14 Tage · 7 O'CLOCK Lager</div>
+<div class=sec-h>📋 Pick &amp; Pack</div>
+<div class=grid id=grid></div>
+<div class=foot id=legend></div>
 </div>
 <script>
-const W="https://rohertrag-worker.can-11b.workers.dev/lager.json";
+const W="https://rohertrag-worker.can-11b.workers.dev/lagershop.json";
+let CUR=null;
 const $=id=>document.getElementById(id);
 const nf=n=>Math.round(n||0).toLocaleString("de-DE");
+const de1=x=>(x||0).toLocaleString("de-DE",{minimumFractionDigits:1,maximumFractionDigits:1});
 const pad=n=>String(n).padStart(2,"0");
-function tile(cls,t,v,d){return '<div class="tile '+cls+'"><div class=t>'+t+'</div><div class=v>'+v+'</div><div class=d>'+(d||"")+'</div></div>';}
-function render(x){
- if(!x||x.empty||!x.pick){
-  $("stand").textContent="";
-  $("body").innerHTML='<div class=warnbox><b>Warte auf JTL-Anbindung.</b> Das Dashboard ist fertig und wird automatisch live, sobald das Push-Skript (Yagemi) die ersten JTL-Daten schickt. Bis dahin gibt es hier noch nichts zu sehen.</div>';
-  return;
- }
- const p=x.pick, b=x.bestand||{};
- let h='<div class=sec-h>📋 Pick &amp; Pack</div><div class=grid>';
- h+=tile("info","Offene Aufträge",nf(p.offen),"bezahlt & freigegeben, noch nicht versandt");
- h+=tile("good","Versandfertig",nf(p.versandfertig),"alle Artikel auf Lager — jetzt pickbar");
- h+=tile(p.wartendAufWare>0?"bad":"good","Wartend auf Ware",nf(p.wartendAufWare),"Fehlartikel — blockiert");
- h+=tile(p.ueberfaellig>0?"bad":"good","Überfällig (>3 Tage)",nf(p.ueberfaellig),"Rückstand — Priorität");
- h+=tile(p.aeltesteTage>3?"bad":"warn","Älteste offene",nf(p.aeltesteTage)+" T","Alter der ältesten offenen Bestellung");
- h+=tile("good","Heute versandt",nf(p.heuteVersandt),"Pakete heute raus");
- h+='</div>';
- h+='<div class=sec-h>📦 Bestand &amp; Meldebestand</div><div class=grid>';
- h+=tile(b.unterMeldebestand>0?"warn":"good","Unter Meldebestand",nf(b.unterMeldebestand),"nachbestellen/-produzieren");
- h+=tile(b.ausverkauft>0?"bad":"good","Ausverkauft",nf(b.ausverkauft),"aktive Artikel mit Bestand 0");
- h+=tile(b.baldLeer>0?"warn":"good","Bald leer",nf(b.baldLeer),"Reichweite unter Schwelle");
- h+='</div>';
- const k=b.kritisch||[];
- if(k.length){
-  h+='<div class=sec><h2>Kritische Artikel (kleinste Reichweite)</h2><table><tr><th>Artikel</th><th>SKU</th><th class=n>Bestand</th><th class=n>Reichweite</th></tr>'+
-   k.slice(0,25).map(a=>'<tr><td>'+(a.name||"—")+'</td><td class=mut style="color:var(--mut)">'+(a.sku||"")+'</td><td class=n>'+nf(a.bestand)+'</td><td class=n style="color:'+((a.reichweiteTage||0)<=3?"var(--red)":((a.reichweiteTage||0)<=7?"var(--amber)":"var(--ink)"))+';font-weight:700">'+nf(a.reichweiteTage)+' T</td></tr>').join("")+'</table></div>';
- }
- $("body").innerHTML=h;
- const g=x.generatedAt?new Date(x.generatedAt):(x.receivedAt?new Date(x.receivedAt):null);
- let age="";if(g){const min=Math.round((Date.now()-g.getTime())/60000);age=" · Stand "+pad(g.getDate())+"."+pad(g.getMonth()+1)+". "+pad(g.getHours())+":"+pad(g.getMinutes())+(min<600?" ("+min+" Min alt)":"");}
- $("stand").innerHTML="<b>Live aus JTL-Wawi</b>"+age;
+const iso=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+const fmtd=s=>{let p=s.split("-");return p[2]+"."+p[1]+"."+p[0];};
+const dpct=(a,b)=>b?((a-b)/b*100):(a?100:0);
+function win(w){const e=new Date();e.setDate(e.getDate()-1);const s=new Date(e);s.setDate(s.getDate()-(w-1));return[iso(s),iso(e)];}
+function badge(a,b,better){
+ if(b==null||!isFinite(b)||b===0)return "";
+ let dp=dpct(a,b);if(Math.abs(dp)<0.05)dp=0;
+ const dir=dp>0?"▲":(dp<0?"▼":"■");
+ let col,bg; if(better==="flat"||dp===0){col="#7a746a";bg="#efece5";} else {const good=(better==="down")?dp<0:dp>0;col=good?"#1e6b3f":"#a13a22";bg=good?"#e6f2ea":"#f6e7e2";}
+ return '<span class=badge style="color:'+col+';background:'+bg+'">'+dir+" "+(dp>=0?"+":"")+de1(dp)+" %</span>";
 }
-fetch(W+"?cb="+Date.now()).then(r=>r.json()).then(render).catch(e=>{$("stand").textContent="Fehler: "+e;});
-setInterval(()=>fetch(W+"?cb="+Date.now()).then(r=>r.json()).then(render).catch(()=>{}),120000);
+function tile(cls,ic,nm,val,desc,a,b,better){
+ return '<div class="tile '+cls+'"><div class=th><span class=ic>'+ic+'</span><span class=nm>'+nm+'</span>'+(b!=null?badge(a,b,better):"")+'</div><div class=val>'+val+'</div><div class=desc>'+(desc||"")+'</div></div>';
+}
+function render(){
+ if(!CUR)return;const c=CUR.cur,p=CUR.prev,g=c.geschirr,gp=p.geschirr;
+ let h="";
+ h+=tile("info","📦","Bestellungen gesamt",nf(c.bestellungen),"Aufträge im Zeitraum",c.bestellungen,p.bestellungen,"up");
+ h+=tile("good","✅","Pakete verpackt",nf(c.verpackt),"Versandlabel erstellt / fulfilled",c.verpackt,p.verpackt,"up");
+ h+=tile(CUR.ueberfaellig>0?"bad":"good","⏰","Überfällig (&gt; 3 Tage)",nf(CUR.ueberfaellig),"offen &amp; 3–90 T alt · <b>aktueller Stand</b>",null,null,null);
+ h+=tile("gold","🍽️","Geschirrset-Bestellungen",nf(g.gesamt),"eigenes Label, gesondert gepackt",g.gesamt,gp.gesamt,"up");
+ h+=tile("gold","🎁","Geschirrsets verpackt",nf(g.gepackt),"offen: "+nf(g.offen)+" · teilweise: "+nf(g.partial)+" (von "+nf(g.gesamt)+")",g.gepackt,gp.gepackt,"up");
+ $("grid").innerHTML=h;
+ const gen=CUR.generatedAt?new Date(CUR.generatedAt):null;
+ $("stand").innerHTML="<b>"+fmtd(CUR.since)+" – "+fmtd(CUR.until)+"</b> · Badge = Δ vs. Vorperiode "+fmtd(CUR.prevSince)+"–"+fmtd(CUR.prevUntil)+(gen?" · Stand "+pad(gen.getDate())+"."+pad(gen.getMonth()+1)+". "+pad(gen.getHours())+":"+pad(gen.getMinutes()):"");
+}
+function load(a,b,label){$("stand").textContent="lädt "+label+" …";fetch(W+"?since="+a+"&until="+b).then(r=>r.json()).then(d=>{CUR=d;render();}).catch(e=>{$("stand").textContent="Fehler: "+e;});}
+function clearZ(){document.querySelectorAll(".bar button[data-a],#months button").forEach(y=>y.classList.remove("on"));}
+document.querySelectorAll(".bar button[data-a]").forEach(x=>x.onclick=()=>{clearZ();x.classList.add("on");const[a,b]=win(+x.dataset.a);load(a,b,x.textContent);});
+(function(){const now=new Date(),y=now.getFullYear(),cm=now.getMonth();const names=["Jan","Feb","März","Apr","Mai","Juni","Juli","Aug","Sep","Okt","Nov","Dez"];let h="";for(let m=0;m<=cm;m++)h+='<button data-ym="'+y+'-'+pad(m+1)+'"'+(m===cm?' data-cur=1':'')+'>'+names[m]+'</button>';$("months").innerHTML=h;const e=new Date();e.setDate(e.getDate()-1);const yest=iso(e);$("months").querySelectorAll("button").forEach(x=>x.onclick=()=>{clearZ();x.classList.add("on");const ym=x.dataset.ym,[Y,M]=ym.split("-").map(Number),a=ym+"-01",b=x.dataset.cur?yest:iso(new Date(Y,M,0));load(a,b,x.textContent);});})();
+$("legend").innerHTML="Quelle: Shopify (mit JTL-Wawi synchronisiert). <b>Pakete verpackt</b> = Aufträge mit erstelltem Versandlabel (fulfilled); da ein Geschirrset ein Extra-Label bekommt, ist die echte Paketzahl minimal höher. <b>Überfällig</b> = aktuell offene, unverschickte Aufträge, die 3–90 Tage alt sind (Live-Stand, unabhängig vom Zeitraumfilter). <b>Geschirrsets verpackt/offen</b> = auf Auftragsebene. Bestand/Meldebestand folgt als eigener Block.";
+(()=>{const[a,b]=win(7);load(a,b,"7 Tage");})();
 </script></body></html>

@@ -38,6 +38,18 @@ h1{font-size:23px;margin:2px 0 2px}.sub{color:var(--mut);font-size:13px;margin-b
 <div class=bar>
  <span class=flab>Gruppierung</span>
  <button class=g data-g=day>Tag</button><button class=g data-g=week class=on>Woche</button><button class=g data-g=month>Monat</button>
+ <span style="flex:1"></span>
+ <button id=editbtn style="border-color:var(--gold);color:#8a6d2f">⚙ Annahmen bearbeiten</button>
+</div>
+<div id=editpanel style="display:none;background:#fff;border:1px solid var(--gold);border-radius:12px;padding:14px 16px;margin:2px 0 10px">
+ <div style="font-weight:700;margin-bottom:2px">Kosten-Annahmen bearbeiten</div>
+ <div style="font-size:12px;color:var(--mut);margin-bottom:10px">Gilt zentral für <b>Summary, Rohertrag &amp; Cockpit</b>. Änderungen wirken sofort (bis 1 Min Cache). COGS, Umsatz, Meta/Google/Affiliate kommen live — nicht editierbar.</div>
+ <div id=editfields style="display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px"></div>
+ <div style="display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap">
+  <input type=password id=editpw placeholder="Passwort" autocomplete="new-password" style="border:1px solid var(--line);border-radius:6px;padding:7px 9px;font-size:13px">
+  <button id=editsave style="background:#2b2b2b;color:#fff;border-color:#2b2b2b">Speichern</button>
+  <span id=editmsg style="font-size:12px;color:var(--mut)"></span>
+ </div>
 </div>
 <div id=stand>lädt …</div>
 <div class=sec-h>📌 Kennzahlen</div>
@@ -55,8 +67,11 @@ const pad=n=>String(n).padStart(2,"0");
 const iso=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
 const fmtd=s=>{let p=s.split("-");return p[2]+"."+p[1]+"."+p[0];};
 const dpct=(a,b)=>b?((a-b)/b*100):(a?100:0);
-// Konstanten wie im Rohertrag-Dashboard
-const SHIP=6.56,PACK=0.80,PAY_PCT=0.0255,PAY_FIX=0.16,VAT=1.19,SHOP_DAY=2500/30,FREMD_DAY=3000/30,FIX_DAY=158000*12/365;
+// Kosten-Annahmen kommen zentral aus dem Worker (/config.json), editierbar per Passwort
+const VAT=1.19;
+let CFG={ship:6.56,pack:0.80,payPct:0.0255,payFix:0.16,shopMonth:2500,fremdMonth:3000,fixMonth:158000,matPct:29,shipPayPackPct:15.5};
+let SHIP=CFG.ship,PACK=CFG.pack,PAY_PCT=CFG.payPct,PAY_FIX=CFG.payFix,SHOP_DAY=CFG.shopMonth/30,FREMD_DAY=CFG.fremdMonth/30,FIX_DAY=CFG.fixMonth*12/365;
+const de2=x=>(x||0).toLocaleString("de-DE",{minimumFractionDigits:2,maximumFractionDigits:2});
 const PAYMENT=x=>PAY_PCT*((x.net+x.ship)*VAT)+PAY_FIX*x.orders;
 const GEWINN=x=>(x.net+x.ship)-x.cogs-x.orders*SHIP-x.orders*PACK-PAYMENT(x)-SHOP_DAY-FREMD_DAY-x.meta-x.goog-x.ifm-FIX_DAY;
 // Kachel-Definitionen: value je Tag-Objekt. better: up=höher besser, down=niedriger besser, flat=neutral
@@ -94,6 +109,17 @@ const DESC={
  affiliate:"GoAffPro-Provision — live",
  fix:"158.000 €/Monat, anteilig pro Tag"
 };
+function applyCfg(c){
+ CFG=Object.assign(CFG,c||{});
+ SHIP=CFG.ship;PACK=CFG.pack;PAY_PCT=CFG.payPct;PAY_FIX=CFG.payFix;
+ SHOP_DAY=CFG.shopMonth/30;FREMD_DAY=CFG.fremdMonth/30;FIX_DAY=CFG.fixMonth*12/365;
+ DESC.dhl=de2(CFG.ship)+" € × alle Sendungen (inkl. Neusendungen)";
+ DESC.verpack=de2(CFG.pack)+" € × alle Sendungen (inkl. Neusendungen)";
+ DESC.payment=de2(CFG.payPct*100)+" % × Brutto + "+de2(CFG.payFix)+" € × Order";
+ DESC.shop=nf(CFG.shopMonth)+" €/Monat (fix), anteilig";
+ DESC.fremd=nf(CFG.fremdMonth)+" €/Monat (fix), anteilig";
+ DESC.fix=nf(CFG.fixMonth)+" €/Monat, anteilig pro Tag";
+}
 function win(w){const e=new Date();e.setDate(e.getDate()-1);const s=new Date(e);s.setDate(s.getDate()-(w-1));return[iso(s),iso(e)];}
 function bucket(series,grp){ // series: [{d,v}] -> gruppierte Summen-Array
  if(grp==="day")return series.map(p=>p.v);
@@ -169,6 +195,23 @@ function buildMonthBtns(){
   const ym=x.dataset.ym,[Y,M]=ym.split("-").map(Number),a=ym+"-01",b=x.dataset.cur?yest:iso(new Date(Y,M,0));
   load(a,b,x.textContent+(x.dataset.cur?" (lfd.)":""));});
 }
+// ---- Annahmen bearbeiten (passwortgeschützt) ----
+const CFGURL="https://rohertrag-worker.can-11b.workers.dev/config";
+const FIELDS=[["ship","DHL €/Bestellung",0.01],["pack","Verpackung €/Bestellung",0.01],["payPct","Payment % (z.B. 2,55)",0.01],["payFix","Payment € fix/Order",0.01],["shopMonth","Shopify Plus €/Monat",10],["fremdMonth","Fremddienstleistungen €/Monat",10],["fixMonth","Fixkosten €/Monat",100],["matPct","Material % (Cockpit)",0.5],["shipPayPackPct","Versand/Zahlung/Verpackung % (Cockpit)",0.1]];
+function buildEditFields(){
+ $("editfields").innerHTML=FIELDS.map(f=>{const v=f[0]==="payPct"?CFG.payPct*100:CFG[f[0]];return '<label style="font-size:11.5px;color:var(--dark)">'+f[1]+'<input type=number step="'+f[2]+'" id="ef_'+f[0]+'" value="'+v+'" style="width:100%;border:1px solid var(--line);border-radius:6px;padding:6px 8px;margin-top:3px;font-size:13px"></label>';}).join("");
+}
+$("editbtn").onclick=()=>{const p=$("editpanel");if(p.style.display==="none"){buildEditFields();p.style.display="";}else p.style.display="none";};
+$("editsave").onclick=()=>{
+ const patch={};FIELDS.forEach(f=>{const el=$("ef_"+f[0]);if(!el)return;const v=parseFloat(el.value);if(isNaN(v))return;patch[f[0]]=f[0]==="payPct"?v/100:v;});
+ $("editmsg").textContent="speichere …";$("editmsg").style.color="var(--mut)";
+ fetch(CFGURL,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({password:$("editpw").value,config:patch})})
+  .then(r=>r.json().then(j=>({ok:r.ok,j})))
+  .then(({ok,j})=>{if(!ok||j.error){$("editmsg").textContent="❌ "+(j.error==="unauthorized"?"Passwort falsch":(j.error||"Fehler"));$("editmsg").style.color="var(--red)";return;}
+   applyCfg(j.config);$("editmsg").textContent="✓ gespeichert";$("editmsg").style.color="var(--green)";render();})
+  .catch(e=>{$("editmsg").textContent="Fehler: "+e;$("editmsg").style.color="var(--red)";});
+};
+// ---- Start: Konfig laden, dann Daten ----
 buildMonthBtns();
-(()=>{const[a,b]=win(30);load(a,b,"30 Tage");})();
+fetch("https://rohertrag-worker.can-11b.workers.dev/config.json").then(r=>r.json()).then(c=>applyCfg(c)).catch(()=>{}).finally(()=>{const[a,b]=win(30);load(a,b,"30 Tage");});
 </script></body></html>

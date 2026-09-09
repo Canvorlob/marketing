@@ -116,7 +116,7 @@ td.n,th.n{text-align:right}
       <div class="note" style="margin-top:0"><b>Werbe-Regel:</b> Jeder Euro Werbung, der <b>mehr als 1,95 &euro;</b> Umsatz bringt, macht Gewinn &mdash; <b>Ziel 2,50 &euro;</b>. Fahr unten die Kampagnen mit <b>ROAS &uuml;ber ihrem Break-even</b> hoch.</div>
       <div class="sm" style="margin-top:10px">
         Fixkosten &euro;/Monat: <input id="pm-fix" type="number" value="158000" style="width:92px;border:1px solid var(--line);border-radius:6px;padding:4px 6px;font-size:12px;background:#fff;color:var(--ink)">
-        &nbsp;&middot;&nbsp; Materialkosten %: <input id="pm-mat" type="number" value="30" step="0.5" style="width:62px;border:1px solid var(--line);border-radius:6px;padding:4px 6px;font-size:12px;background:#fff;color:var(--ink)">
+        &nbsp;<span class="muted" style="font-size:11px">(COGS &amp; Einzelkosten kommen live/aus zentraler Config)</span>
         &nbsp;<button id="pm-go" style="border:1px solid var(--line);background:#fff;border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer">neu rechnen</button>
       </div>
     </div>
@@ -279,18 +279,17 @@ function updateProfitCard(W){
   const el=document.getElementById("k-profit"); if(!el)return;
   const sub=document.getElementById("k-profit-sub");
   if(W.metaErr){ el.textContent="—"; el.style.color="var(--mut)"; if(sub)sub.textContent="Meta-Connector getrennt"; return; }
-  const matI=(parseFloat(document.getElementById('pm-mat').value)||30)/100;
-  const fixI=parseFloat(document.getElementById('pm-fix').value)||158000;
-  const SHIPPAYPACK=(window.__cfg&&window.__cfg.shipPayPackPct!=null)?window.__cfg.shipPayPackPct/100:0.155;
-  const net=W.net||0, ship=W.ship||0, spend=W.metaTotal+W.googleTotal;
-  const ifmRate=net>0&&W.ifm!=null?W.ifm/net:0.009;
-  const dbExM=1-matI-SHIPPAYPACK-ifmRate;
-  const prCost=(W.freePrRetail||0)*matI;
+  const c=window.__cfg||{};
+  const fixI=parseFloat(document.getElementById('pm-fix').value)||(c.fixMonth||158000);
+  const net=W.net||0, ship=W.ship||0, orders=W.orders||0, cogs=W.cogs||0, spend=W.metaTotal+W.googleTotal, ifm=W.ifm||0;
   const pdays=Math.max(1,curDays||7);
+  const dhl=orders*(c.ship!=null?c.ship:6.56), pack=orders*(c.pack!=null?c.pack:0.80);
+  const pay=(c.payPct!=null?c.payPct:0.0255)*((net+ship)*1.19)+(c.payFix!=null?c.payFix:0.16)*orders;
+  const shop=(c.shopMonth!=null?c.shopMonth:2500)/30*pdays, fremd=(c.fremdMonth!=null?c.fremdMonth:3000)/30*pdays;
   const fixP=(fixI*12/365)*pdays;                       // Fixkosten anteilig pro Tag
-  const profit=net*dbExM+ship-spend-prCost-fixP;
+  const profit=(net+ship)-cogs-dhl-pack-pay-shop-fremd-spend-ifm-fixP;
   el.textContent=(profit>=0?"+":"")+eur(profit); el.style.color=profit>=0?"var(--green)":"var(--red)";
-  if(sub) sub.innerHTML=pdays+" Tag"+(pdays>1?"e":"")+" &middot; Fixk. anteilig "+eur(fixP)+" &middot; Gratis-PR "+eur(prCost)+" &middot; Affiliate "+de(ifmRate*100)+" %";
+  if(sub) sub.innerHTML=pdays+" Tag"+(pdays>1?"e":"")+" &middot; COGS "+eur(cogs)+" &middot; Fixk. "+eur(fixP)+" &middot; Ad "+eur(spend);
 }
 function render(W,label,k){
   const spend=W.metaTotal+W.googleTotal;
@@ -367,39 +366,41 @@ async function fetchMonth(){
     let mm=window.__month;
     if(!mm){ const w=win(2); const j=await (await fetch(WCPT+"?since="+w.since+"&until="+w.until)).json(); mm=j.month; }
     if(!mm) throw new Error("keine Monatsdaten");
-    pmData={net:mm.net,ship:mm.ship,orders:mm.orders,spend:mm.spend,daysElapsed:mm.daysElapsed,daysInMonth:mm.daysInMonth};
+    pmData={net:mm.net,ship:mm.ship,orders:mm.orders,cogs:mm.cogs||0,spend:mm.spend,ifm:mm.ifm||0,freePrRetail:mm.freePrRetail||0,freePrUnits:mm.freePrUnits||0,daysElapsed:mm.daysElapsed,daysInMonth:mm.daysInMonth};
     document.getElementById('pm-status').textContent="";
     renderMonth();
   }catch(e){ document.getElementById('pm-status').textContent="Monat konnte nicht geladen werden: "+((e&&e.message)||e); }
 }
 function renderMonth(){
   if(!pmData) return;
-  const fix=parseFloat(document.getElementById('pm-fix').value)||158000;
-  const mat=(parseFloat(document.getElementById('pm-mat').value)||30)/100;
-  const SHIPPAYPACK=(window.__cfg&&window.__cfg.shipPayPackPct!=null)?window.__cfg.shipPayPackPct/100:0.155;
-  const net=pmData.net, ship=pmData.ship, spend=pmData.spend, dE=pmData.daysElapsed, dM=pmData.daysInMonth;
-  const IFM=net>0&&pmData.ifm!=null?pmData.ifm/net:0.009;        // Affiliate/GoAffPro: Ist-Quote vom Netto (statt pauschal)
-  const dbExMedia=1-mat-SHIPPAYPACK-IFM;                          // DB vor Meta/Google (inkl. echte Affiliate-Provision)
-  const prCostMTD=(pmData.freePrRetail||0)*mat;                   // Warenkosten der verschenkten Gratis-PR-Ware (Warenwert × Material%)
+  const c=window.__cfg||{};
+  const fix=parseFloat(document.getElementById('pm-fix').value)||(c.fixMonth||158000);
+  const net=pmData.net, ship=pmData.ship, spend=pmData.spend, orders=pmData.orders||0, cogs=pmData.cogs||0, ifm=pmData.ifm||0, dE=pmData.daysElapsed, dM=pmData.daysInMonth;
   const r=dM/dE;                                                 // Hochrechnung auf den vollen Monat
-  const prCostP=prCostMTD*r;
-  const ebitdaMTD=net*dbExMedia+ship-spend-prCostMTD-fix*(dE/dM);// echt bis gestern, Fixkosten anteilig, Gratis-PR-Warenkosten abgezogen
-  const ebitdaMonth=(net*r)*dbExMedia+(ship*r)-(spend*r)-prCostP-fix;
+  // Line-Item-Kosten (live COGS + Einzelkosten aus zentraler Config)
+  const dhl=orders*(c.ship!=null?c.ship:6.56), pack=orders*(c.pack!=null?c.pack:0.80);
+  const pay=(c.payPct!=null?c.payPct:0.0255)*((net+ship)*1.19)+(c.payFix!=null?c.payFix:0.16)*orders;
+  const shopM=(c.shopMonth!=null?c.shopMonth:2500), fremdM=(c.fremdMonth!=null?c.fremdMonth:3000);
+  const shopMTD=shopM*(dE/dM), fremdMTD=fremdM*(dE/dM), fixMTD=fix*(dE/dM);
+  // Gratis-PR-Warenkosten sind bereits im echten COGS enthalten -> nicht separat abziehen
+  const ebitdaMTD=(net+ship)-cogs-dhl-pack-pay-shopMTD-fremdMTD-spend-ifm-fixMTD;
+  const ebitdaMonth=(net+ship-cogs-dhl-pack-pay-spend-ifm)*r-shopM-fremdM-fix;
   document.getElementById('pm-rev').textContent=eur(net+ship);
   document.getElementById('pm-days').textContent=dE+" von "+dM+" Tagen";
   const eb=document.getElementById('pm-ebitda'); eb.textContent=(ebitdaMTD>=0?"+":"")+eur(ebitdaMTD); eb.style.color=ebitdaMTD>=0?"var(--green)":"var(--red)";
   const pj=document.getElementById('pm-proj'); pj.textContent=(ebitdaMonth>=0?"+":"")+eur(ebitdaMonth); pj.style.color=ebitdaMonth>=0?"var(--green)":"var(--red)";
-  const prEl=document.getElementById('pm-pr'); if(prEl){ prEl.textContent=eur(pmData.freePrRetail||0); document.getElementById('pm-pr-sub').innerHTML=(pmData.freePrUnits||0)+" Einheiten &middot; Warenkosten ~"+eur(prCostMTD)+" (im Gewinn abgezogen)"; }
-  // Szenario-Tabelle: Break-even (bei aktueller Effizienz) vs. dein Kurs — Gratis-PR wie Fixkostenblock
+  const prEl=document.getElementById('pm-pr'); if(prEl){ prEl.textContent=eur(pmData.freePrRetail||0); document.getElementById('pm-pr-sub').innerHTML=(pmData.freePrUnits||0)+" Einheiten &middot; Warenkosten stecken im COGS"; }
+  // Szenario-Tabelle: Break-even (bei aktueller Effizienz) vs. dein Kurs — Line-Item
   const netP=net*r, shipP=ship*r, spendP=spend*r;
-  const fixAll=fix+prCostP;                                 // Fixkosten + Gratis-PR-Warenkosten (Monat)
-  const shipRatio=net>0?ship/net:0;
-  const merNow=spend>0?net/spend:0;                       // blended MER (Monat bis heute)
+  const varCost=cogs+dhl+pack+pay+ifm;                     // variable Kosten (skalieren mit Volumen)
+  const k=net>0?((net+ship)-varCost)/net:0;                // variabler Deckungsbeitrag je € Netto
+  const fixedMonthly=shopM+fremdM+fix;                     // echte Monats-Fixkosten
+  const merNow=spend>0?net/spend:0;
   const scRows=[];
-  const denom=dbExMedia+shipRatio-(merNow>0?1/merNow:99);
-  if(merNow>0&&denom>0){ const netBE=fixAll/denom, maxAdBE=netBE/merNow; scRows.push(["Gewinnschwelle",netBE,maxAdBE,merNow,merNow,0]); }
+  const denom=k-(merNow>0?1/merNow:99);
+  if(merNow>0&&denom>0){ const netBE=fixedMonthly/denom, maxAdBE=netBE/merNow; scRows.push(["Gewinnschwelle",netBE,maxAdBE,merNow,merNow,0]); }
   else scRows.push(["Gewinnschwelle",NaN,NaN,NaN,merNow,NaN]);
-  const maxAdK=netP*dbExMedia+shipP-fixAll, beMerK=maxAdK>0?netP/maxAdK:NaN, gewinnK=netP*dbExMedia+shipP-spendP-fixAll;
+  const contribExAd=k*netP-fixedMonthly, maxAdK=contribExAd, beMerK=maxAdK>0?netP/maxAdK:NaN, gewinnK=contribExAd-spendP;
   scRows.push(["Dein Kurs",netP,maxAdK,beMerK,merNow,gewinnK]);
   const scb=document.getElementById('sc-body');
   if(scb) scb.innerHTML=scRows.map(rr=>{ const g=rr[5]; const gc=isNaN(g)?"var(--mut)":(g>=0?"var(--green)":"var(--red)"); const gt=isNaN(g)?"—":((g>=0?"+":"")+eur(g)); return `<tr><td><b>${rr[0]}</b></td><td class="n">${isNaN(rr[1])?"—":eur(rr[1])}</td><td class="n">${isNaN(rr[2])?"—":eur(rr[2])}</td><td class="n muted">${isNaN(rr[3])?"—":de(rr[3])}</td><td class="n"><b>${isNaN(rr[4])?"—":de(rr[4])}</b></td><td class="n" style="color:${gc};font-weight:700">${gt}</td></tr>`; }).join("");
@@ -425,10 +426,10 @@ function selectWindow(k){ document.querySelectorAll("#filters button[data-w]").f
 document.querySelectorAll("#filters button[data-w]").forEach(b=>b.addEventListener("click",()=>selectWindow(b.dataset.w)));
 document.getElementById("dgo").addEventListener("click",()=>{ const a=document.getElementById("d1").value,b=document.getElementById("d2").value; if(!a||!b)return; curDays=Math.max(1,Math.round((new Date(b)-new Date(a))/86400000)+1); document.querySelectorAll("#filters button[data-w]").forEach(x=>x.classList.remove("on")); load(a,b,a+" – "+b,"cust"); });
 // Gewinn-Block: Eingaben merken + neu rechnen
-document.getElementById("pm-go").addEventListener("click",()=>{ try{localStorage.setItem("pm_fix",document.getElementById("pm-fix").value);localStorage.setItem("pm_mat",document.getElementById("pm-mat").value);}catch(e){} renderMonth(); if(lastW)updateProfitCard(lastW); });
+document.getElementById("pm-go").addEventListener("click",()=>{ try{localStorage.setItem("pm_fix",document.getElementById("pm-fix").value);}catch(e){} renderMonth(); if(lastW)updateProfitCard(lastW); });
 // Zentrale Konfig laden (Fixkosten/Material/Kostenblöcke), dann starten
-fetch("https://rohertrag-worker.can-11b.workers.dev/config.json").then(r=>r.json()).then(c=>{ window.__cfg=c; if(c){ if(c.fixMonth!=null)document.getElementById("pm-fix").value=Math.round(c.fixMonth); if(c.matPct!=null)document.getElementById("pm-mat").value=c.matPct; } }).catch(()=>{}).finally(()=>{
- try{ const _f=localStorage.getItem("pm_fix"),_m=localStorage.getItem("pm_mat"); if(_f)document.getElementById("pm-fix").value=_f; if(_m)document.getElementById("pm-mat").value=_m; }catch(e){}
+fetch("https://rohertrag-worker.can-11b.workers.dev/config.json").then(r=>r.json()).then(c=>{ window.__cfg=c; if(c&&c.fixMonth!=null)document.getElementById("pm-fix").value=Math.round(c.fixMonth); }).catch(()=>{}).finally(()=>{
+ try{ const _f=localStorage.getItem("pm_fix"); if(_f)document.getElementById("pm-fix").value=_f; }catch(e){}
  selectWindow("7");
  fetchMonth();
 });

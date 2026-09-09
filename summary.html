@@ -53,9 +53,12 @@ const iso=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
 const fmtd=s=>{let p=s.split("-");return p[2]+"."+p[1]+"."+p[0];};
 const dpct=(a,b)=>b?((a-b)/b*100):(a?100:0);
 // Konstanten wie im Rohertrag-Dashboard
-const SHIP=6.56,PACK=0.80,PAY_PCT=0.0255,PAY_FIX=0.16,VAT=1.19,SHOP_DAY=2500/30,FIX_DAY=158000*12/365;
+const SHIP=6.56,PACK=0.80,PAY_PCT=0.0255,PAY_FIX=0.16,VAT=1.19,SHOP_DAY=2500/30,FREMD_DAY=3000/30,FIX_DAY=158000*12/365;
+const PAYMENT=x=>PAY_PCT*((x.net+x.ship)*VAT)+PAY_FIX*x.orders;
+const GEWINN=x=>(x.net+x.ship)-x.cogs-x.orders*SHIP-x.orders*PACK-PAYMENT(x)-SHOP_DAY-FREMD_DAY-x.meta-x.goog-x.ifm-FIX_DAY;
 // Kachel-Definitionen: value je Tag-Objekt. better: up=höher besser, down=niedriger besser, flat=neutral
 const TILES=[
+ {k:"gewinn",ic:"⭐",nm:"Gewinn (EBITDA)",better:"up",hot:true,f:GEWINN},
  {k:"gesamt",ic:"💰",nm:"Gesamtumsatz",better:"up",f:x=>x.net+x.ship+x.tax},
  {k:"netto",ic:"🧾",nm:"Nettoumsatz",better:"up",f:x=>x.net+x.ship},
  {k:"steuer",ic:"🏛️",nm:"Steuer",better:"flat",f:x=>x.tax},
@@ -64,6 +67,7 @@ const TILES=[
  {k:"verpack",ic:"🎁",nm:"Verpackung",better:"down",f:x=>x.orders*PACK},
  {k:"payment",ic:"💳",nm:"Payment",better:"down",f:x=>PAY_PCT*((x.net+x.ship)*VAT)+PAY_FIX*x.orders},
  {k:"shop",ic:"🛍️",nm:"Shopify Plus",better:"flat",f:x=>SHOP_DAY},
+ {k:"fremd",ic:"🧰",nm:"Fremddienstleistungen",better:"flat",f:x=>FREMD_DAY},
  {k:"meta",ic:"🔵",nm:"Meta Ad-Spend",better:"down",f:x=>x.meta},
  {k:"google",ic:"🔎",nm:"Google Ad-Spend",better:"down",f:x=>x.goog},
  {k:"affiliate",ic:"🤝",nm:"Affiliate",better:"down",f:x=>x.ifm},
@@ -107,8 +111,13 @@ function render(){
   const prevTotal=prevDaily.reduce((a,x)=>a+x.v,0);
   const delta=dpct(total,prevTotal);
   const cb=bucket(curDaily,GRP),pb=bucket(prevDaily,GRP);
-  html+='<div class=tile><div class=th><span class=ic>'+t.ic+'</span><span class=nm>'+t.nm+'</span>'+badge(delta,t.better)+'</div>'
-      +'<div class=val>'+eur(total)+'</div><div class=spark>'+spark(cb,pb)+'</div></div>';
+  const money=(total<0?"−€":"€")+nf(Math.abs(total));
+  const valStyle=t.hot?("color:"+(total>=0?"var(--green)":"var(--red)")):"";
+  const tileStyle=t.hot?' style="border:2px solid var(--gold);grid-column:1/-1;background:linear-gradient(180deg,#fffdf8,#fff)"':'';
+  const inner=t.hot
+    ?'<div class=th><span class=ic>'+t.ic+'</span><span class=nm>'+t.nm+'</span>'+badge(delta,t.better)+'</div><div style="display:flex;align-items:flex-end;gap:18px"><div class=val style="font-size:32px;'+valStyle+'">'+money+'</div><div class=spark style="flex:1;max-width:340px">'+spark(cb,pb)+'</div></div>'
+    :'<div class=th><span class=ic>'+t.ic+'</span><span class=nm>'+t.nm+'</span>'+badge(delta,t.better)+'</div><div class=val style="'+valStyle+'">'+money+'</div><div class=spark>'+spark(cb,pb)+'</div>';
+  html+='<div class=tile'+tileStyle+'>'+inner+'</div>';
  });
  $("grid").innerHTML=html;
  const gen=CUR.generatedAt?new Date(CUR.generatedAt):null;

@@ -20,6 +20,7 @@ h1{font-size:23px;margin:2px 0 2px}.sub{color:var(--mut);font-size:13px;margin-b
 .th .nm{font-weight:600;color:#4a4335;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .badge{font-size:11px;font-weight:800;padding:1px 6px;border-radius:20px;white-space:nowrap}
 .val{font-size:24px;font-weight:800;color:#1c1c1c;margin:5px 0 2px}
+.desc{font-size:10.5px;color:var(--mut);line-height:1.3;margin:0 0 4px}
 .spark{height:34px;margin-top:2px}
 .sec-h{font-size:13px;font-weight:800;color:#4a4335;margin:6px 0 10px;letter-spacing:.02em}
 .foot{color:var(--mut);font-size:11px;margin-top:14px}
@@ -73,6 +74,22 @@ const TILES=[
  {k:"affiliate",ic:"🤝",nm:"Affiliate",better:"down",f:x=>x.ifm},
  {k:"fix",ic:"🏢",nm:"Fixkosten",better:"flat",f:x=>FIX_DAY}
 ];
+const DESC={
+ gewinn:"Nettoumsatz − alle Kostenblöcke unten (ohne Steuer)",
+ gesamt:"Netto + Versanderlöse + Steuer",
+ netto:"Nettoumsatz + Versanderlöse (ohne MwSt)",
+ steuer:"MwSt (aus Shopify)",
+ dhl:"6,56 € × Bestellungen",
+ cogs:"Wareneinsatz — live aus Shopify",
+ verpack:"0,80 € × Bestellungen",
+ payment:"2,55 % × Brutto + 0,16 € × Order",
+ shop:"2.500 €/Monat (fix), anteilig",
+ fremd:"3.000 €/Monat (fix), anteilig",
+ meta:"Ad-Spend Meta — live",
+ google:"Ad-Spend Google — live",
+ affiliate:"GoAffPro-Provision — live",
+ fix:"158.000 €/Monat, anteilig pro Tag"
+};
 function win(w){const e=new Date();e.setDate(e.getDate()-1);const s=new Date(e);s.setDate(s.getDate()-(w-1));return[iso(s),iso(e)];}
 function bucket(series,grp){ // series: [{d,v}] -> gruppierte Summen-Array
  if(grp==="day")return series.map(p=>p.v);
@@ -114,9 +131,10 @@ function render(){
   const money=(total<0?"−€":"€")+nf(Math.abs(total));
   const valStyle=t.hot?("color:"+(total>=0?"var(--green)":"var(--red)")):"";
   const tileStyle=t.hot?' style="border:2px solid var(--gold);grid-column:1/-1;background:linear-gradient(180deg,#fffdf8,#fff)"':'';
+  const desc='<div class=desc>'+(DESC[t.k]||"")+'</div>';
   const inner=t.hot
-    ?'<div class=th><span class=ic>'+t.ic+'</span><span class=nm>'+t.nm+'</span>'+badge(delta,t.better)+'</div><div style="display:flex;align-items:flex-end;gap:18px"><div class=val style="font-size:32px;'+valStyle+'">'+money+'</div><div class=spark style="flex:1;max-width:340px">'+spark(cb,pb)+'</div></div>'
-    :'<div class=th><span class=ic>'+t.ic+'</span><span class=nm>'+t.nm+'</span>'+badge(delta,t.better)+'</div><div class=val style="'+valStyle+'">'+money+'</div><div class=spark>'+spark(cb,pb)+'</div>';
+    ?'<div class=th><span class=ic>'+t.ic+'</span><span class=nm>'+t.nm+'</span>'+badge(delta,t.better)+'</div><div style="display:flex;align-items:flex-end;gap:18px"><div><div class=val style="font-size:32px;'+valStyle+'">'+money+'</div>'+desc+'</div><div class=spark style="flex:1;max-width:340px">'+spark(cb,pb)+'</div></div>'
+    :'<div class=th><span class=ic>'+t.ic+'</span><span class=nm>'+t.nm+'</span>'+badge(delta,t.better)+'</div><div class=val style="'+valStyle+'">'+money+'</div>'+desc+'<div class=spark>'+spark(cb,pb)+'</div>';
   html+='<div class=tile'+tileStyle+'>'+inner+'</div>';
  });
  $("grid").innerHTML=html;

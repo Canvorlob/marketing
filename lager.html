@@ -27,6 +27,7 @@ h2{font-size:15px;margin:0 0 4px;border-bottom:1px solid var(--line);padding-bot
 .ltbl a{color:var(--blue);font-weight:700;text-decoration:none}.ltbl a:hover{text-decoration:underline}
 .chip{font-size:11px;font-weight:700;padding:1px 7px;border-radius:20px}
 .chip.neu{color:#8a5a1a;background:#f6ecdd}.chip.best{color:#1e5a6b;background:#e6f0f3}
+.chip.off{color:#a13a22;background:#f6e7e2}.chip.teil{color:#8a6d2f;background:#f7f1e3}
 </style></head><body><div class=wrap>
 <div class=brand>7 O'CLOCK · LAGER</div><h1>Lager-Dashboard</h1>
 <div class=sub>Pick &amp; Pack auf einen Blick. Live aus Shopify (mit Wawi synchronisiert). Zeitraum wählbar, Vergleich zur Vorperiode.</div>
@@ -66,7 +67,7 @@ function render(){
  let h="";
  h+=tile("info","📦","Bestellungen gesamt",nf(c.bestellungen),"Aufträge im Zeitraum",c.bestellungen,p.bestellungen,"up");
  h+=tile("good","✅","Pakete verpackt",nf(c.verpackt),"Versandlabel erstellt / fulfilled",c.verpackt,p.verpackt,"up");
- const sp=CUR.ueberfaelligSplit; const ueDesc=sp?("davon "+nf(sp.neusendung)+" Neusendungen · "+nf(sp.bestellung)+" Bestellungen · <b>Live</b>"):"offen, bezahlt, nicht storniert · <b>Live</b>";
+ const sp=CUR.ueberfaelligSplit, stt=CUR.ueberfaelligStatus; const ueDesc=sp?("davon "+nf(sp.neusendung)+" Neusendungen · "+nf(sp.bestellung)+" Bestellungen"+(stt?" · "+nf(stt.offen)+" offen / "+nf(stt.teilweise)+" teilweise":"")+" · <b>Live</b>"):"offen, bezahlt, nicht storniert · <b>Live</b>";
  h+=tile(CUR.ueberfaellig>0?"bad":"good","⏰","Überfällig (&gt; 3 Tage)",nf(CUR.ueberfaellig),ueDesc,null,null,null);
  h+=tile((CUR.aeltesteTage||0)>7?"bad":"info","📅","Älteste offene Bestellung",nf(CUR.aeltesteTage)+" T",(CUR.aeltesteDatum?"seit "+fmtd(CUR.aeltesteDatum)+" · ":"")+"offen &amp; unverschickt · <b>Live</b>",null,null,null);
  h+=tile("gold","🍽️","Geschirrset-Bestellungen",nf(g.gesamt),"eigenes Label, gesondert gepackt",g.gesamt,gp.gesamt,"up");
@@ -76,8 +77,8 @@ function render(){
  const L=CUR.offeneListe||[];
  if(L.length){
   const link=id=>"https://admin.shopify.com/store/7oclock-de/orders/"+id;
-  let t='<div class=sec><h2>Offene Aufträge im Rückstand ('+L.length+')</h2><div style="font-size:12px;color:var(--mut);margin:0 0 10px">Klick öffnet den Auftrag in Shopify. „Live"-Stand, unabhängig vom Zeitraumfilter.</div><table class=ltbl><tr><th>Auftrag</th><th>Typ</th><th>erstellt</th><th class=n>Alter</th></tr>';
-  t+=L.map(o=>{const typ=o.typ==="Neusendung"?'<span class="chip neu">Neusendung</span>':'<span class="chip best">Bestellung</span>';return '<tr><td><a href="'+link(o.id)+'" target=_blank rel=noopener>'+o.name+'</a></td><td>'+typ+'</td><td>'+fmtd(o.created)+'</td><td class=n style="font-weight:700;color:'+((o.ageTage||0)>7?"var(--red)":"var(--ink)")+'">'+nf(o.ageTage)+' T</td></tr>';}).join("");
+  let t='<div class=sec><h2>Offene Aufträge im Rückstand ('+L.length+')</h2><div style="font-size:12px;color:var(--mut);margin:0 0 10px">Klick öffnet den Auftrag in Shopify. „Live"-Stand, unabhängig vom Zeitraumfilter.</div><table class=ltbl><tr><th>Auftrag</th><th>Typ</th><th>Status</th><th>erstellt</th><th class=n>Alter</th></tr>';
+  t+=L.map(o=>{const typ=o.typ==="Neusendung"?'<span class="chip neu">Neusendung</span>':'<span class="chip best">Bestellung</span>';const st=o.status==="teilweise"?'<span class="chip teil">teilweise</span>':'<span class="chip off">offen</span>';return '<tr><td><a href="'+link(o.id)+'" target=_blank rel=noopener>'+o.name+'</a></td><td>'+typ+'</td><td>'+st+'</td><td>'+fmtd(o.created)+'</td><td class=n style="font-weight:700;color:'+((o.ageTage||0)>7?"var(--red)":"var(--ink)")+'">'+nf(o.ageTage)+' T</td></tr>';}).join("");
   t+='</table></div>';
   $("liste").innerHTML=t;
  } else $("liste").innerHTML="";

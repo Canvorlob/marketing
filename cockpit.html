@@ -281,7 +281,7 @@ function updateProfitCard(W){
   if(W.metaErr){ el.textContent="—"; el.style.color="var(--mut)"; if(sub)sub.textContent="Meta-Connector getrennt"; return; }
   const matI=(parseFloat(document.getElementById('pm-mat').value)||30)/100;
   const fixI=parseFloat(document.getElementById('pm-fix').value)||158000;
-  const SHIPPAYPACK=0.155;
+  const SHIPPAYPACK=(window.__cfg&&window.__cfg.shipPayPackPct!=null)?window.__cfg.shipPayPackPct/100:0.155;
   const net=W.net||0, ship=W.ship||0, spend=W.metaTotal+W.googleTotal;
   const ifmRate=net>0&&W.ifm!=null?W.ifm/net:0.009;
   const dbExM=1-matI-SHIPPAYPACK-ifmRate;
@@ -376,7 +376,7 @@ function renderMonth(){
   if(!pmData) return;
   const fix=parseFloat(document.getElementById('pm-fix').value)||158000;
   const mat=(parseFloat(document.getElementById('pm-mat').value)||30)/100;
-  const SHIPPAYPACK=0.155;
+  const SHIPPAYPACK=(window.__cfg&&window.__cfg.shipPayPackPct!=null)?window.__cfg.shipPayPackPct/100:0.155;
   const net=pmData.net, ship=pmData.ship, spend=pmData.spend, dE=pmData.daysElapsed, dM=pmData.daysInMonth;
   const IFM=net>0&&pmData.ifm!=null?pmData.ifm/net:0.009;        // Affiliate/GoAffPro: Ist-Quote vom Netto (statt pauschal)
   const dbExMedia=1-mat-SHIPPAYPACK-IFM;                          // DB vor Meta/Google (inkl. echte Affiliate-Provision)
@@ -426,10 +426,12 @@ document.querySelectorAll("#filters button[data-w]").forEach(b=>b.addEventListen
 document.getElementById("dgo").addEventListener("click",()=>{ const a=document.getElementById("d1").value,b=document.getElementById("d2").value; if(!a||!b)return; curDays=Math.max(1,Math.round((new Date(b)-new Date(a))/86400000)+1); document.querySelectorAll("#filters button[data-w]").forEach(x=>x.classList.remove("on")); load(a,b,a+" – "+b,"cust"); });
 // Gewinn-Block: Eingaben merken + neu rechnen
 document.getElementById("pm-go").addEventListener("click",()=>{ try{localStorage.setItem("pm_fix",document.getElementById("pm-fix").value);localStorage.setItem("pm_mat",document.getElementById("pm-mat").value);}catch(e){} renderMonth(); if(lastW)updateProfitCard(lastW); });
-try{ const _f=localStorage.getItem("pm_fix"),_m=localStorage.getItem("pm_mat"); if(_f)document.getElementById("pm-fix").value=_f; if(_m)document.getElementById("pm-mat").value=_m; }catch(e){}
-// Kampagnen-Tabellen: 7 Tage · Gewinn-Block: immer laufender Monat
-selectWindow("7");
-fetchMonth();
+// Zentrale Konfig laden (Fixkosten/Material/Kostenblöcke), dann starten
+fetch("https://rohertrag-worker.can-11b.workers.dev/config.json").then(r=>r.json()).then(c=>{ window.__cfg=c; if(c){ if(c.fixMonth!=null)document.getElementById("pm-fix").value=Math.round(c.fixMonth); if(c.matPct!=null)document.getElementById("pm-mat").value=c.matPct; } }).catch(()=>{}).finally(()=>{
+ try{ const _f=localStorage.getItem("pm_fix"),_m=localStorage.getItem("pm_mat"); if(_f)document.getElementById("pm-fix").value=_f; if(_m)document.getElementById("pm-mat").value=_m; }catch(e){}
+ selectWindow("7");
+ fetchMonth();
+});
 </script>
 </body>
 </html>

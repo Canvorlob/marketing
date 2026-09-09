@@ -20,6 +20,13 @@ h1{font-size:23px;margin:2px 0 2px}.sub{color:var(--mut);font-size:13px;margin-b
 .val{font-size:28px;font-weight:800;color:#1c1c1c;margin:5px 0 2px}
 .desc{font-size:11px;color:var(--mut);line-height:1.35}
 .foot{color:var(--mut);font-size:11px;margin-top:14px}
+.sec{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-top:16px}
+h2{font-size:15px;margin:0 0 4px;border-bottom:1px solid var(--line);padding-bottom:8px}
+.ltbl{width:100%;border-collapse:collapse;font-size:13px}.ltbl td,.ltbl th{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line)}
+.ltbl th{color:var(--mut);font-weight:600;font-size:11px}.ltbl td.n{text-align:right}
+.ltbl a{color:var(--blue);font-weight:700;text-decoration:none}.ltbl a:hover{text-decoration:underline}
+.chip{font-size:11px;font-weight:700;padding:1px 7px;border-radius:20px}
+.chip.neu{color:#8a5a1a;background:#f6ecdd}.chip.best{color:#1e5a6b;background:#e6f0f3}
 </style></head><body><div class=wrap>
 <div class=brand>7 O'CLOCK · LAGER</div><h1>Lager-Dashboard</h1>
 <div class=sub>Pick &amp; Pack auf einen Blick. Live aus Shopify (mit Wawi synchronisiert). Zeitraum wählbar, Vergleich zur Vorperiode.</div>
@@ -30,6 +37,7 @@ h1{font-size:23px;margin:2px 0 2px}.sub{color:var(--mut);font-size:13px;margin-b
 <div id=stand>lädt …</div>
 <div class=sec-h>📋 Pick &amp; Pack</div>
 <div class=grid id=grid></div>
+<div id=liste></div>
 <div class=foot id=legend></div>
 </div>
 <script>
@@ -58,11 +66,21 @@ function render(){
  let h="";
  h+=tile("info","📦","Bestellungen gesamt",nf(c.bestellungen),"Aufträge im Zeitraum",c.bestellungen,p.bestellungen,"up");
  h+=tile("good","✅","Pakete verpackt",nf(c.verpackt),"Versandlabel erstellt / fulfilled",c.verpackt,p.verpackt,"up");
- h+=tile(CUR.ueberfaellig>0?"bad":"good","⏰","Überfällig (&gt; 3 Tage)",nf(CUR.ueberfaellig),"offen &amp; 3–90 T alt · <b>aktueller Stand</b>",null,null,null);
+ const sp=CUR.ueberfaelligSplit; const ueDesc=sp?("davon "+nf(sp.neusendung)+" Neusendungen · "+nf(sp.bestellung)+" Bestellungen · <b>Live</b>"):"offen, bezahlt, nicht storniert · <b>Live</b>";
+ h+=tile(CUR.ueberfaellig>0?"bad":"good","⏰","Überfällig (&gt; 3 Tage)",nf(CUR.ueberfaellig),ueDesc,null,null,null);
  h+=tile((CUR.aeltesteTage||0)>7?"bad":"info","📅","Älteste offene Bestellung",nf(CUR.aeltesteTage)+" T",(CUR.aeltesteDatum?"seit "+fmtd(CUR.aeltesteDatum)+" · ":"")+"offen &amp; unverschickt · <b>Live</b>",null,null,null);
  h+=tile("gold","🍽️","Geschirrset-Bestellungen",nf(g.gesamt),"eigenes Label, gesondert gepackt",g.gesamt,gp.gesamt,"up");
  h+=tile("gold","🎁","Geschirrsets verpackt",nf(g.gepackt),"offen: "+nf(g.offen)+" · teilweise: "+nf(g.partial)+" (von "+nf(g.gesamt)+")",g.gepackt,gp.gepackt,"up");
  $("grid").innerHTML=h;
+ // Liste der offenen Aufträge (Rückstand) — klickbar zu Shopify
+ const L=CUR.offeneListe||[];
+ if(L.length){
+  const link=id=>"https://admin.shopify.com/store/7oclock-de/orders/"+id;
+  let t='<div class=sec><h2>Offene Aufträge im Rückstand ('+L.length+')</h2><div style="font-size:12px;color:var(--mut);margin:0 0 10px">Klick öffnet den Auftrag in Shopify. „Live"-Stand, unabhängig vom Zeitraumfilter.</div><table class=ltbl><tr><th>Auftrag</th><th>Typ</th><th>erstellt</th><th class=n>Alter</th></tr>';
+  t+=L.map(o=>{const typ=o.typ==="Neusendung"?'<span class="chip neu">Neusendung</span>':'<span class="chip best">Bestellung</span>';return '<tr><td><a href="'+link(o.id)+'" target=_blank rel=noopener>'+o.name+'</a></td><td>'+typ+'</td><td>'+fmtd(o.created)+'</td><td class=n style="font-weight:700;color:'+((o.ageTage||0)>7?"var(--red)":"var(--ink)")+'">'+nf(o.ageTage)+' T</td></tr>';}).join("");
+  t+='</table></div>';
+  $("liste").innerHTML=t;
+ } else $("liste").innerHTML="";
  const gen=CUR.generatedAt?new Date(CUR.generatedAt):null;
  $("stand").innerHTML="<b>"+fmtd(CUR.since)+" – "+fmtd(CUR.until)+"</b> · Badge = Δ vs. Vorperiode "+fmtd(CUR.prevSince)+"–"+fmtd(CUR.prevUntil)+(gen?" · Stand "+pad(gen.getDate())+"."+pad(gen.getMonth()+1)+". "+pad(gen.getHours())+":"+pad(gen.getMinutes()):"");
 }

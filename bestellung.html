@@ -9,6 +9,7 @@ h1{font-size:23px;margin:2px 0 2px}.sub{color:var(--mut);font-size:13px;margin-b
 .flab{font-size:11px;color:var(--mut);font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-right:2px}
 .bar button{border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 11px;font-size:12.5px;cursor:pointer;font-weight:600;color:var(--ink)}
 .bar button.on{background:#2b2b2b;color:#fff;border-color:#2b2b2b}
+.bar button.reg.on{background:var(--blue);border-color:var(--blue);color:#fff}
 #stand{font-size:12px;color:var(--mut);margin:6px 0 12px}
 .sec-h{font-size:13px;font-weight:800;color:#4a4335;margin:6px 0 10px}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:12px}
@@ -26,6 +27,10 @@ h1{font-size:23px;margin:2px 0 2px}.sub{color:var(--mut);font-size:13px;margin-b
  <span class=flab>Zeitraum</span>
  <button data-a=7>7 Tage</button><button data-a=30 class=on>30 Tage</button><button data-a=90>90 Tage</button><span id=months></span>
 </div>
+<div class=bar>
+ <span class=flab>Region</span>
+ <button class=reg data-r=all id=r-all>Alle</button><button class=reg data-r=dach>DACH</button><button class=reg data-r=nondach>Nicht-DACH</button>
+</div>
 <div id=stand>lädt …</div>
 <div class=sec-h>📦 Bestellungen</div>
 <div class=grid id=grid></div>
@@ -33,7 +38,7 @@ h1{font-size:23px;margin:2px 0 2px}.sub{color:var(--mut);font-size:13px;margin-b
 </div>
 <script>
 const W="https://rohertrag-worker.can-11b.workers.dev/orders.json";
-let CUR=null;
+let CUR=null, REG="all";
 const $=id=>document.getElementById(id);
 const nf=n=>Math.round(n||0).toLocaleString("de-DE");
 const eur=x=>"€"+nf(x);
@@ -55,18 +60,27 @@ function badge(a,b,better){
 function tile(ic,nm,val,desc,a,b,better){
  return '<div class=tile><div class=th><span class=ic>'+ic+'</span><span class=nm>'+nm+'</span>'+badge(a,b,better)+'</div><div class=val>'+val+'</div><div class=desc>'+(desc||"")+'</div></div>';
 }
+const paidOf=(w,reg)=>w.orders[reg]-w.blogger[reg]-w.neusendung[reg];  // bezahlt = Orders − Blogger − Neusendungen (je Region)
 function render(){
- if(!CUR)return;const c=CUR.cur,p=CUR.prev;
+ if(!CUR)return;const c=CUR.cur,p=CUR.prev,r=REG;
  const share=(x,t)=>t?de1(x/t*100)+" %":"–";
+ const rlab=r==="dach"?"DACH":(r==="nondach"?"Nicht-DACH":"");
+ const suf=r==="all"?"":" · "+rlab;
  let h="";
- h+=tile("📦","Gesamtbestellungen",nf(c.orders.total),"alle Kanäle &amp; Länder",c.orders.total,p.orders.total,"up");
- h+=tile("🇩🇪","DACH (DE/AT/CH)",nf(c.orders.dach),share(c.orders.dach,c.orders.total)+" der Bestellungen",c.orders.dach,p.orders.dach,"up");
- h+=tile("🌍","Nicht-DACH",nf(c.orders.nondach),share(c.orders.nondach,c.orders.total)+" der Bestellungen",c.orders.nondach,p.orders.nondach,"up");
- h+=tile("💶","Bezahlte Bestellungen",nf(c.paid),"echte Nachfrage (0€ raus)",c.paid,p.paid,"up");
- h+=tile("🎁","Bloggerpakete",nf(c.blogger.total),"DACH "+nf(c.blogger.dach)+" · Nicht-DACH "+nf(c.blogger.nondach)+" · Tag „Bloggerpaket“",c.blogger.total,p.blogger.total,"flat");
- h+=tile("🔁","Neusendungen",nf(c.neusendung.total),"DACH "+nf(c.neusendung.dach)+" · Nicht-DACH "+nf(c.neusendung.nondach)+" · Kanal Resolvia.ai",c.neusendung.total,p.neusendung.total,"down");
- const aov=c.paid?c.netship/c.paid:0, aovP=p.paid?p.netship/p.paid:0;
- h+=tile("🧾","AOV",eur(aov),"Umsatz (netto+Versand) ÷ bezahlte Best.",aov,aovP,"up");
+ if(r==="all"){
+  h+=tile("📦","Gesamtbestellungen",nf(c.orders.total),"alle Kanäle &amp; Länder",c.orders.total,p.orders.total,"up");
+  h+=tile("🇩🇪","DACH (DE/AT/CH)",nf(c.orders.dach),share(c.orders.dach,c.orders.total)+" der Bestellungen",c.orders.dach,p.orders.dach,"up");
+  h+=tile("🌍","Nicht-DACH",nf(c.orders.nondach),share(c.orders.nondach,c.orders.total)+" der Bestellungen",c.orders.nondach,p.orders.nondach,"up");
+ } else {
+  h+=tile(r==="dach"?"🇩🇪":"🌍","Bestellungen "+rlab,nf(c.orders[r]),share(c.orders[r],c.orders.total)+" aller Bestellungen",c.orders[r],p.orders[r],"up");
+ }
+ h+=tile("💶","Bezahlte Bestellungen"+suf,nf(paidOf(c,r)),"echte Nachfrage (0€ raus)",paidOf(c,r),paidOf(p,r),"up");
+ const blSub=r==="all"?("DACH "+nf(c.blogger.dach)+" · Nicht-DACH "+nf(c.blogger.nondach)+" · "):"";
+ h+=tile("🎁","Bloggerpakete"+suf,nf(c.blogger[r]),blSub+"Tag „Bloggerpaket“",c.blogger[r],p.blogger[r],"flat");
+ const neSub=r==="all"?("DACH "+nf(c.neusendung.dach)+" · Nicht-DACH "+nf(c.neusendung.nondach)+" · "):"";
+ h+=tile("🔁","Neusendungen"+suf,nf(c.neusendung[r]),neSub+"Kanal Resolvia.ai",c.neusendung[r],p.neusendung[r],"down");
+ const paidC=paidOf(c,r), paidP=paidOf(p,r), aov=paidC?c.netship[r]/paidC:0, aovP=paidP?p.netship[r]/paidP:0;
+ h+=tile("🧾","AOV"+suf,eur(aov),"Umsatz (netto+Versand) ÷ bezahlte Best.",aov,aovP,"up");
  $("grid").innerHTML=h;
  const gen=CUR.generatedAt?new Date(CUR.generatedAt):null;
  $("stand").innerHTML="<b>"+fmtd(CUR.since)+" – "+fmtd(CUR.until)+"</b> · Badge = Δ vs. Vorperiode "+fmtd(CUR.prevSince)+"–"+fmtd(CUR.prevUntil)+(gen?" · Stand "+pad(gen.getDate())+"."+pad(gen.getMonth()+1)+". "+pad(gen.getHours())+":"+pad(gen.getMinutes()):"");
@@ -74,6 +88,8 @@ function render(){
 function load(a,b,label){$("stand").textContent="lädt "+label+" …";fetch(W+"?since="+a+"&until="+b).then(r=>r.json()).then(d=>{CUR=d;render();}).catch(e=>{$("stand").textContent="Fehler: "+e;});}
 function clearZ(){document.querySelectorAll(".bar button[data-a],#months button").forEach(y=>y.classList.remove("on"));}
 document.querySelectorAll(".bar button[data-a]").forEach(x=>x.onclick=()=>{clearZ();x.classList.add("on");const[a,b]=win(+x.dataset.a);load(a,b,x.textContent);});
+$("r-all").classList.add("on");
+document.querySelectorAll(".bar button.reg").forEach(x=>x.onclick=()=>{document.querySelectorAll(".bar button.reg").forEach(y=>y.classList.remove("on"));x.classList.add("on");REG=x.dataset.r;render();});
 (function(){const now=new Date(),y=now.getFullYear(),cm=now.getMonth();const names=["Jan","Feb","März","Apr","Mai","Juni","Juli","Aug","Sep","Okt","Nov","Dez"];let h="";for(let m=0;m<=cm;m++)h+='<button data-ym="'+y+'-'+pad(m+1)+'"'+(m===cm?' data-cur=1':'')+'>'+names[m]+'</button>';h+='<button data-ytd=1>Jahr '+y+'</button>';$("months").innerHTML=h;const e=new Date();e.setDate(e.getDate()-1);const yest=iso(e);$("months").querySelectorAll("button").forEach(x=>x.onclick=()=>{clearZ();x.classList.add("on");if(x.dataset.ytd){load(y+"-01-01",yest,"Jahr "+y);return;}const ym=x.dataset.ym,[Y,M]=ym.split("-").map(Number),a=ym+"-01",b=x.dataset.cur?yest:iso(new Date(Y,M,0));load(a,b,x.textContent);});})();
 $("legend").innerHTML="Region = <b>Versandland</b> (funktioniert auch für 0€-Pakete ohne Rechnungsadresse). <b>Bloggerpakete</b> = Bestellungen mit Order-Tag „Bloggerpaket“. <b>Neusendungen</b> = Bestellungen über den Kanal Resolvia.ai (Ersatz/CS). <b>Bezahlte Bestellungen</b> = ohne 0€ (Blogger/Neusendungen/Ersatz). <b>AOV</b> = Umsatz ÷ bezahlte Bestellungen.";
 (()=>{const[a,b]=win(30);load(a,b,"30 Tage");})();

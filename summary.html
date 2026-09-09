@@ -60,7 +60,7 @@ const PAYMENT=x=>PAY_PCT*((x.net+x.ship)*VAT)+PAY_FIX*x.orders;
 const GEWINN=x=>(x.net+x.ship)-x.cogs-x.orders*SHIP-x.orders*PACK-PAYMENT(x)-SHOP_DAY-FREMD_DAY-x.meta-x.goog-x.ifm-FIX_DAY;
 // Kachel-Definitionen: value je Tag-Objekt. better: up=höher besser, down=niedriger besser, flat=neutral
 const TILES=[
- {k:"gewinn",ic:"⭐",nm:"Gewinn (EBITDA)",better:"up",hot:true,f:GEWINN},
+ {k:"gewinn",ic:"⭐",nm:"Gewinn (EBITDA)",better:"up",hot:true,pct:true,f:GEWINN},
  {k:"gesamt",ic:"💰",nm:"Gesamtumsatz",better:"up",f:x=>x.net+x.ship+x.tax},
  {k:"netto",ic:"🧾",nm:"Nettoumsatz",better:"up",f:x=>x.net+x.ship},
  {k:"steuer",ic:"🏛️",nm:"Steuer",better:"flat",f:x=>x.tax},

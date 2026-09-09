@@ -109,6 +109,7 @@ td.n,th.n{text-align:right}
     <div class="merbox"><div class="big" id="pm-rev" style="font-size:26px">&middot;</div><div class="lbl">Umsatz bisher (<span id="pm-days">&middot;</span>)</div></div>
     <div class="merbox"><div class="big" id="pm-ebitda" style="font-size:26px">&middot;</div><div class="lbl">Gewinn bisher (EBITDA)</div></div>
     <div class="merbox" style="background:#fff;border:1px dashed var(--line)"><div class="big" id="pm-proj" style="font-size:26px">&middot;</div><div class="lbl">Hochrechnung Monatsende</div></div>
+    <div class="merbox"><div class="big" id="pm-pr" style="font-size:23px">&middot;</div><div class="lbl">Gratis-PR / Kooperation</div><div class="sm muted" id="pm-pr-sub" style="margin-top:4px">&middot;</div></div>
     <div class="txt">
       <div id="pm-verdict" style="font-weight:700;margin-bottom:6px">&hellip;</div>
       <div class="note" style="margin-top:0"><b>Werbe-Regel:</b> Jeder Euro Werbung, der <b>mehr als 1,95 &euro;</b> Umsatz bringt, macht Gewinn &mdash; <b>Ziel 2,50 &euro;</b>. Fahr unten die Kampagnen mit <b>ROAS &uuml;ber ihrem Break-even</b> hoch.</div>
@@ -119,7 +120,7 @@ td.n,th.n{text-align:right}
       </div>
     </div>
    </div>
-   <div class="foot">Zeigt immer den <b>laufenden Monat</b> (unabh&auml;ngig vom Filter oben). Umsatz inkl. Versand. <b>Gewinn bisher</b> = echte Zahlen bis gestern, Fixkosten anteilig. <b>Hochrechnung</b> = bisheriger Tagesschnitt &times; Monatstage. Fixkosten &amp; Material nach der BWA anpassbar. Kampagnen-Steuerung &rarr; Tabellen unten.</div>
+   <div class="foot">Zeigt immer den <b>laufenden Monat</b> (unabh&auml;ngig vom Filter oben). Umsatz inkl. Versand. <b>Gewinn bisher</b> = echte Zahlen bis gestern, Fixkosten anteilig. <b>Hochrechnung</b> = bisheriger Tagesschnitt &times; Monatstage. Fixkosten &amp; Material nach der BWA anpassbar. <b>Affiliate-Provision</b> = echte GoAffPro-Ist-Quote vom Netto (live, nicht mehr pauschal). <b>Gratis-PR/Kooperation</b> = Warenwert der (fast) 100&#37;-rabattierten Ware; die Warenkosten (Warenwert &times; Material&#37;) sind im Gewinn und im Break-even wie Fixkosten abgezogen. Kampagnen-Steuerung &rarr; Tabellen unten.</div>
   </div>
   <div class="card">
    <h2>Break-even vs. dein Kurs</h2>
@@ -356,25 +357,30 @@ function renderMonth(){
   if(!pmData) return;
   const fix=parseFloat(document.getElementById('pm-fix').value)||158000;
   const mat=(parseFloat(document.getElementById('pm-mat').value)||30)/100;
-  const SHIPPAYPACK=0.155, IFM=0.032;
-  const dbExMedia=1-mat-SHIPPAYPACK-IFM;                 // DB vor Meta/Google (inkl. IFM als Kost)
+  const SHIPPAYPACK=0.155;
   const net=pmData.net, ship=pmData.ship, spend=pmData.spend, dE=pmData.daysElapsed, dM=pmData.daysInMonth;
-  const ebitdaMTD=net*dbExMedia+ship-spend-fix*(dE/dM);         // echt bis gestern, Fixkosten anteilig
+  const IFM=net>0&&pmData.ifm!=null?pmData.ifm/net:0.009;        // Affiliate/GoAffPro: Ist-Quote vom Netto (statt pauschal)
+  const dbExMedia=1-mat-SHIPPAYPACK-IFM;                          // DB vor Meta/Google (inkl. echte Affiliate-Provision)
+  const prCostMTD=(pmData.freePrRetail||0)*mat;                   // Warenkosten der verschenkten Gratis-PR-Ware (Warenwert × Material%)
   const r=dM/dE;                                                 // Hochrechnung auf den vollen Monat
-  const ebitdaMonth=(net*r)*dbExMedia+(ship*r)-(spend*r)-fix;
+  const prCostP=prCostMTD*r;
+  const ebitdaMTD=net*dbExMedia+ship-spend-prCostMTD-fix*(dE/dM);// echt bis gestern, Fixkosten anteilig, Gratis-PR-Warenkosten abgezogen
+  const ebitdaMonth=(net*r)*dbExMedia+(ship*r)-(spend*r)-prCostP-fix;
   document.getElementById('pm-rev').textContent=eur(net+ship);
   document.getElementById('pm-days').textContent=dE+" von "+dM+" Tagen";
   const eb=document.getElementById('pm-ebitda'); eb.textContent=(ebitdaMTD>=0?"+":"")+eur(ebitdaMTD); eb.style.color=ebitdaMTD>=0?"var(--green)":"var(--red)";
   const pj=document.getElementById('pm-proj'); pj.textContent=(ebitdaMonth>=0?"+":"")+eur(ebitdaMonth); pj.style.color=ebitdaMonth>=0?"var(--green)":"var(--red)";
-  // Szenario-Tabelle: Break-even (bei aktueller Effizienz) vs. dein Kurs
+  const prEl=document.getElementById('pm-pr'); if(prEl){ prEl.textContent=eur(pmData.freePrRetail||0); document.getElementById('pm-pr-sub').innerHTML=(pmData.freePrUnits||0)+" Einheiten &middot; Warenkosten ~"+eur(prCostMTD)+" (im Gewinn abgezogen)"; }
+  // Szenario-Tabelle: Break-even (bei aktueller Effizienz) vs. dein Kurs — Gratis-PR wie Fixkostenblock
   const netP=net*r, shipP=ship*r, spendP=spend*r;
+  const fixAll=fix+prCostP;                                 // Fixkosten + Gratis-PR-Warenkosten (Monat)
   const shipRatio=net>0?ship/net:0;
   const merNow=spend>0?net/spend:0;                       // blended MER (Monat bis heute)
   const scRows=[];
   const denom=dbExMedia+shipRatio-(merNow>0?1/merNow:99);
-  if(merNow>0&&denom>0){ const netBE=fix/denom, maxAdBE=netBE/merNow; scRows.push(["Gewinnschwelle",netBE,maxAdBE,merNow,merNow,0]); }
+  if(merNow>0&&denom>0){ const netBE=fixAll/denom, maxAdBE=netBE/merNow; scRows.push(["Gewinnschwelle",netBE,maxAdBE,merNow,merNow,0]); }
   else scRows.push(["Gewinnschwelle",NaN,NaN,NaN,merNow,NaN]);
-  const maxAdK=netP*dbExMedia+shipP-fix, beMerK=maxAdK>0?netP/maxAdK:NaN, gewinnK=netP*dbExMedia+shipP-spendP-fix;
+  const maxAdK=netP*dbExMedia+shipP-fixAll, beMerK=maxAdK>0?netP/maxAdK:NaN, gewinnK=netP*dbExMedia+shipP-spendP-fixAll;
   scRows.push(["Dein Kurs",netP,maxAdK,beMerK,merNow,gewinnK]);
   const scb=document.getElementById('sc-body');
   if(scb) scb.innerHTML=scRows.map(rr=>{ const g=rr[5]; const gc=isNaN(g)?"var(--mut)":(g>=0?"var(--green)":"var(--red)"); const gt=isNaN(g)?"—":((g>=0?"+":"")+eur(g)); return `<tr><td><b>${rr[0]}</b></td><td class="n">${isNaN(rr[1])?"—":eur(rr[1])}</td><td class="n">${isNaN(rr[2])?"—":eur(rr[2])}</td><td class="n muted">${isNaN(rr[3])?"—":de(rr[3])}</td><td class="n"><b>${isNaN(rr[4])?"—":de(rr[4])}</b></td><td class="n" style="color:${gc};font-weight:700">${gt}</td></tr>`; }).join("");

@@ -1,0 +1,127 @@
+<!doctype html><html lang=de><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1">
+<title>Summary · 7 O'CLOCK</title><style>
+:root{--bg:#faf8f5;--card:#fff;--ink:#2b2b2b;--mut:#8a8378;--line:#e7e2d9;--green:#2f8f57;--red:#c0492b;--gold:#b79b6e;--blue:#2f6f8f;--accent:#2f6f8f}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5}
+.wrap{max-width:1180px;margin:0 auto;padding:20px}
+.brand{font-size:11px;letter-spacing:.14em;color:var(--mut);font-weight:700}
+h1{font-size:23px;margin:2px 0 2px}.sub{color:var(--mut);font-size:13px;margin-bottom:12px}
+.bar{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-bottom:8px}
+.flab{font-size:11px;color:var(--mut);font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-right:2px}
+.bar button{border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 11px;font-size:12.5px;cursor:pointer;font-weight:600;color:var(--ink)}
+.bar button.on{background:#2b2b2b;color:#fff;border-color:#2b2b2b}
+.bar button.g.on{background:var(--blue);border-color:var(--blue)}
+.cust{display:flex;gap:5px;align-items:center;color:var(--mut);font-size:12px}
+.cust input{border:1px solid var(--line);border-radius:6px;padding:5px 7px;font-size:12px}
+#stand{font-size:12px;color:var(--mut);margin:6px 0 12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(212px,1fr));gap:12px}
+.tile{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px 14px 8px}
+.th{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--dark)}
+.th .ic{font-size:14px}
+.th .nm{font-weight:600;color:#4a4335;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.badge{font-size:11px;font-weight:800;padding:1px 6px;border-radius:20px;white-space:nowrap}
+.val{font-size:24px;font-weight:800;color:#1c1c1c;margin:5px 0 2px}
+.spark{height:34px;margin-top:2px}
+.sec-h{font-size:13px;font-weight:800;color:#4a4335;margin:6px 0 10px;letter-spacing:.02em}
+.foot{color:var(--mut);font-size:11px;margin-top:14px}
+</style></head><body><div class=wrap>
+<div class=brand>7 O'CLOCK · CONTROLLING</div><h1>Summary</h1>
+<div class=sub>Alle Kern-Kennzahlen auf einen Blick — mit Trend &amp; Veränderung zur gleich langen Vorperiode. Live aus Shopify + Meta/Google/GoAffPro.</div>
+<div class=bar>
+ <span class=flab>Zeitraum</span>
+ <button data-a=7>7 Tage</button><button data-a=30 class=on>30 Tage</button><button data-a=90>90 Tage</button>
+ <button data-am=2026-06>Juni</button><button data-am=2026-07>Juli</button><button data-am=2026-08>Aug</button>
+ <span class=cust>| eigener: <input type=date id=d1><input type=date id=d2><button id=dgo>OK</button></span>
+</div>
+<div class=bar>
+ <span class=flab>Gruppierung</span>
+ <button class=g data-g=day>Tag</button><button class=g data-g=week class=on>Woche</button><button class=g data-g=month>Monat</button>
+</div>
+<div id=stand>lädt …</div>
+<div class=sec-h>📌 Kennzahlen</div>
+<div class=grid id=grid></div>
+<div class=foot id=legend></div>
+</div>
+<script>
+const W="https://rohertrag-worker.can-11b.workers.dev/summary.json";
+let CUR=null, A={spec:30,label:"30 Tage"}, GRP="week";
+const $=id=>document.getElementById(id);
+const nf=n=>Math.round(n||0).toLocaleString("de-DE");
+const eur=x=>"€"+nf(x);
+const de1=x=>(x||0).toLocaleString("de-DE",{minimumFractionDigits:1,maximumFractionDigits:1});
+const pad=n=>String(n).padStart(2,"0");
+const iso=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+const fmtd=s=>{let p=s.split("-");return p[2]+"."+p[1]+"."+p[0];};
+const dpct=(a,b)=>b?((a-b)/b*100):(a?100:0);
+// Konstanten wie im Rohertrag-Dashboard
+const SHIP=6.56,PACK=0.80,PAY_PCT=0.0255,PAY_FIX=0.16,VAT=1.19,SHOP_DAY=2500/30,FIX_DAY=158000*12/365;
+// Kachel-Definitionen: value je Tag-Objekt. better: up=höher besser, down=niedriger besser, flat=neutral
+const TILES=[
+ {k:"gesamt",ic:"💰",nm:"Gesamtumsatz",better:"up",f:x=>x.net+x.ship+x.tax},
+ {k:"netto",ic:"🧾",nm:"Nettoumsatz",better:"up",f:x=>x.net+x.ship},
+ {k:"steuer",ic:"🏛️",nm:"Steuer",better:"flat",f:x=>x.tax},
+ {k:"dhl",ic:"📦",nm:"DHL-Kosten",better:"down",f:x=>x.orders*SHIP},
+ {k:"cogs",ic:"🏭",nm:"Wareneinsatz (COGS)",better:"down",f:x=>x.cogs},
+ {k:"verpack",ic:"🎁",nm:"Verpackung",better:"down",f:x=>x.orders*PACK},
+ {k:"payment",ic:"💳",nm:"Payment",better:"down",f:x=>PAY_PCT*((x.net+x.ship)*VAT)+PAY_FIX*x.orders},
+ {k:"shop",ic:"🛍️",nm:"Shopify Plus",better:"flat",f:x=>SHOP_DAY},
+ {k:"meta",ic:"🔵",nm:"Meta Ad-Spend",better:"down",f:x=>x.meta},
+ {k:"google",ic:"🔎",nm:"Google Ad-Spend",better:"down",f:x=>x.goog},
+ {k:"affiliate",ic:"🤝",nm:"Affiliate",better:"down",f:x=>x.ifm},
+ {k:"fix",ic:"🏢",nm:"Fixkosten",better:"flat",f:x=>FIX_DAY}
+];
+function win(w){const e=new Date();e.setDate(e.getDate()-1);const s=new Date(e);s.setDate(s.getDate()-(w-1));return[iso(s),iso(e)];}
+function bucket(series,grp){ // series: [{d,v}] -> gruppierte Summen-Array
+ if(grp==="day")return series.map(p=>p.v);
+ const out=[],map={};const key=p=>grp==="month"?p.d.slice(0,7):null;
+ if(grp==="month"){const m={};const order=[];series.forEach(p=>{const k=p.d.slice(0,7);if(!(k in m)){m[k]=0;order.push(k);}m[k]+=p.v;});return order.map(k=>m[k]);}
+ // week: 7er-Chunks ab Start
+ for(let i=0;i<series.length;i+=7){let s=0;for(let j=i;j<Math.min(i+7,series.length);j++)s+=series[j].v;out.push(s);}
+ return out;
+}
+function spark(cur,prev){
+ const Wd=140,H=34,p=3;const all=cur.concat(prev);let mn=Math.min(...all),mx=Math.max(...all);if(!isFinite(mn))mn=0;if(!isFinite(mx))mx=1;if(mx===mn){mx=mn+1;}
+ const X=(i,n)=>p+(n<=1?(Wd-2*p)/2:i*(Wd-2*p)/(n-1));
+ const Y=v=>H-p-((v-mn)/(mx-mn))*(H-2*p);
+ const path=arr=>arr.map((v,i)=>(i?"L":"M")+X(i,arr.length).toFixed(1)+" "+Y(v).toFixed(1)).join(" ");
+ let s='<svg viewBox="0 0 '+Wd+' '+H+'" width="100%" height="34" preserveAspectRatio="none">';
+ if(prev.length>1)s+='<path d="'+path(prev)+'" fill="none" stroke="#c3bcae" stroke-width="1" stroke-dasharray="3 2"/>';
+ s+='<path d="'+path(cur)+'" fill="none" stroke="var(--accent)" stroke-width="1.7" stroke-linejoin="round"/></svg>';
+ return s;
+}
+function badge(delta,better){
+ let dp=delta;if(Math.abs(dp)<0.05)dp=0;
+ const dir=dp>0?"▲":(dp<0?"▼":"■");
+ let col,bg;
+ if(better==="flat"||dp===0){col="#7a746a";bg="#efece5";}
+ else{const good=(better==="down")?dp<0:dp>0;col=good?"#1e6b3f":"#a13a22";bg=good?"#e6f2ea":"#f6e7e2";}
+ return '<span class=badge style="color:'+col+';background:'+bg+'">'+dir+" "+(dp>=0?"+":"")+de1(dp)+" %</span>";
+}
+function render(){
+ if(!CUR){return;}
+ const D=CUR.days||[],P=CUR.prevDays||[];
+ let html="";
+ TILES.forEach(t=>{
+  const curDaily=D.map(x=>({d:x.d,v:t.f(x)}));
+  const prevDaily=P.map(x=>({d:x.d,v:t.f(x)}));
+  const total=curDaily.reduce((a,x)=>a+x.v,0);
+  const prevTotal=prevDaily.reduce((a,x)=>a+x.v,0);
+  const delta=dpct(total,prevTotal);
+  const cb=bucket(curDaily,GRP),pb=bucket(prevDaily,GRP);
+  html+='<div class=tile><div class=th><span class=ic>'+t.ic+'</span><span class=nm>'+t.nm+'</span>'+badge(delta,t.better)+'</div>'
+      +'<div class=val>'+eur(total)+'</div><div class=spark>'+spark(cb,pb)+'</div></div>';
+ });
+ $("grid").innerHTML=html;
+ const gen=CUR.generatedAt?new Date(CUR.generatedAt):null;
+ $("stand").innerHTML="<b>"+fmtd(CUR.since)+" – "+fmtd(CUR.until)+"</b> · vs. Vorperiode "+fmtd(CUR.prevSince)+" – "+fmtd(CUR.prevUntil)+(gen?" · Stand "+pad(gen.getDate())+"."+pad(gen.getMonth()+1)+". "+pad(gen.getHours())+":"+pad(gen.getMinutes()):"");
+ $("legend").innerHTML="Badge = Veränderung ggü. gleich langem Vorzeitraum · durchgezogene Linie = aktuell, gepunktet = Vorperiode · Umsatz = netto+Versand · Kosten-Annahmen wie Rohertrag-Dashboard (DHL 6,56 €/Best., Verpackung 0,80 €, Payment 2,55 %+0,16 €, Shopify Plus 2.500/Mon, Fixkosten 158k/Mon anteilig). Farbe nach gut/schlecht (bei Kosten ist weniger = grün); Steuer/Shopify/Fixkosten neutral.";
+}
+function load(a,b,label){
+ $("stand").textContent="lädt "+label+" …";
+ fetch(W+"?since="+a+"&until="+b).then(r=>r.json()).then(d=>{CUR=d;render();}).catch(e=>{$("stand").textContent="Fehler: "+e;});
+}
+document.querySelectorAll(".bar button[data-a]").forEach(x=>x.onclick=()=>{document.querySelectorAll(".bar button[data-a],.bar button[data-am]").forEach(y=>y.classList.remove("on"));x.classList.add("on");const[a,b]=win(+x.dataset.a);A={spec:+x.dataset.a};load(a,b,x.textContent);});
+document.querySelectorAll(".bar button[data-am]").forEach(x=>x.onclick=()=>{document.querySelectorAll(".bar button[data-a],.bar button[data-am]").forEach(y=>y.classList.remove("on"));x.classList.add("on");const ym=x.dataset.am,[Y,M]=ym.split("-").map(Number);const a=ym+"-01",b=iso(new Date(Y,M,0));load(a,b,x.textContent);});
+document.querySelectorAll(".bar button.g").forEach(x=>x.onclick=()=>{document.querySelectorAll(".bar button.g").forEach(y=>y.classList.remove("on"));x.classList.add("on");GRP=x.dataset.g;render();});
+$("dgo").onclick=()=>{const a=$("d1").value,b=$("d2").value;if(!a||!b)return;document.querySelectorAll(".bar button[data-a],.bar button[data-am]").forEach(y=>y.classList.remove("on"));load(a,b,fmtd(a)+"–"+fmtd(b));};
+(()=>{const[a,b]=win(30);load(a,b,"30 Tage");})();
+</script></body></html>

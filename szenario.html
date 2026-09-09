@@ -64,7 +64,7 @@ function win(w){const e=new Date();e.setDate(e.getDate()-1);const s=new Date(e);
 // Stellschrauben-Definition
 function defaultLevers(){
  const b=BASE, cogsPct=b.net>0?b.cogs/b.net*100:30, mer=b.spend>0?(b.net+b.ship)/b.spend:3;
- L={org:0, adPct:0, mer:Math.round(mer*10)/10, cogsPct:Math.round(cogsPct*10)/10,
+ L={org:0, adPct:0, mer:Math.round(mer*10)/10, cogsPct:cogsPct,
     ship:CFG.ship, pack:CFG.pack, payPct:CFG.payPct*100, payFix:CFG.payFix,
     shopMonth:CFG.shopMonth, fremdMonth:CFG.fremdMonth, fixMonth:CFG.fixMonth};
 }

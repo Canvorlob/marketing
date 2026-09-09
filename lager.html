@@ -28,6 +28,9 @@ h2{font-size:15px;margin:0 0 4px;border-bottom:1px solid var(--line);padding-bot
 .chip{font-size:11px;font-weight:700;padding:1px 7px;border-radius:20px}
 .chip.neu{color:#8a5a1a;background:#f6ecdd}.chip.best{color:#1e5a6b;background:#e6f0f3}
 .chip.off{color:#a13a22;background:#f6e7e2}.chip.teil{color:#8a6d2f;background:#f7f1e3}
+.lfilt{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px}
+.lfilt button{border:1px solid var(--line);background:#fff;border-radius:20px;padding:4px 12px;font-size:12px;cursor:pointer;font-weight:600;color:var(--ink)}
+.lfilt button.on{background:#4a4335;color:#fff;border-color:#4a4335}
 </style></head><body><div class=wrap>
 <div class=brand>7 O'CLOCK · LAGER</div><h1>Lager-Dashboard</h1>
 <div class=sub>Pick &amp; Pack auf einen Blick. Live aus Shopify (mit Wawi synchronisiert). Zeitraum wählbar, Vergleich zur Vorperiode.</div>
@@ -73,17 +76,27 @@ function render(){
  h+=tile("gold","🍽️","Geschirrset-Bestellungen",nf(g.gesamt),"eigenes Label, gesondert gepackt",g.gesamt,gp.gesamt,"up");
  h+=tile("gold","🎁","Geschirrsets verpackt",nf(g.gepackt),"offen: "+nf(g.offen)+" · teilweise: "+nf(g.partial)+" (von "+nf(g.gesamt)+")",g.gepackt,gp.gepackt,"up");
  $("grid").innerHTML=h;
- // Liste der offenen Aufträge (Rückstand) — klickbar zu Shopify
- const L=CUR.offeneListe||[];
- if(L.length){
-  const link=id=>"https://admin.shopify.com/store/7oclock-de/orders/"+id;
-  let t='<div class=sec><h2>Offene Aufträge im Rückstand ('+L.length+')</h2><div style="font-size:12px;color:var(--mut);margin:0 0 10px">Klick öffnet den Auftrag in Shopify. „Live"-Stand, unabhängig vom Zeitraumfilter.</div><table class=ltbl><tr><th>Auftrag</th><th>Typ</th><th>Status</th><th>erstellt</th><th class=n>Alter</th></tr>';
-  t+=L.map(o=>{const typ=o.typ==="Neusendung"?'<span class="chip neu">Neusendung</span>':'<span class="chip best">Bestellung</span>';const st=o.status==="teilweise"?'<span class="chip teil">teilweise</span>':'<span class="chip off">offen</span>';return '<tr><td><a href="'+link(o.id)+'" target=_blank rel=noopener>'+o.name+'</a></td><td>'+typ+'</td><td>'+st+'</td><td>'+fmtd(o.created)+'</td><td class=n style="font-weight:700;color:'+((o.ageTage||0)>7?"var(--red)":"var(--ink)")+'">'+nf(o.ageTage)+' T</td></tr>';}).join("");
-  t+='</table></div>';
-  $("liste").innerHTML=t;
- } else $("liste").innerHTML="";
+ // Liste der offenen Aufträge (Rückstand) — klickbar zu Shopify, mit Typ-Filter
+ renderListe();
  const gen=CUR.generatedAt?new Date(CUR.generatedAt):null;
  $("stand").innerHTML="<b>"+fmtd(CUR.since)+" – "+fmtd(CUR.until)+"</b> · Badge = Δ vs. Vorperiode "+fmtd(CUR.prevSince)+"–"+fmtd(CUR.prevUntil)+(gen?" · Stand "+pad(gen.getDate())+"."+pad(gen.getMonth()+1)+". "+pad(gen.getHours())+":"+pad(gen.getMinutes()):"");
+}
+let LFILT="alle";
+function setLF(f){LFILT=f;renderListe();}
+function renderListe(){
+ if(!CUR){$("liste").innerHTML="";return;}
+ const all=CUR.offeneListe||[];
+ if(!all.length){$("liste").innerHTML="";return;}
+ const nNeu=all.filter(o=>o.typ==="Neusendung").length, nBest=all.length-nNeu;
+ const L=LFILT==="neu"?all.filter(o=>o.typ==="Neusendung"):(LFILT==="best"?all.filter(o=>o.typ!=="Neusendung"):all);
+ const link=id=>"https://admin.shopify.com/store/7oclock-de/orders/"+id;
+ const bt=(f,lab)=>'<button class="'+(LFILT===f?"on":"")+'" onclick="setLF(\''+f+'\')">'+lab+'</button>';
+ let t='<div class=sec><h2>Offene Aufträge im Rückstand ('+all.length+')</h2><div style="font-size:12px;color:var(--mut);margin:0 0 10px">Klick öffnet den Auftrag in Shopify. „Live"-Stand, unabhängig vom Zeitraumfilter.</div>';
+ t+='<div class=lfilt>'+bt("alle","Alle ("+all.length+")")+bt("neu","Neusendungen ("+nNeu+")")+bt("best","Bestellungen ("+nBest+")")+'</div>';
+ t+='<table class=ltbl><tr><th>Auftrag</th><th>Typ</th><th>Status</th><th>erstellt</th><th class=n>Alter</th></tr>';
+ t+=L.map(o=>{const typ=o.typ==="Neusendung"?'<span class="chip neu">Neusendung</span>':'<span class="chip best">Bestellung</span>';const st=o.status==="teilweise"?'<span class="chip teil">teilweise</span>':'<span class="chip off">offen</span>';return '<tr><td><a href="'+link(o.id)+'" target=_blank rel=noopener>'+o.name+'</a></td><td>'+typ+'</td><td>'+st+'</td><td>'+fmtd(o.created)+'</td><td class=n style="font-weight:700;color:'+((o.ageTage||0)>7?"var(--red)":"var(--ink)")+'">'+nf(o.ageTage)+' T</td></tr>';}).join("");
+ t+='</table></div>';
+ $("liste").innerHTML=t;
 }
 function load(a,b,label){$("stand").textContent="lädt "+label+" …";fetch(W+"?since="+a+"&until="+b).then(r=>r.json()).then(d=>{CUR=d;render();}).catch(e=>{$("stand").textContent="Fehler: "+e;});}
 function clearZ(){document.querySelectorAll(".bar button[data-a],#months button").forEach(y=>y.classList.remove("on"));}

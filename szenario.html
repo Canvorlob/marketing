@@ -21,6 +21,7 @@ h2{font-size:15px;margin:0 0 10px;border-bottom:1px solid var(--line);padding-bo
 .levers{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px 22px}
 .lev label{font-size:12.5px;font-weight:600;color:var(--dark);display:flex;justify-content:space-between}
 .lev .cur{color:var(--blue);font-weight:800}
+.lev .curin{width:96px;border:1px solid var(--line);border-radius:6px;padding:3px 6px;font-size:13px;font-weight:800;color:var(--blue);text-align:right}
 .lev input[type=range]{width:100%;margin:6px 0 0}
 .lev .row{display:flex;align-items:center;gap:8px;margin-top:5px}
 .lev input[type=number]{width:110px;border:1px solid var(--line);border-radius:6px;padding:5px 7px;font-size:13px}
@@ -111,13 +112,14 @@ function render(){
 }
 function buildLevers(){
  const b=BASE, umsatz0=b.net+b.ship;
- const rng=(id,lab,val,min,max,step,cur)=>'<div class=lev><label>'+lab+'<span class=cur id="lc_'+id+'">'+cur+'</span></label><input type=range id="l_'+id+'" min="'+min+'" max="'+max+'" step="'+step+'" value="'+val+'"></div>';
+ // Slider MIT Tastatur-Eingabefeld (beidseitig synchron)
+ const rng=(id,lab,val,min,max,step,unit,dec)=>'<div class=lev><label>'+lab+'<span class=cur><input type=number class=curin id="n_'+id+'" value="'+(dec?(+val).toFixed(dec):Math.round(val))+'" step="'+step+'" min="'+min+'" max="'+max+'"> '+unit+'</span></label><input type=range id="l_'+id+'" min="'+min+'" max="'+max+'" step="'+step+'" value="'+val+'"><div class=hint id="h_'+id+'"></div></div>';
  const num=(id,lab,val,step,hint)=>'<div class=lev><label>'+lab+'</label><div class=row><input type=number id="l_'+id+'" step="'+step+'" value="'+val+'"><span class=hint>'+(hint||"")+'</span></div></div>';
- const uStep=Math.max(1,Math.round(umsatz0/300));
+ const uMax=Math.round(umsatz0*2)||1000, uStep=Math.max(1,Math.round(umsatz0/300));
  $("levers").innerHTML=
-  rng("umsatz","Umsatz (netto+Versand)",L.umsatz,0,Math.round(umsatz0*2)||1000,uStep,money(L.umsatz))
- +rng("mktPct","Marketing-Spend (% vom Umsatz)",L.mktPct,0,60,0.1,de1(L.mktPct)+" % · "+money(L.umsatz*L.mktPct/100))
- +rng("cogsPct","Wareneinsatz (COGS % vom Netto)",L.cogsPct,10,60,0.1,de1(L.cogsPct)+" %")
+  rng("umsatz","Umsatz (netto+Versand)",L.umsatz,0,uMax,uStep,"€",0)
+ +rng("mktPct","Marketing-Spend (% vom Umsatz)",L.mktPct,0,60,0.1,"%",1)
+ +rng("cogsPct","Wareneinsatz (COGS % vom Netto)",L.cogsPct,10,60,0.1,"%",1)
  +num("ship","DHL €/Bestellung",L.ship,0.01)
  +num("pack","Verpackung €/Bestellung",L.pack,0.01)
  +num("payPct","Payment %",L.payPct,0.01)
@@ -125,10 +127,19 @@ function buildLevers(){
  +num("shopMonth","Shopify Plus €/Monat",L.shopMonth,10)
  +num("fremdMonth","Fremddienstleistungen €/Monat",L.fremdMonth,10)
  +num("fixMonth","Fixkosten €/Monat",L.fixMonth,100);
- // Events: absolute Regler mit Live-Anzeige des echten Werts
- $("l_umsatz").oninput=()=>{L.umsatz=parseFloat($("l_umsatz").value)||0;$("lc_umsatz").textContent=money(L.umsatz);$("lc_mktPct").textContent=de1(L.mktPct)+" % · "+money(L.umsatz*L.mktPct/100);render();};
- $("l_mktPct").oninput=()=>{L.mktPct=parseFloat($("l_mktPct").value)||0;$("lc_mktPct").textContent=de1(L.mktPct)+" % · "+money(L.umsatz*L.mktPct/100);render();};
- $("l_cogsPct").oninput=()=>{L.cogsPct=parseFloat($("l_cogsPct").value)||0;$("lc_cogsPct").textContent=de1(L.cogsPct)+" %";render();};
+ // Slider + Zahlenfeld synchronisieren
+ function syncLever(id,dec,updateHint){
+  const rangeEl=$("l_"+id), numEl=$("n_"+id), min=+rangeEl.min, max=+rangeEl.max;
+  const apply=(v,fromNum)=>{ if(isNaN(v))return; v=Math.min(max,Math.max(min,v)); L[id]=v; if(!fromNum)numEl.value=dec?v.toFixed(dec):Math.round(v); rangeEl.value=v; if(updateHint)updateHint(); render(); };
+  rangeEl.oninput=()=>apply(parseFloat(rangeEl.value),false);
+  numEl.oninput=()=>apply(parseFloat(numEl.value),true);
+ }
+ const mktHint=()=>{ $("h_mktPct").textContent="= "+money(L.umsatz*L.mktPct/100)+" Ad-Spend"; };
+ const umHint=()=>{ mktHint(); };  // Umsatz ändert auch den Marketing-€-Hinweis
+ syncLever("umsatz",0,umHint);
+ syncLever("mktPct",1,mktHint);
+ syncLever("cogsPct",1,null);
+ mktHint();
  ["ship","pack","payPct","payFix","shopMonth","fremdMonth","fixMonth"].forEach(k=>{const el=$("l_"+k);el.oninput=()=>{L[k]=parseFloat(el.value)||0;render();};});
 }
 function loadBase(a,b,label){

@@ -14,7 +14,7 @@ h1{font-size:23px;margin:2px 0 2px}.sub{color:var(--mut);font-size:13px;margin-b
 .sec-h{font-size:13px;font-weight:800;color:#4a4335;margin:14px 0 10px}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:12px}
 .tile{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px 15px;border-left:4px solid var(--line)}
-.tile.good{border-left-color:var(--green)}.tile.bad{border-left-color:var(--red)}.tile.info{border-left-color:var(--blue)}.tile.gold{border-left-color:var(--gold)}
+.tile.good{border-left-color:var(--green)}.tile.bad{border-left-color:var(--red)}.tile.info{border-left-color:var(--blue)}.tile.gold{border-left-color:var(--gold)}.tile.warn{border-left-color:var(--amber)}
 .th{display:flex;align-items:flex-start;gap:6px;font-size:11.5px}
 .th .ic{font-size:14px;line-height:1.3}.th .nm{font-weight:600;color:#4a4335;flex:1;line-height:1.3}
 .badge{font-size:11px;font-weight:800;padding:1px 6px;border-radius:20px;white-space:nowrap}
@@ -29,6 +29,9 @@ h2{font-size:15px;margin:0 0 4px;border-bottom:1px solid var(--line);padding-bot
 .chip{font-size:11px;font-weight:700;padding:1px 7px;border-radius:20px}
 .chip.neu{color:#8a5a1a;background:#f6ecdd}.chip.best{color:#1e5a6b;background:#e6f0f3}
 .chip.off{color:#a13a22;background:#f6e7e2}.chip.teil{color:#8a6d2f;background:#f7f1e3}
+.chip.t-frisch{color:#1e6b3f;background:#e6f2ea}.chip.t-pruefen{color:#8a6410;background:#fbf0d6}.chip.t-ueberfaellig{color:#a13a22;background:#f6e7e2}
+.chip.ges{color:#7a5a2a;background:#efe6d6}
+.qty-hi{font-weight:800;color:#a13a22}
 .lfilt{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px}
 .lfilt button{border:1px solid var(--line);background:#fff;border-radius:20px;padding:4px 12px;font-size:12px;cursor:pointer;font-weight:600;color:var(--ink)}
 .lfilt button.on{background:#4a4335;color:#fff;border-color:#4a4335}
@@ -78,6 +81,8 @@ function render(){
  h+=tile("good","✅","Pakete verpackt",nf(c.verpackt),"Versandlabel erstellt / fulfilled",c.verpackt,p.verpackt,"up");
  const og=CUR.offenGesamtSplit, ogs=CUR.offenGesamtStatus; const ogDesc=og?("davon "+nf(og.neusendung)+" Neusendungen · "+nf(og.bestellung)+" Bestellungen"+(ogs?" · "+nf(ogs.offen)+" offen / "+nf(ogs.teilweise)+" teilweise":"")+" · <b>Live</b>"):"bezahlt, noch nicht verschickt · <b>Live</b>";
  h+=tile((CUR.offenGesamt||0)>0?"info":"good","📥","Offene Bestellungen",nf(CUR.offenGesamt),ogDesc,null,null,null);
+ const prs=CUR.pruefenSplit; const prDesc=(CUR.pruefen>0?("davon "+nf((prs||{}).neusendung||0)+" Neusendungen · "+nf((prs||{}).bestellung||0)+" Bestellungen · "):"")+"jüngere Aufträge schon versandt · <b>Live</b>";
+ h+=tile((CUR.pruefen||0)>0?"warn":"good","🔎","Zu prüfen (übersprungen)",nf(CUR.pruefen),prDesc,null,null,null);
  const sp=CUR.ueberfaelligSplit, stt=CUR.ueberfaelligStatus; const ueDesc=sp?("davon "+nf(sp.neusendung)+" Neusendungen · "+nf(sp.bestellung)+" Bestellungen"+(stt?" · "+nf(stt.offen)+" offen / "+nf(stt.teilweise)+" teilweise":"")+" · <b>Live</b>"):"offen, bezahlt, nicht storniert · <b>Live</b>";
  h+=tile(CUR.ueberfaellig>0?"bad":"good","⏰","Überfällig (&gt; 3 Tage)",nf(CUR.ueberfaellig),ueDesc,null,null,null);
  h+=tile((CUR.aeltesteTage||0)>7?"bad":"info","📅","Älteste offene Bestellung",nf(CUR.aeltesteTage)+" T",(CUR.aeltesteDatum?"seit "+fmtd(CUR.aeltesteDatum)+" · ":"")+"offen &amp; unverschickt · <b>Live</b>",null,null,null);
@@ -89,21 +94,35 @@ function render(){
  const gen=CUR.generatedAt?new Date(CUR.generatedAt):null;
  $("stand").innerHTML="<b>"+fmtd(CUR.since)+" – "+fmtd(CUR.until)+"</b> · Badge = Δ vs. Vorperiode "+fmtd(CUR.prevSince)+"–"+fmtd(CUR.prevUntil)+(gen?" · Stand "+pad(gen.getDate())+"."+pad(gen.getMonth()+1)+". "+pad(gen.getHours())+":"+pad(gen.getMinutes()):"");
 }
-let LFILT="alle";
-function setLF(f){LFILT=f;renderListe();}
+let LSTUFE="alle", LTYP="alle";
+function setStufe(f){LSTUFE=f;renderListe();}
+function setTyp(f){LTYP=f;renderListe();}
+const TIERLAB={frisch:"frisch",pruefen:"zu prüfen",ueberfaellig:"überfällig"};
 function renderListe(){
  if(!CUR){$("liste").innerHTML="";return;}
  const all=CUR.offeneListe||[];
  if(!all.length){$("liste").innerHTML="";return;}
- const nNeu=all.filter(o=>o.typ==="Neusendung").length, nBest=all.length-nNeu;
- const L=LFILT==="neu"?all.filter(o=>o.typ==="Neusendung"):(LFILT==="best"?all.filter(o=>o.typ!=="Neusendung"):all);
+ const cStufe=t=>all.filter(o=>o.tier===t).length;
+ const cTyp=(t,pool)=>pool.filter(o=>t==="neu"?o.typ==="Neusendung":o.typ!=="Neusendung").length;
+ // Filter anwenden (Stufe UND Typ)
+ let L=all;
+ if(LSTUFE!=="alle")L=L.filter(o=>o.tier===LSTUFE);
+ if(LTYP!=="alle")L=L.filter(o=>LTYP==="neu"?o.typ==="Neusendung":o.typ!=="Neusendung");
  const link=id=>"https://admin.shopify.com/store/7oclock-de/orders/"+id;
- const bt=(f,lab)=>'<button class="'+(LFILT===f?"on":"")+'" onclick="setLF(\''+f+'\')">'+lab+'</button>';
- let t='<div class=sec><h2>Offene Aufträge im Rückstand ('+all.length+')</h2><div style="font-size:12px;color:var(--mut);margin:0 0 10px">Klick öffnet den Auftrag in Shopify. „Live"-Stand, unabhängig vom Zeitraumfilter.</div>';
- t+='<div class=lfilt>'+bt("alle","Alle ("+all.length+")")+bt("neu","Neusendungen ("+nNeu+")")+bt("best","Bestellungen ("+nBest+")")+'</div>';
- t+='<table class=ltbl><tr><th>Auftrag</th><th>Typ</th><th>Status</th><th>erstellt</th><th class=n>Alter</th></tr>';
- t+=L.map(o=>{const typ=o.typ==="Neusendung"?'<span class="chip neu">Neusendung</span>':'<span class="chip best">Bestellung</span>';const st=o.status==="teilweise"?'<span class="chip teil">teilweise</span>':'<span class="chip off">offen</span>';return '<tr><td><a href="'+link(o.id)+'" target=_blank rel=noopener>'+o.name+'</a></td><td>'+typ+'</td><td>'+st+'</td><td>'+fmtd(o.created)+'</td><td class=n style="font-weight:700;color:'+((o.ageTage||0)>7?"var(--red)":"var(--ink)")+'">'+nf(o.ageTage)+' T</td></tr>';}).join("");
- t+='</table></div>';
+ const bs=(f,lab)=>'<button class="'+(LSTUFE===f?"on":"")+'" onclick="setStufe(\''+f+'\')">'+lab+'</button>';
+ const bt=(f,lab)=>'<button class="'+(LTYP===f?"on":"")+'" onclick="setTyp(\''+f+'\')">'+lab+'</button>';
+ let t='<div class=sec><h2>Offene Aufträge ('+all.length+')</h2><div style="font-size:12px;color:var(--mut);margin:0 0 10px">Alle bezahlten, noch nicht verschickten Aufträge — älteste zuerst. Klick öffnet den Auftrag in Shopify. „Live"-Stand, unabhängig vom Zeitraumfilter. <b>🔴 überfällig</b> = &gt;3 Tage · <b>🟡 zu prüfen</b> = übersprungen (ein jüngerer Auftrag ist schon raus) · <b>🟢 frisch</b> = normaler Tageslauf.</div>';
+ t+='<div class=lfilt><span class=flab style="align-self:center">Stufe</span>'+bs("alle","Alle ("+all.length+")")+bs("ueberfaellig","🔴 Überfällig ("+cStufe("ueberfaellig")+")")+bs("pruefen","🟡 Zu prüfen ("+cStufe("pruefen")+")")+bs("frisch","🟢 Frisch ("+cStufe("frisch")+")")+'</div>';
+ t+='<div class=lfilt><span class=flab style="align-self:center">Typ</span>'+bt("alle","Alle")+bt("neu","Neusendungen")+bt("best","Bestellungen")+'</div>';
+ t+='<table class=ltbl><tr><th>Auftrag</th><th>Stufe</th><th>Typ</th><th>Status</th><th class=n>max. Menge</th><th>erstellt</th><th class=n>Alter</th></tr>';
+ t+=L.map(o=>{
+   const tier='<span class="chip t-'+o.tier+'">'+(TIERLAB[o.tier]||o.tier)+'</span>'+(o.geschirr?' <span class="chip ges">Geschirr</span>':'');
+   const typ=o.typ==="Neusendung"?'<span class="chip neu">Neusendung</span>':'<span class="chip best">Bestellung</span>';
+   const st=o.status==="teilweise"?'<span class="chip teil">teilweise</span>':'<span class="chip off">offen</span>';
+   const q=(o.maxQty||0)>=6?'<span class=qty-hi>'+nf(o.maxQty)+'×</span>':(nf(o.maxQty)+'×');
+   return '<tr><td><a href="'+link(o.id)+'" target=_blank rel=noopener>'+o.name+'</a></td><td>'+tier+'</td><td>'+typ+'</td><td>'+st+'</td><td class=n>'+q+'</td><td>'+fmtd(o.created)+'</td><td class=n style="font-weight:700;color:'+((o.ageTage||0)>3?"var(--red)":"var(--ink)")+'">'+nf(o.ageTage)+' T</td></tr>';
+ }).join("");
+ t+='</table>'+(L.length?'':'<div style="color:var(--mut);font-size:13px;padding:6px 0">Keine Aufträge in dieser Auswahl.</div>')+'</div>';
  $("liste").innerHTML=t;
 }
 function load(a,b,label){$("stand").textContent="lädt "+label+" …";fetch(W+"?since="+a+"&until="+b).then(r=>r.json()).then(d=>{CUR=d;render();}).catch(e=>{$("stand").textContent="Fehler: "+e;});}
@@ -113,6 +132,6 @@ document.querySelector(".bar button[data-today]").onclick=function(){clearZ();th
 $("custBtn").onclick=function(){clearZ();this.classList.add("on");const cb=$("custBar");cb.style.display="flex";const e=new Date();e.setDate(e.getDate()-1);if(!$("cTo").value)$("cTo").value=iso(e);if(!$("cFrom").value){const s=new Date(e);s.setDate(s.getDate()-6);$("cFrom").value=iso(s);}};
 $("custGo").onclick=function(){const a=$("cFrom").value,b=$("cTo").value;if(!a||!b)return;if(a>b){alert("Von-Datum liegt nach Bis-Datum");return;}load(a,b,"Benutzerdefiniert");};
 (function(){const now=new Date(),y=now.getFullYear(),cm=now.getMonth();const names=["Jan","Feb","März","Apr","Mai","Juni","Juli","Aug","Sep","Okt","Nov","Dez"];let h="";for(let m=0;m<=cm;m++)h+='<button data-ym="'+y+'-'+pad(m+1)+'"'+(m===cm?' data-cur=1':'')+'>'+names[m]+'</button>';$("months").innerHTML=h;const e=new Date();e.setDate(e.getDate()-1);const yest=iso(e);$("months").querySelectorAll("button").forEach(x=>x.onclick=()=>{clearZ();x.classList.add("on");const ym=x.dataset.ym,[Y,M]=ym.split("-").map(Number),a=ym+"-01",b=x.dataset.cur?yest:iso(new Date(Y,M,0));load(a,b,x.textContent);});})();
-$("legend").innerHTML="Quelle: Shopify (mit JTL-Wawi synchronisiert). <b>Pakete verpackt</b> = Aufträge mit erstelltem Versandlabel (fulfilled); da ein Geschirrset ein Extra-Label bekommt, ist die echte Paketzahl minimal höher. <b>Offene Bestellungen</b> = die gesamte Pick-Queue: alle bezahlten, noch nicht verschickten Aufträge (0–90 Tage, Live-Stand, unabhängig vom Zeitraumfilter). <b>Überfällig</b> = die Teilmenge davon, die älter als 3 Tage ist. <b>Geschirrsets verpackt/offen</b> = auf Auftragsebene. Bestand/Meldebestand folgt als eigener Block.";
+$("legend").innerHTML="Quelle: Shopify (mit JTL-Wawi synchronisiert). <b>Pakete verpackt</b> = Aufträge mit erstelltem Versandlabel (fulfilled); da ein Geschirrset ein Extra-Label bekommt, ist die echte Paketzahl minimal höher. <b>Offene Bestellungen</b> = die gesamte Pick-Queue: alle bezahlten, noch nicht verschickten Aufträge (0–90 Tage, Live-Stand, unabhängig vom Zeitraumfilter). <b>Zu prüfen (übersprungen)</b> = ein noch offener Nicht-Geschirr-Auftrag, obwohl bereits jüngere Aufträge versandt wurden (Frühwarnung, bevor er überfällig wird — Geschirr läuft legitim nach und wird separat markiert). <b>Überfällig</b> = offene Aufträge, die älter als 3 Tage sind. Die Spalte <b>max. Menge</b> zeigt die höchste Stückzahl einer Position im Auftrag — hohe Mengen (rot ab 6×) sind ein typischer Grund, warum ein Auftrag hängt (Menge größer als im Kommissionierbereich). <b>Geschirrsets verpackt/offen</b> = auf Auftragsebene. Bestand/Meldebestand folgt als eigener Block.";
 (()=>{const[a,b]=win(7);load(a,b,"7 Tage");})();
 </script></body></html>

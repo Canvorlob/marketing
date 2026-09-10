@@ -1,0 +1,99 @@
+<!doctype html><html lang=de><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1">
+<title>Lager-Leistung · 7 O'CLOCK</title><style>
+:root{--bg:#faf8f5;--card:#fff;--ink:#2b2b2b;--mut:#8a8378;--line:#e7e2d9;--green:#2f8f57;--red:#c0492b;--amber:#c98a2b;--gold:#b79b6e;--dark:#4a4335;--blue:#2f6f8f}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5}
+.wrap{max-width:1000px;margin:0 auto;padding:20px}
+.brand{font-size:11px;letter-spacing:.14em;color:var(--mut);font-weight:700}
+h1{font-size:23px;margin:2px 0 2px}.sub{color:var(--mut);font-size:13px;margin-bottom:12px}
+#stand{font-size:12px;color:var(--mut);margin:6px 0 14px}
+.demo{background:#fbf3dd;border:1px solid #e6d09a;border-left:4px solid var(--amber);border-radius:10px;padding:10px 14px;margin:0 0 14px;font-size:13px;color:#7a5a10}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:6px}
+.tile{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px 15px;border-left:4px solid var(--line)}
+.tile.info{border-left-color:var(--blue)}.tile.good{border-left-color:var(--green)}.tile.gold{border-left-color:var(--gold)}
+.th{display:flex;align-items:center;gap:6px;font-size:11.5px}.th .ic{font-size:14px}.th .nm{font-weight:600;color:#4a4335}
+.val{font-size:28px;font-weight:800;color:#1c1c1c;margin:5px 0 2px}
+.desc{font-size:11px;color:var(--mut)}
+.sec{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-top:16px}
+h2{font-size:15px;margin:0 0 10px}
+.bar{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin:0 0 12px}
+.bar button{border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 12px;font-size:12.5px;cursor:pointer;font-weight:600;color:var(--ink)}
+.bar button.on{background:#2b2b2b;color:#fff;border-color:#2b2b2b}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+td,th{text-align:left;padding:9px 8px;border-bottom:1px solid var(--line)}
+th{color:var(--mut);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.04em}
+td.n,th.n{text-align:right}
+.rank{font-weight:800;color:var(--gold);width:34px}
+.who{font-weight:700}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:middle}
+.dot.on{background:var(--green)}.dot.off{background:#c3bcae}
+.st{font-size:12px;color:var(--mut)}
+.big{font-weight:800}
+.barcell{position:relative}
+.barcell .fill{position:absolute;left:8px;top:50%;transform:translateY(-50%);height:22px;background:#eef3ef;border-radius:5px;z-index:0}
+.barcell span{position:relative;z-index:1}
+.foot{color:var(--mut);font-size:11px;margin-top:16px;line-height:1.5}
+</style></head><body><div class=wrap>
+<div class=brand>7 O'CLOCK · LAGER</div><h1>Lager-Leistung</h1>
+<div class=sub>Wer pickt und packt wie viel — live je Mitarbeiter aus JTL-Wawi (MDE-Anmeldung). Aktualisiert alle ~15 Min.</div>
+<div id=demo></div>
+<div id=stand>lädt …</div>
+<div class=grid id=tiles></div>
+<div class=bar><span style="font-size:11px;color:var(--mut);font-weight:700;text-transform:uppercase;margin-right:2px">Zeitraum</span>
+ <button data-p=heute class=on>Heute</button><button data-p=woche>Diese Woche</button></div>
+<div class=sec><h2 id=rankTitle>Rangliste</h2><div id=table></div></div>
+<div class=foot id=legend></div>
+</div>
+<script>
+const W="https://rohertrag-worker.can-11b.workers.dev/lagerperf.json";
+let CUR=null,PER="heute";
+const $=id=>document.getElementById(id);
+const nf=n=>Math.round(n||0).toLocaleString("de-DE");
+const de1=x=>(x||0).toLocaleString("de-DE",{minimumFractionDigits:1,maximumFractionDigits:1});
+const pad=n=>String(n).padStart(2,"0");
+const AKTIV_MIN=20; // aktiv, wenn letzte Aktion < 20 Min her
+function minsSince(iso){if(!iso)return 1e9;return (Date.now()-Date.parse(iso))/60000;}
+function spanH(m){const a=Date.parse(m.ersteAktion||0),b=Date.parse(m.letzteAktion||0);if(!a||!b||b<=a)return 0;return (b-a)/3600000;}
+function metrics(m){
+ const pick=PER==="woche"?(m.pickWoche||0):(m.pickHeute||0);
+ const pack=PER==="woche"?(m.packWoche||0):(m.packHeute||0);
+ const total=pick+pack;
+ const aktiv=minsSince(m.letzteAktion)<AKTIV_MIN;
+ const h=spanH(m); const perH=(PER==="heute"&&h>0.25)?total/h:null;
+ return {pick,pack,total,aktiv,perH};
+}
+function render(){
+ if(!CUR)return;
+ $("demo").innerHTML=CUR.demo?'<div class=demo>⚠️ <b>Testdaten</b> — die Seite steht, wartet aber noch auf die JTL-Anbindung (Push aus der Wawi). Sobald echte Zahlen fließen, verschwindet dieser Hinweis automatisch.</div>':'';
+ const M=(CUR.mitarbeiter||[]).map(m=>({m,x:metrics(m)}));
+ M.sort((a,b)=>b.x.total-a.x.total);
+ const sumPick=M.reduce((a,r)=>a+r.x.pick,0),sumPack=M.reduce((a,r)=>a+r.x.pack,0);
+ const aktive=M.filter(r=>r.x.aktiv).length;
+ const perHs=M.map(r=>r.x.perH).filter(v=>v!=null); const avgH=perHs.length?perHs.reduce((a,b)=>a+b,0)/perHs.length:null;
+ let t="";
+ t+=tile("info","🧺","Gepickt "+(PER==="woche"?"(Woche)":"(heute)"),nf(sumPick),"Positionen gesamt");
+ t+=tile("good","📦","Gepackt "+(PER==="woche"?"(Woche)":"(heute)"),nf(sumPack),"Pakete gesamt");
+ t+=tile("gold","👥","Aktiv gerade",nf(aktive)+" / "+M.length,"letzte Aktion < "+AKTIV_MIN+" Min");
+ t+=tile("info","⚡","Ø Tempo",avgH!=null?nf(avgH)+" /Std":"—",PER==="heute"?"Positionen pro Stunde":"nur für „heute“");
+ $("tiles").innerHTML=t;
+ // Rangliste
+ const maxTotal=M.length?M[0].x.total:1;
+ let h='<table><tr><th class=rank>#</th><th>Mitarbeiter</th><th>Status</th><th class=n>Gepickt</th><th class=n>Gepackt</th><th class="n barcell">Gesamt</th>'+(PER==="heute"?'<th class=n>Pos/Std</th>':'')+'</tr>';
+ h+=M.map((r,i)=>{
+  const m=r.m,x=r.x;
+  const dot=x.aktiv?'<span class="dot on"></span>aktiv':'<span class="dot off"></span><span class=st>vor '+nf(minsSince(m.letzteAktion))+' Min</span>';
+  const w=Math.max(4,Math.round(x.total/maxTotal*100));
+  return '<tr><td class=rank>'+(i+1)+'</td><td class=who>'+esc(m.name)+'</td><td>'+dot+'</td><td class=n>'+nf(x.pick)+'</td><td class=n>'+nf(x.pack)+'</td><td class="n barcell"><div class=fill style="width:'+w+'%"></div><span class=big>'+nf(x.total)+'</span></td>'+(PER==="heute"?'<td class=n>'+(x.perH!=null?nf(x.perH):'—')+'</td>':'')+'</tr>';
+ }).join("");
+ h+='</table>';
+ $("table").innerHTML=h;
+ $("rankTitle").textContent="Rangliste — "+(PER==="woche"?"diese Woche":"heute");
+ const gen=CUR.generatedAt?new Date(CUR.generatedAt):null;
+ $("stand").innerHTML=(CUR.demo?"":"Live · ")+"Aktualisierung alle ~15 Min"+(gen?" · Stand "+pad(gen.getDate())+"."+pad(gen.getMonth()+1)+". "+pad(gen.getHours())+":"+pad(gen.getMinutes()):"");
+}
+function tile(cls,ic,nm,val,desc){return '<div class="tile '+cls+'"><div class=th><span class=ic>'+ic+'</span><span class=nm>'+nm+'</span></div><div class=val>'+val+'</div><div class=desc>'+(desc||"")+'</div></div>';}
+function esc(s){return String(s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));}
+function load(){fetch(W+"?z="+Date.now()).then(r=>r.json()).then(d=>{CUR=d;render();}).catch(e=>{$("stand").textContent="Fehler: "+e;});}
+document.querySelectorAll(".bar button[data-p]").forEach(b=>b.onclick=()=>{document.querySelectorAll(".bar button[data-p]").forEach(y=>y.classList.remove("on"));b.classList.add("on");PER=b.dataset.p;render();});
+$("legend").innerHTML="Quelle: JTL-Wawi (MDE-Anmeldung je Mitarbeiter). <b>Gepickt</b> = kommissionierte Positionen, <b>Gepackt</b> = versandfertige Pakete. <b>Pos/Std</b> = (gepickt+gepackt) ÷ Schichtspanne (erste bis letzte Aktion heute). <b>Aktiv</b> = letzte Aktion vor weniger als "+AKTIV_MIN+" Min. Daten werden alle ~15 Min aus der Wawi gepusht; die Seite lädt automatisch nach.";
+load(); setInterval(load,60000);
+</script></body></html>

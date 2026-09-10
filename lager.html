@@ -32,6 +32,15 @@ h2{font-size:15px;margin:0 0 4px;border-bottom:1px solid var(--line);padding-bot
 .chip.t-frisch{color:#1e6b3f;background:#e6f2ea}.chip.t-pruefen{color:#8a6410;background:#fbf0d6}.chip.t-ueberfaellig{color:#a13a22;background:#f6e7e2}
 .chip.ges{color:#7a5a2a;background:#efe6d6}
 .qty-hi{font-weight:800;color:#a13a22}
+.hint{background:#fbf3dd;border:1px solid #e6d09a;border-left:4px solid var(--amber);border-radius:12px;padding:13px 16px;margin-top:16px}
+.hint .ht{font-size:13px;font-weight:800;color:#7a5a10;margin-bottom:4px}
+.hint .hm{font-size:14px;color:#4a4335;line-height:1.5}
+.hint b{color:#8a5a1a}
+.hint .bars{margin-top:9px;display:flex;flex-direction:column;gap:5px}
+.hint .row{display:flex;align-items:center;gap:8px;font-size:12.5px}
+.hint .row .lab{flex:1;color:#4a4335;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hint .row .bar{height:8px;border-radius:5px;background:var(--amber);min-width:3px}
+.hint .row .pct{width:70px;text-align:right;color:var(--mut);font-weight:700}
 .lfilt{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px}
 .lfilt button{border:1px solid var(--line);background:#fff;border-radius:20px;padding:4px 12px;font-size:12px;cursor:pointer;font-weight:600;color:var(--ink)}
 .lfilt button.on{background:#4a4335;color:#fff;border-color:#4a4335}
@@ -50,6 +59,7 @@ h2{font-size:15px;margin:0 0 4px;border-bottom:1px solid var(--line);padding-bot
 <div id=stand>lädt …</div>
 <div class=sec-h>📋 Pick &amp; Pack</div>
 <div class=grid id=grid></div>
+<div id=hinweis></div>
 <div id=liste></div>
 <div class=foot id=legend></div>
 </div>
@@ -89,10 +99,28 @@ function render(){
  h+=tile("gold","🍽️","Geschirrset-Bestellungen",nf(g.gesamt),"eigenes Label, gesondert gepackt",g.gesamt,gp.gesamt,"up");
  h+=tile("gold","🎁","Geschirrsets verpackt",nf(g.gepackt),"offen: "+nf(g.offen)+" · teilweise: "+nf(g.partial)+" (von "+nf(g.gesamt)+")",g.gepackt,gp.gepackt,"up");
  $("grid").innerHTML=h;
+ renderHinweis();
  // Liste der offenen Aufträge (Rückstand) — klickbar zu Shopify, mit Typ-Filter
  renderListe();
  const gen=CUR.generatedAt?new Date(CUR.generatedAt):null;
  $("stand").innerHTML="<b>"+fmtd(CUR.since)+" – "+fmtd(CUR.until)+"</b> · Badge = Δ vs. Vorperiode "+fmtd(CUR.prevSince)+"–"+fmtd(CUR.prevUntil)+(gen?" · Stand "+pad(gen.getDate())+"."+pad(gen.getMonth()+1)+". "+pad(gen.getHours())+":"+pad(gen.getMinutes()):"");
+}
+function renderHinweis(){
+ const H=$("hinweis"); if(!H)return;
+ const items=(CUR&&CUR.pruefenItems)||[], np=(CUR&&CUR.pruefen)||0;
+ if(!items.length||np<2){H.innerHTML="";return;}
+ const top=items[0];
+ // Nur als „Ursache" hervorheben, wenn der Top-Artikel in der Mehrheit der übersprungenen Aufträge steckt
+ const isSignal=top.share>=50 && top.orders>=2;
+ const esc=s=>String(s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+ let bars=items.slice(0,5).map(it=>'<div class=row><span class=lab>'+esc(it.name)+'</span><span class=bar style="width:'+Math.max(3,it.share)+'%"></span><span class=pct>'+it.orders+'× · '+it.share+'%</span></div>').join("");
+ let msg;
+ if(isSignal){
+  msg='<div class=ht>⚠️ Mögliche Ursache erkannt</div><div class=hm><b>'+esc(top.name)+'</b> steckt in <b>'+top.orders+' von '+np+'</b> übersprungenen Aufträgen ('+top.share+'%). Das deutet auf einen Engpass bei genau diesem Artikel hin (fehlt evtl. im Kommissionierbereich oder hakt beim Picken) — lohnt sich zuerst zu prüfen.</div>';
+ } else {
+  msg='<div class=ht>🔎 Häufigste Artikel in übersprungenen Aufträgen</div><div class=hm>Kein einzelner Artikel dominiert klar — hier die häufigsten:</div>';
+ }
+ H.innerHTML='<div class=hint>'+msg+'<div class=bars>'+bars+'</div></div>';
 }
 let LSTUFE="alle", LTYP="alle";
 function setStufe(f){LSTUFE=f;renderListe();}

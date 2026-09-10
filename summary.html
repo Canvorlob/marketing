@@ -80,6 +80,7 @@ const TILES=[
  {k:"gesamt",ic:"💰",nm:"Gesamtumsatz",better:"up",f:x=>x.net+x.ship+x.tax},
  {k:"netto",ic:"🧾",nm:"Nettoumsatz",better:"up",f:x=>x.net+x.ship},
  {k:"perf",ic:"🚀",nm:"Performance-Umsatz",better:"up",f:x=>x.net+x.ship+(x.returns||0)},
+ {k:"erstattungen",ic:"↩️",nm:"Erstattungen",better:"down",f:x=>x.returns||0},
  {k:"orders",ic:"📥",nm:"Bestellungen",better:"up",count:true,f:x=>(x.pord!=null?x.pord:x.orders)},
  {k:"steuer",ic:"🏛️",nm:"Steuer",better:"flat",f:x=>x.tax},
  {k:"dhl",ic:"📦",nm:"DHL-Kosten",better:"down",f:x=>x.orders*SHIP},
@@ -91,8 +92,7 @@ const TILES=[
  {k:"meta",ic:"🔵",nm:"Meta Ad-Spend",better:"down",pct:true,f:x=>x.meta},
  {k:"google",ic:"🔎",nm:"Google Ad-Spend",better:"down",pct:true,f:x=>x.goog},
  {k:"affiliate",ic:"🤝",nm:"Affiliate",better:"down",pct:true,f:x=>x.ifm},
- {k:"fix",ic:"🏢",nm:"Fixkosten",better:"flat",f:x=>FIX_DAY},
- {k:"erstattungen",ic:"↩️",nm:"Erstattungen",better:"down",f:x=>x.returns||0}
+ {k:"fix",ic:"🏢",nm:"Fixkosten",better:"flat",f:x=>FIX_DAY}
 ];
 const DESC={
  gewinn:"Nettoumsatz − alle Kostenblöcke unten (ohne Steuer)",

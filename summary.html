@@ -90,7 +90,8 @@ const TILES=[
  {k:"meta",ic:"🔵",nm:"Meta Ad-Spend",better:"down",pct:true,f:x=>x.meta},
  {k:"google",ic:"🔎",nm:"Google Ad-Spend",better:"down",pct:true,f:x=>x.goog},
  {k:"affiliate",ic:"🤝",nm:"Affiliate",better:"down",pct:true,f:x=>x.ifm},
- {k:"fix",ic:"🏢",nm:"Fixkosten",better:"flat",f:x=>FIX_DAY}
+ {k:"fix",ic:"🏢",nm:"Fixkosten",better:"flat",f:x=>FIX_DAY},
+ {k:"erstattungen",ic:"↩️",nm:"Erstattungen",better:"down",f:x=>x.returns||0}
 ];
 const DESC={
  gewinn:"Nettoumsatz − alle Kostenblöcke unten (ohne Steuer)",
@@ -107,7 +108,8 @@ const DESC={
  meta:"Ad-Spend Meta — live",
  google:"Ad-Spend Google — live",
  affiliate:"GoAffPro-Provision — live",
- fix:"158.000 €/Monat, anteilig pro Tag"
+ fix:"158.000 €/Monat, anteilig pro Tag",
+ erstattungen:"Rückerstattungen aus Shopify (Kundenservice + Lager) — bereits im Nettoumsatz verrechnet, hier nur zur Info"
 };
 function applyCfg(c){
  CFG=Object.assign(CFG,c||{});

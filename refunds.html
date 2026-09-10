@@ -78,7 +78,7 @@ function render(){
  t+=tile("lg","🏭","Lager / Retoure",eur(CUR.lager),nf(CUR.lagerCount)+" · physische Rücksendung");
  t+=tile(CUR.auffaellig>0?"warn":"info","🚩","Auffällig",nf(CUR.auffaellig),"Doppel / über Bestellwert");
  $("tiles").innerHTML=t;
- $("recon").innerHTML="ℹ️ Die Summe hier ist <b>brutto</b> (inkl. MwSt) — das ist der echte Betrag, der an Kund:innen zurückging. Die Kachel „Erstattungen" in der Summary zeigt den <b>Netto</b>-Anteil (ohne MwSt), daher ist sie etwas niedriger. Beide beziehen sich auf denselben Vorgang.";
+ $("recon").innerHTML="ℹ️ Die Summe hier ist <b>brutto</b> (inkl. MwSt) — das ist der echte Betrag, der an Kund:innen zurückging. Die Kachel „Erstattungen“ in der Summary zeigt den <b>Netto</b>-Anteil (ohne MwSt), daher ist sie etwas niedriger. Beide beziehen sich auf denselben Vorgang.";
  // Gründe
  const gmax=Math.max(1,...(CUR.gruende||[]).map(g=>g.amount));
  $("gruende").innerHTML=(CUR.gruende||[]).map(g=>'<div class=grrow><span class=lab>'+esc(g.grund)+'</span><span class=b style="width:'+Math.max(3,g.amount/gmax*100)+'%"></span><span class=amt>'+eur(g.amount)+' · '+g.count+'×</span></div>').join("")||'<span class=items>keine Daten</span>';

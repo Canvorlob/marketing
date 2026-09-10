@@ -31,7 +31,7 @@ h1{font-size:23px;margin:2px 0 2px}.sub{color:var(--mut);font-size:13px;margin-b
 <div class=sub>Alle Kern-Kennzahlen auf einen Blick — mit Trend &amp; Veränderung zur gleich langen Vorperiode. Live aus Shopify + Meta/Google/GoAffPro.</div>
 <div class=bar>
  <span class=flab>Zeitraum</span>
- <button data-a=7>7 Tage</button><button data-a=30 class=on>30 Tage</button><button data-a=90>90 Tage</button>
+ <button data-day=0>Heute</button><button data-day=1>Gestern</button><button data-a=7>7 Tage</button><button data-a=30 class=on>30 Tage</button><button data-a=90>90 Tage</button>
  <span id=months></span>
  <span class=cust>| eigener: <input type=date id=d1><input type=date id=d2><button id=dgo>OK</button></span>
 </div>
@@ -178,8 +178,9 @@ function load(a,b,label){
  $("stand").textContent="lädt "+label+" …";
  fetch(W+"?since="+a+"&until="+b).then(r=>r.json()).then(d=>{CUR=d;render();}).catch(e=>{$("stand").textContent="Fehler: "+e;});
 }
-function clearZ(){document.querySelectorAll(".bar button[data-a],#months button").forEach(y=>y.classList.remove("on"));}
+function clearZ(){document.querySelectorAll(".bar button[data-a],.bar button[data-day],#months button").forEach(y=>y.classList.remove("on"));}
 document.querySelectorAll(".bar button[data-a]").forEach(x=>x.onclick=()=>{clearZ();x.classList.add("on");const[a,b]=win(+x.dataset.a);load(a,b,x.textContent);});
+document.querySelectorAll(".bar button[data-day]").forEach(x=>x.onclick=()=>{clearZ();x.classList.add("on");const d=new Date();d.setDate(d.getDate()-(+x.dataset.day));const t=iso(d);load(t,t,x.textContent);});
 document.querySelectorAll(".bar button.g").forEach(x=>x.onclick=()=>{document.querySelectorAll(".bar button.g").forEach(y=>y.classList.remove("on"));x.classList.add("on");GRP=x.dataset.g;render();});
 $("dgo").onclick=()=>{const a=$("d1").value,b=$("d2").value;if(!a||!b)return;clearZ();load(a,b,fmtd(a)+"–"+fmtd(b));};
 // Dynamische Monatsbuttons (alle Monate des lfd. Jahres bis heute) + „Jahr" (YTD)

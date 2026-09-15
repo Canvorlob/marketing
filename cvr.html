@@ -114,16 +114,19 @@ function render(){
  if(sm&&sm.families&&sm.families.length){
   h+='<div class=sec style="margin-top:16px"><h2>🧩 Set-Baukasten vs. direkt gekauft</h2>';
   h+='<div class=desc style="margin:-4px 0 10px">Bauen die Leute ihr Set im Wunschset-Konfigurator zusammen — oder kaufen sie direkt (einzeln / festes Set)? Gemessen über Bestell-Tag + Produkttyp (überschneidungsfrei). Balken = Anteil „selbst gebaut“ an den verkauften Stück.</div>';
-  h+='<table><tr><th>Kategorie</th><th class=n>gebaut (Wunschset)</th><th class="n barcell">Anteil Stück</th><th class=n>direkt gekauft</th><th class=n>Ø-Bestellwert Wunschset</th></tr>';
+  const shopCvr=(CUR.shop&&CUR.shop.cvr)||0.0164;
+  h+='<table><tr><th>Kategorie</th><th class=n>gebaut (Wunschset)</th><th class="n barcell">Anteil Stück</th><th class=n>direkt gekauft</th><th class=n>Builder-CVR<br>(Sessions→gebaut)</th><th class=n>Ø-Bestellwert Wunschset</th></tr>';
   h+=sm.families.map(f=>{
    const w=Math.round((f.builtShareUnits||0)*100);
+   const bs=f.builderSessions||0, bcvr=f.builderCvr;
    return '<tr><td><b>'+esc(f.label)+'</b></td>'
     +'<td class=n>'+nf(f.builtUnits)+' Stk · '+eur(f.builtNet)+'</td>'
     +'<td class="n barcell"><div class=fill style="width:'+Math.max(3,w)+'%;background:#e7dcc4"></div><span>'+w+' %</span></td>'
     +'<td class=n>'+nf(f.directUnits)+' Stk · '+eur(f.directNet)+'</td>'
+    +'<td class="n '+(bcvr!=null?(bcvr>=shopCvr?'good':'bad'):'')+'">'+(bcvr!=null?nf(bs)+' → '+f.custOrders+' · '+pc(bcvr):'—')+'</td>'
     +'<td class=n>'+(f.custOrders?nf(f.custOrders)+' Best. · '+eur(f.custAov):'—')+'</td></tr>';
   }).join("");
-  h+='</table><div class=desc style="margin-top:8px">Lesart: Der Baukasten ist ein <b>hochwertiger Nischen-Kanal</b> (hoher Ø-Bestellwert), aber mengenmäßig kauft die Mehrheit <b>direkt</b>. Hoher Traffic auf der Builder-Seite bei niedrigem gebaut-Anteil = Konfigurator-Hürde prüfen.</div></div>';
+  h+='</table><div class=desc style="margin-top:8px">Lesart: Der Baukasten ist ein <b>hochwertiger Nischen-Kanal</b> (hoher Ø-Bestellwert), aber mengenmäßig kauft die Mehrheit <b>direkt</b>. <b>Builder-CVR</b> = gebaute Bestellungen ÷ echte Konfigurator-Sessions (GA4 Seitenpfad, grün ≥ Shop-CVR '+pc(shopCvr)+', rot darunter). Der Gläser-Konfigurator konvertiert stark — hier lohnt mehr Traffic; Strauß/Becher schwach.</div></div>';
  }
  // Baukasten-/Wunschset-Seiten (ausgeklammert)
  if((CUR.builders||[]).length){

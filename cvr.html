@@ -109,6 +109,22 @@ function render(){
   h+=CUR.artifacts.map(a=>'<tr><td>'+esc(a.name)+'</td><td class=n>'+nf(a.views)+'</td><td class=n>'+nf(a.cart)+'</td><td class="n bad">'+nf(a.purch)+'</td></tr>').join("");
   h+='</table></div>';
  }
+ // Set-Baukasten vs. Einzelkauf
+ const sm=CUR.setmix;
+ if(sm&&sm.families&&sm.families.length){
+  h+='<div class=sec style="margin-top:16px"><h2>🧩 Set-Baukasten vs. direkt gekauft</h2>';
+  h+='<div class=desc style="margin:-4px 0 10px">Bauen die Leute ihr Set im Wunschset-Konfigurator zusammen — oder kaufen sie direkt (einzeln / festes Set)? Gemessen über Bestell-Tag + Produkttyp (überschneidungsfrei). Balken = Anteil „selbst gebaut“ an den verkauften Stück.</div>';
+  h+='<table><tr><th>Kategorie</th><th class=n>gebaut (Wunschset)</th><th class="n barcell">Anteil Stück</th><th class=n>direkt gekauft</th><th class=n>Ø-Bestellwert Wunschset</th></tr>';
+  h+=sm.families.map(f=>{
+   const w=Math.round((f.builtShareUnits||0)*100);
+   return '<tr><td><b>'+esc(f.label)+'</b></td>'
+    +'<td class=n>'+nf(f.builtUnits)+' Stk · '+eur(f.builtNet)+'</td>'
+    +'<td class="n barcell"><div class=fill style="width:'+Math.max(3,w)+'%;background:#e7dcc4"></div><span>'+w+' %</span></td>'
+    +'<td class=n>'+nf(f.directUnits)+' Stk · '+eur(f.directNet)+'</td>'
+    +'<td class=n>'+(f.custOrders?nf(f.custOrders)+' Best. · '+eur(f.custAov):'—')+'</td></tr>';
+  }).join("");
+  h+='</table><div class=desc style="margin-top:8px">Lesart: Der Baukasten ist ein <b>hochwertiger Nischen-Kanal</b> (hoher Ø-Bestellwert), aber mengenmäßig kauft die Mehrheit <b>direkt</b>. Hoher Traffic auf der Builder-Seite bei niedrigem gebaut-Anteil = Konfigurator-Hürde prüfen.</div></div>';
+ }
  // Baukasten-/Wunschset-Seiten (ausgeklammert)
  if((CUR.builders||[]).length){
   h+='<div class=note style="margin-top:16px">🧩 <b>'+nf(CUR.builders.length)+' Baukasten-/Wunschset-Seiten ausgeklammert</b> ('+nf(CUR.buildersViews)+' Views) — diese Seiten sind ein eigenes „Produkt“, aber beim Bauen landen die <b>einzeln gewählten Artikel</b> im Warenkorb, nicht das Set selbst. Sie können also nie „konvertieren“ und würden Benchmark &amp; Drücker verfälschen. Nicht in der Analyse: '+CUR.builders.map(b=>esc(b.name)+' ('+nf(b.views)+')').join(' · ')+'.</div>';
@@ -146,7 +162,10 @@ function renderPTable(){
  h+='</table>'+(L.length>120?'<div class=desc style="margin-top:6px">… '+(L.length-120)+' weitere (Suche/Filter eingrenzen).</div>':'');
  $("ptable").innerHTML=h;
 }
-function load(a,b,label){$("stand").textContent="lädt "+(label||"")+" …";fetch(W+"?since="+a+"&until="+b+"&z="+Date.now()).then(r=>r.json()).then(d=>{CUR=d;render();}).catch(e=>{$("stand").textContent="Fehler: "+e;});}
+const WS="https://rohertrag-worker.can-11b.workers.dev/setmix.json";
+function load(a,b,label){$("stand").textContent="lädt "+(label||"")+" …";
+ Promise.all([fetch(W+"?since="+a+"&until="+b+"&z="+Date.now()).then(r=>r.json()),fetch(WS+"?since="+a+"&until="+b+"&z="+Date.now()).then(r=>r.json()).catch(()=>null)])
+ .then(([d,s])=>{CUR=d;if(d&&!d.error)d.setmix=s;render();}).catch(e=>{$("stand").textContent="Fehler: "+e;});}
 function clearZ(){document.querySelectorAll(".bar button[data-a],.bar button[data-day]").forEach(y=>y.classList.remove("on"));}
 document.querySelectorAll(".bar button[data-day]").forEach(x=>x.onclick=()=>{clearZ();x.classList.add("on");const d=new Date();d.setDate(d.getDate()-(+x.dataset.day));const t=iso(d);load(t,t,x.textContent);});
 document.querySelectorAll(".bar button[data-a]").forEach(x=>x.onclick=()=>{clearZ();x.classList.add("on");const e=new Date();e.setDate(e.getDate()-1);const s=new Date(e);s.setDate(s.getDate()-(+x.dataset.a-1));load(iso(s),iso(e),x.textContent);});

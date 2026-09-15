@@ -1,0 +1,152 @@
+<!doctype html><html lang=de><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1">
+<title>CVR-Analyse · 7 O'CLOCK</title><style>
+:root{--bg:#faf8f5;--card:#fff;--ink:#2b2b2b;--mut:#8a8378;--line:#e7e2d9;--green:#2f8f57;--red:#c0492b;--amber:#c98a2b;--gold:#b79b6e;--dark:#4a4335;--blue:#2f6f8f}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5}
+.wrap{max-width:1120px;margin:0 auto;padding:20px}
+.brand{font-size:11px;letter-spacing:.14em;color:var(--mut);font-weight:700}
+h1{font-size:23px;margin:2px 0 2px}.sub{color:var(--mut);font-size:13px;margin-bottom:12px}
+.bar{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-bottom:8px}
+.flab{font-size:11px;color:var(--mut);font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-right:2px}
+.bar button{border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 11px;font-size:12.5px;cursor:pointer;font-weight:600;color:var(--ink)}
+.bar button.on{background:#2b2b2b;color:#fff;border-color:#2b2b2b}
+.bar input[type=date]{border:1px solid var(--line);border-radius:8px;padding:5px 9px;font-size:12.5px;font-family:inherit;color:var(--ink)}
+#stand{font-size:12px;color:var(--mut);margin:6px 0 12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px}
+.tile{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px 15px;border-left:4px solid var(--line)}
+.tile.info{border-left-color:var(--blue)}.tile.good{border-left-color:var(--green)}.tile.bad{border-left-color:var(--red)}.tile.gold{border-left-color:var(--gold)}
+.th{display:flex;align-items:center;gap:6px;font-size:11.5px}.th .ic{font-size:14px}.th .nm{font-weight:600;color:#4a4335}
+.val{font-size:25px;font-weight:800;color:#1c1c1c;margin:5px 0 2px}
+.desc{font-size:11px;color:var(--mut)}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
+@media(max-width:760px){.cols{grid-template-columns:1fr}}
+.sec{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
+h2{font-size:14px;margin:0 0 10px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+td,th{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line)}
+th{color:var(--mut);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.03em;cursor:pointer;white-space:nowrap}
+td.n,th.n{text-align:right;white-space:nowrap}
+.barcell{position:relative}.barcell .fill{position:absolute;left:6px;top:50%;transform:translateY(-50%);height:20px;background:#eef3ef;border-radius:4px;z-index:0}.barcell span{position:relative;z-index:1}
+.chip{font-size:10.5px;font-weight:700;padding:1px 7px;border-radius:20px;background:#efe9de;color:#6b5e45;white-space:nowrap}
+.good{color:#1e6b3f;font-weight:700}.bad{color:#a13a22;font-weight:700}
+.lfilt{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px}
+.lfilt button{border:1px solid var(--line);background:#fff;border-radius:20px;padding:3px 11px;font-size:11.5px;cursor:pointer;font-weight:600;color:var(--ink)}
+.lfilt button.on{background:#4a4335;color:#fff;border-color:#4a4335}
+.srch{border:1px solid var(--line);border-radius:8px;padding:5px 10px;font-size:12.5px;font-family:inherit;margin-left:auto}
+.note{background:#eef3f6;border:1px solid #cfe0e8;border-left:4px solid var(--blue);border-radius:10px;padding:10px 14px;margin:14px 0;font-size:12.5px;color:#33566a;line-height:1.5}
+.setup{background:#fbf3dd;border:1px solid #e6d09a;border-left:4px solid var(--amber);border-radius:12px;padding:18px 20px;margin-top:16px}
+.setup h3{margin:0 0 8px;font-size:15px;color:#7a5a10}
+.setup a{color:var(--blue);font-weight:700}
+.foot{color:var(--mut);font-size:11px;margin-top:16px;line-height:1.5}
+</style></head><body><div class=wrap>
+<div class=brand>7 O'CLOCK · CONTROLLING</div><h1>CVR-Analyse</h1>
+<div class=sub>Die Shop-Conversion auseinandergenommen: nach Preis-Band, Kategorie und Produkt. Live aus GA4 (Aufruf → Warenkorb → Kauf) + Shopify. Zeitraum wählbar.</div>
+<div class=bar>
+ <span class=flab>Zeitraum</span>
+ <button data-day=0>Heute</button><button data-day=1>Gestern</button><button data-a=7>7 Tage</button><button data-a=30 class=on>30 Tage</button><button data-a=90>90 Tage</button>
+ <span class=flab style="margin-left:6px">eigener</span><input type=date id=d1><input type=date id=d2><button id=dgo>OK</button>
+</div>
+<div id=stand>lädt …</div>
+<div id=body></div>
+<div class=foot id=legend></div>
+</div>
+<script>
+const W="https://rohertrag-worker.can-11b.workers.dev/cvr.json";
+let CUR=null,CATF="alle",SRCH="",SORT="views";
+const $=id=>document.getElementById(id);
+const nf=n=>Math.round(n||0).toLocaleString("de-DE");
+const pc=x=>(100*(x||0)).toLocaleString("de-DE",{minimumFractionDigits:1,maximumFractionDigits:1})+" %";
+const eur=n=>"€"+Math.round(n||0).toLocaleString("de-DE");
+const pad=n=>String(n).padStart(2,"0");
+const iso=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+const fmtd=s=>{const p=String(s).slice(0,10).split("-");return p[2]+"."+p[1]+"."+p[0];};
+const esc=s=>String(s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+function tile(cls,ic,nm,val,desc){return '<div class="tile '+cls+'"><div class=th><span class=ic>'+ic+'</span><span class=nm>'+nm+'</span></div><div class=val>'+val+'</div><div class=desc>'+(desc||"")+'</div></div>';}
+function vpClass(v){return v>=0.05?'good':(v<0.02?'bad':'');}
+function setup(){
+ $("body").innerHTML='<div class=setup><h3>⚙️ GA4 noch nicht verbunden</h3>'
+ +'<p>Damit die CVR-Analyse live läuft, muss der Controlling-Worker einmalig Lesezugriff auf Google Analytics bekommen. Zwei Schritte (einmalig):</p>'
+ +'<p><b>1.</b> In der <b>Google Cloud Console</b> → APIs &amp; Dienste → Anmeldedaten → OAuth-Client <code>274928017226…</code> → bei „Autorisierte Weiterleitungs-URIs“ hinzufügen:<br><code>https://rohertrag-worker.can-11b.workers.dev/ga-callback</code><br>und die <b>Google Analytics Data API</b> im Projekt aktivieren.</p>'
+ +'<p><b>2.</b> Danach diesen Link öffnen und mit dem Google-Konto (das Zugriff auf die GA4-Property „7oclock.de“ hat) zustimmen:<br><a href="https://rohertrag-worker.can-11b.workers.dev/ga-install" target=_blank rel=noopener>→ GA4 jetzt verbinden</a></p>'
+ +'<p style="color:var(--mut);font-size:12px">Sobald das erledigt ist, diese Seite neu laden — die Analyse erscheint automatisch.</p></div>';
+ $("stand").textContent="wartet auf GA4-Freigabe";
+}
+function render(){
+ if(!CUR)return;
+ if(CUR.error){ if(/nicht verbunden|GA4 Token|invalid_grant|property/i.test(CUR.error)) return setup(); $("body").innerHTML='<div class=setup><h3>Fehler</h3><p>'+esc(CUR.error)+'</p></div>'; return; }
+ const sh=CUR.shop||{};
+ const bigCat=(CUR.categories||[])[0]||{};
+ const bands=CUR.priceBands||[];
+ const spread=(bands.length>=2 && bands[bands.length-1].vp>0)?(bands[0].vp/bands[bands.length-1].vp):null;
+ let h='<div class=grid>';
+ h+=tile("bad","🎯","Shop-CVR (Session)",pc(sh.cvr),nf(sh.sessions)+" Sessions · Shopify");
+ h+=tile("info","👁️","Analysierte Views",nf(CUR.totalViews),CUR.nProducts+" Produkte ≥500 Views");
+ h+=tile("info","🛒","Ø View→Kauf (Benchmark)",pc(CUR.benchVp),"traffic-gewichtet, GA4");
+ h+=tile("bad","🧲","Größter Traffic-Magnet",pc(bigCat.vp),esc(bigCat.cat||"—")+" · "+nf(bigCat.views)+" Views");
+ h+=tile("gold","📉","CVR-Spread Preis",spread?nf(spread)+"×":"—","günstig vs. teuer (V→Kauf)");
+ h+='</div>';
+ h+='<div class=note>So liest man das: Die Produkt-Raten (<b>View→Kauf</b>) sind GA4-Item-Raten (Bezug: Produktaufrufe) und liegen strukturell höher als die Session-Shop-CVR ('+pc(sh.cvr)+', Bezug: Sessions) — eine Session sieht viele Produkte, kauft aber nur einmal. Produkt-/Kategorie-Raten daher <b>nur untereinander</b> vergleichen, nie 1:1 gegen die Shop-CVR.</div>';
+ // Preis-Bänder + Kategorien nebeneinander
+ h+='<div class=cols>';
+ h+='<div class=sec><h2>Preis-Bänder — das Kern-Muster</h2><table><tr><th>Band</th><th class=n>Views</th><th class=n>V→Cart</th><th class=n>V→Kauf</th></tr>';
+ const bmax=Math.max(1,...bands.map(b=>b.views));
+ h+=bands.map(b=>'<tr><td><b>'+esc(b.band)+'</b></td><td class="n barcell"><div class=fill style="width:'+Math.round(b.views/bmax*100)+'%"></div><span>'+nf(b.views)+'</span></td><td class=n>'+pc(b.vc)+'</td><td class="n '+vpClass(b.vp)+'">'+pc(b.vp)+'</td></tr>').join("");
+ h+='</table><div class=desc style="margin-top:8px">Fällt die V→Kauf-Rate monoton mit dem Preis, ist die schwache Shop-CVR ein <b>Mix-Effekt</b> (teurer Traffic), kein Shop-Fehler.</div></div>';
+ h+='<div class=sec><h2>Kategorien nach Traffic</h2><table><tr><th>Kategorie</th><th class=n>Views</th><th class=n>V→Cart</th><th class=n>V→Kauf</th><th class=n>ØPreis</th></tr>';
+ h+=(CUR.categories||[]).slice(0,10).map(c=>'<tr><td>'+esc(c.cat)+'</td><td class=n>'+nf(c.views)+'</td><td class=n>'+pc(c.vc)+'</td><td class="n '+vpClass(c.vp)+'">'+pc(c.vp)+'</td><td class=n>'+eur(c.price)+'</td></tr>').join("");
+ h+='</table></div>';
+ h+='</div>';
+ // Drücker + Konverter + Artefakte
+ h+='<div class=cols>';
+ h+='<div class=sec><h2>🔻 Größte CVR-Drücker</h2><div class=desc style="margin:-4px 0 8px">Views × Lücke zum Benchmark = entgangene Käufe.</div><table><tr><th>Produkt</th><th class=n>Views</th><th class=n>V→Kauf</th><th class=n>entgangen</th></tr>';
+ h+=(CUR.drags||[]).slice(0,8).map(x=>'<tr><td>'+esc(x.name)+(x.artifact?' <span class=chip style="background:#f6e7e2;color:#a13a22">0-Käufer</span>':'')+'</td><td class=n>'+nf(x.views)+'</td><td class="n '+vpClass(x.vp)+'">'+pc(x.vp)+'</td><td class="n bad">~'+nf(x.lost)+'</td></tr>').join("");
+ h+='</table></div>';
+ h+='<div class=sec><h2>🚀 Top-Konverter</h2><div class=desc style="margin:-4px 0 8px">Viel Traffic + hohe Kaufrate.</div><table><tr><th>Produkt</th><th class=n>Views</th><th class=n>V→Kauf</th></tr>';
+ h+=(CUR.top||[]).slice(0,8).map(x=>'<tr><td>'+esc(x.name)+'</td><td class=n>'+nf(x.views)+'</td><td class="n good">'+pc(x.vp)+'</td></tr>').join("");
+ h+='</table></div>';
+ h+='</div>';
+ if((CUR.artifacts||[]).length){
+  h+='<div class=sec style="margin-top:16px;border-left:4px solid var(--red)"><h2>⚠️ 0-Käufer trotz viel Traffic — prüfen (OOS / Redirect / Tracking-Split)</h2><table><tr><th>Produkt</th><th class=n>Views</th><th class=n>Warenkorb</th><th class=n>Käufe</th></tr>';
+  h+=CUR.artifacts.map(a=>'<tr><td>'+esc(a.name)+'</td><td class=n>'+nf(a.views)+'</td><td class=n>'+nf(a.cart)+'</td><td class="n bad">'+nf(a.purch)+'</td></tr>').join("");
+  h+='</table></div>';
+ }
+ // Produkt-Explorer
+ h+='<div class=sec style="margin-top:16px"><h2>Produkt-Explorer — selbst zerlegen</h2>';
+ h+='<div class=lfilt id=catf></div>';
+ h+='<div style="display:flex;align-items:center;margin-bottom:8px"><span class=desc>Klick auf Spalte sortiert. Ampel: grün ≥5 %, rot &lt;2 % View→Kauf.</span><input class=srch id=srch placeholder="Produkt suchen…" value="'+esc(SRCH)+'"></div>';
+ h+='<div id=ptable></div></div>';
+ $("body").innerHTML=h;
+ // Kategorie-Filter
+ const cats=["alle"].concat((CUR.categories||[]).map(c=>c.cat));
+ $("catf").innerHTML=cats.map(c=>'<button class="'+(CATF===c?"on":"")+'" onclick="setCat(\''+c.replace(/'/g,"\\'")+'\')">'+esc(c==="alle"?"Alle Kategorien":c)+'</button>').join("");
+ $("srch").oninput=e=>{SRCH=e.target.value;renderPTable();};
+ renderPTable();
+ const gen=CUR.generatedAt?new Date(CUR.generatedAt):null;
+ $("stand").innerHTML="<b>"+fmtd(CUR.since)+" – "+fmtd(CUR.until)+"</b> · live aus GA4"+(gen?" · Stand "+pad(gen.getDate())+"."+pad(gen.getMonth()+1)+". "+pad(gen.getHours())+":"+pad(gen.getMinutes()):"");
+}
+function setCat(c){CATF=c;render();}
+function sortBy(k){SORT=k;renderPTable();}
+function renderPTable(){
+ let L=(CUR.products||[]).slice();
+ if(CATF!=="alle")L=L.filter(x=>x.cat===CATF);
+ if(SRCH.trim())L=L.filter(x=>x.name.toLowerCase().includes(SRCH.toLowerCase()));
+ const key=SORT; L.sort((a,b)=>{const av=a[key]==null?-1:a[key],bv=b[key]==null?-1:b[key];return bv-av;});
+ let h='<table><tr>'
+ +'<th onclick="sortBy(\'views\')">Produkt</th>'
+ +'<th class=n onclick="sortBy(\'views\')">Views</th>'
+ +'<th class=n onclick="sortBy(\'vc\')">V→Cart</th>'
+ +'<th class=n onclick="sortBy(\'vp\')">V→Kauf</th>'
+ +'<th class=n onclick="sortBy(\'price\')">ØPreis</th>'
+ +'<th class=n onclick="sortBy(\'purch\')">Käufe</th>'
+ +'<th class=n onclick="sortBy(\'lost\')">entgangen</th></tr>';
+ h+=L.slice(0,120).map(x=>'<tr><td>'+esc(x.name)+' <span class=chip>'+esc(x.cat)+'</span></td><td class=n>'+nf(x.views)+'</td><td class=n>'+pc(x.vc)+'</td><td class="n '+vpClass(x.vp)+'">'+pc(x.vp)+'</td><td class=n>'+(x.price?eur(x.price):"—")+'</td><td class=n>'+nf(x.purch)+'</td><td class="n '+(x.lost>0?'bad':'')+'">'+(x.lost>0?'~'+nf(x.lost):'–')+'</td></tr>').join("");
+ h+='</table>'+(L.length>120?'<div class=desc style="margin-top:6px">… '+(L.length-120)+' weitere (Suche/Filter eingrenzen).</div>':'');
+ $("ptable").innerHTML=h;
+}
+function load(a,b,label){$("stand").textContent="lädt "+(label||"")+" …";fetch(W+"?since="+a+"&until="+b+"&z="+Date.now()).then(r=>r.json()).then(d=>{CUR=d;render();}).catch(e=>{$("stand").textContent="Fehler: "+e;});}
+function clearZ(){document.querySelectorAll(".bar button[data-a],.bar button[data-day]").forEach(y=>y.classList.remove("on"));}
+document.querySelectorAll(".bar button[data-day]").forEach(x=>x.onclick=()=>{clearZ();x.classList.add("on");const d=new Date();d.setDate(d.getDate()-(+x.dataset.day));const t=iso(d);load(t,t,x.textContent);});
+document.querySelectorAll(".bar button[data-a]").forEach(x=>x.onclick=()=>{clearZ();x.classList.add("on");const e=new Date();e.setDate(e.getDate()-1);const s=new Date(e);s.setDate(s.getDate()-(+x.dataset.a-1));load(iso(s),iso(e),x.textContent);});
+$("dgo").onclick=()=>{const a=$("d1").value,b=$("d2").value;if(!a||!b)return;if(a>b){alert("Von nach Bis");return;}clearZ();load(a,b,"eigener");};
+$("legend").innerHTML="Quelle: Google Analytics 4 (Item-Funnel: itemsViewed / addToCarts / itemsPurchased) + Shopify (Session-CVR). View→Cart = Warenkorb-Adds ÷ Aufrufe, View→Kauf = gekaufte Menge ÷ Aufrufe. „entgangen“ = Views × (Benchmark − Produkt-Rate) = rechnerisch entgangene Käufe ggü. dem traffic-gewichteten Schnitt. Nur Produkte mit ≥500 Views. Live bei Aufruf.";
+(function(){const e=new Date();e.setDate(e.getDate()-1);const s=new Date(e);s.setDate(s.getDate()-29);load(iso(s),iso(e),"30 Tage");})();
+</script></body></html>

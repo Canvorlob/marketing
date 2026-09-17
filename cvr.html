@@ -79,11 +79,12 @@ function render(){
  const spread=(bands.length>=2 && bands[bands.length-1].vp>0)?(bands[0].vp/bands[bands.length-1].vp):null;
  let h='<div class=grid>';
  h+=tile("bad","🎯","Shop-CVR (Session)",pc(sh.cvr),nf(sh.sessions)+" Sessions · Shopify");
- h+=tile("info","👁️","Analysierte Views",nf(CUR.totalViews),CUR.nProducts+" Produkte ≥500 Views");
+ h+=tile("info","👁️","Analysierte Views",nf(CUR.totalViews),CUR.nProducts+" Produkte ≥"+nf(CUR.minViews||500)+" Views");
  h+=tile("info","🛒","Ø View→Kauf (Benchmark)",pc(CUR.benchVp),"traffic-gewichtet, GA4");
  h+=tile("bad","🧲","Größter Traffic-Magnet",pc(bigCat.vp),esc(bigCat.cat||"—")+" · "+nf(bigCat.views)+" Views");
  h+=tile("gold","📉","CVR-Spread Preis",spread?nf(spread)+"×":"—","günstig vs. teuer (V→Kauf)");
  h+='</div>';
+ if((CUR.days||30)<7)h+='<div class=note style="border-left-color:var(--amber);background:#fbf3dd;color:#7a5a10">⏳ <b>Kurzer Zeitraum ('+CUR.days+' Tag'+(CUR.days>1?'e':'')+')</b> — an so wenigen Tagen erreichen kaum Produkte genug Aufrufe, und die Raten schwanken stark. Für belastbare Muster (Preis-Bänder, Kategorien, Drücker) besser <b>7–30 Tage</b> wählen. Die Mindest-Schwelle wurde für diesen Zeitraum auf '+nf(CUR.minViews)+' Views gesenkt.</div>';
  h+='<div class=note>So liest man das: Die Produkt-Raten (<b>View→Kauf</b>) sind GA4-Item-Raten (Bezug: Produktaufrufe) und liegen strukturell höher als die Session-Shop-CVR ('+pc(sh.cvr)+', Bezug: Sessions) — eine Session sieht viele Produkte, kauft aber nur einmal. Produkt-/Kategorie-Raten daher <b>nur untereinander</b> vergleichen, nie 1:1 gegen die Shop-CVR.</div>';
  // Preis-Bänder + Kategorien nebeneinander
  h+='<div class=cols>';

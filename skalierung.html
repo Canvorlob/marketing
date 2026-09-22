@@ -153,7 +153,7 @@ $("aktEdit").onclick=()=>{
  fetch(WAKTSET,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({password:p,name,von,bis,ziel:parseFloat(String(ziel).replace(/[^\d.,-]/g,"").replace(",",".")),zielMer:parseFloat(String(zielMer).replace(",","."))})})
   .then(r=>r.json()).then(d=>{if(d.error){alert("Fehler: "+d.error);if(d.error==="unauthorized")sessionStorage.removeItem("fcpw");return;}AKT=d.cfg;renderAktion();}).catch(e=>alert(e));
 };
-$("legend").innerHTML="Quelle: Shopify (Umsatz/Marge je Kategorie) + Meta/Google (Spend &amp; Conversion-Value je Kampagne, nach Namen zugeordnet). Kategorie-Marge &amp; Break-even-ROAS wie im Rohertrags-Cockpit. Ist-ROAS nur dort belastbar, wo Kampagnen einer Kategorie zuzuordnen sind (sonst „wenig Spend"); für die Allokation zählt v. a. das Zusammenspiel aus Marge, Break-even und Nachfrage. Der Aktions-Tracker rechnet Pace &amp; erlaubtes Tagesbudget aus Ziel, Zeitraum und Ziel-MER.";
+$("legend").innerHTML="Quelle: Shopify (Umsatz/Marge je Kategorie) + Meta/Google (Spend &amp; Conversion-Value je Kampagne, nach Namen zugeordnet). Kategorie-Marge &amp; Break-even-ROAS wie im Rohertrags-Cockpit. Ist-ROAS nur dort belastbar, wo Kampagnen einer Kategorie zuzuordnen sind (sonst „wenig Spend“); für die Allokation zählt v. a. das Zusammenspiel aus Marge, Break-even und Nachfrage. Der Aktions-Tracker rechnet Pace &amp; erlaubtes Tagesbudget aus Ziel, Zeitraum und Ziel-MER.";
 fetch(WAKT+"?z="+Date.now()).then(r=>r.json()).then(a=>{AKT=a;renderAktion();}).catch(()=>{AKT=null;renderAktion();});
 (()=>{const[a,b]=win(7);renderAlloc(a,b,"7 Tage");})();
 </script></body></html>

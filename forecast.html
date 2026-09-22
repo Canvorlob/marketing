@@ -1,0 +1,135 @@
+<!doctype html><html lang=de><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1">
+<title>Forecast · 7 O'CLOCK</title><style>
+:root{--bg:#faf8f5;--card:#fff;--ink:#2b2b2b;--mut:#8a8378;--line:#e7e2d9;--green:#2f8f57;--red:#c0492b;--amber:#c98a2b;--gold:#b79b6e;--dark:#4a4335;--blue:#2f6f8f}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5}
+.wrap{max-width:1140px;margin:0 auto;padding:20px}
+.brand{font-size:11px;letter-spacing:.14em;color:var(--mut);font-weight:700}
+h1{font-size:23px;margin:2px 0 2px}.sub{color:var(--mut);font-size:13px;margin-bottom:12px}
+#stand{font-size:12px;color:var(--mut);margin:6px 0 12px}
+.bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:0 0 12px}
+.pill{background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:13px}
+.pill b{color:#4a4335}
+.bar button{border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 11px;font-size:12.5px;cursor:pointer;font-weight:600;color:var(--ink)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:6px}
+.tile{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px 15px;border-left:4px solid var(--line)}
+.tile.good{border-left-color:var(--green)}.tile.bad{border-left-color:var(--red)}.tile.info{border-left-color:var(--blue)}.tile.gold{border-left-color:var(--gold)}
+.th{display:flex;align-items:center;gap:6px;font-size:11.5px}.th .nm{font-weight:600;color:#4a4335}
+.val{font-size:24px;font-weight:800;color:#1c1c1c;margin:5px 0 2px}
+.desc{font-size:11px;color:var(--mut)}
+.sec{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-top:16px}
+h2{font-size:15px;margin:0 0 10px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+td,th{text-align:right;padding:7px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{color:var(--mut);font-weight:600;font-size:10.5px;text-transform:uppercase;letter-spacing:.02em}
+td.l,th.l{text-align:left}
+tr.cur{background:#fbf7ee}
+.good{color:#1e6b3f;font-weight:700}.bad{color:#a13a22;font-weight:700}
+.mini{width:70px;height:7px;background:#eee;border-radius:4px;display:inline-block;vertical-align:middle;overflow:hidden;margin-right:6px}
+.mini > i{display:block;height:100%;border-radius:4px}
+.notebtn{border:1px solid var(--line);background:#fff;border-radius:6px;padding:2px 8px;font-size:11px;cursor:pointer;color:var(--blue);font-weight:700}
+.notebtn.has{background:#eef3f6;border-color:#cfe0e8}
+.noterow td{background:#faf8f3}
+.noteedit{display:flex;gap:12px;flex-wrap:wrap;text-align:left;padding:4px 0}
+.noteedit label{font-size:11px;color:var(--mut);font-weight:700;display:block;margin-bottom:3px}
+.noteedit textarea{width:100%;min-height:52px;border:1px solid var(--line);border-radius:8px;padding:7px 9px;font:inherit;font-size:12.5px;resize:vertical}
+.noteedit .col{flex:1;min-width:240px}
+.noteedit .save{border:1px solid #2b2b2b;background:#2b2b2b;color:#fff;border-radius:8px;padding:7px 14px;font-weight:700;cursor:pointer;font-size:12.5px;align-self:flex-end}
+.notetext{text-align:left;font-size:12px;color:#4a4335;line-height:1.4}.notetext .why{margin-bottom:3px}.notetext .lo{color:var(--blue)}
+.foot{color:var(--mut);font-size:11px;margin-top:16px;line-height:1.5}
+</style></head><body><div class=wrap>
+<div class=brand>7 O'CLOCK · CONTROLLING</div><h1>Forecast 2026 — Plan vs. Ist</h1>
+<div class=sub>Euer Weekly-Forecast, live: Plan (2025 × Uplift) gegen den echten Ist-Umsatz &amp; Marketing-Spend je Monat. Ist zieht sich automatisch — Notizen &amp; Uplift editierbar. Das Excel läuft parallel weiter.</div>
+<div class=bar>
+ <span class=pill>Uplift 2026 vs 2025: <b id=upl>–</b> <button id=uplEdit style="margin-left:6px">ändern</button></span>
+ <span class=pill>YTD-Ziel: <b id=ytdAtt>–</b></span>
+</div>
+<div id=stand>lädt …</div>
+<div class=grid id=tiles></div>
+<div class=sec><h2>Monatsübersicht</h2><div id=table></div></div>
+<div class=foot id=legend></div>
+</div>
+<script>
+const W="https://rohertrag-worker.can-11b.workers.dev/forecast.json";
+const CFGN="https://rohertrag-worker.can-11b.workers.dev/forecast-notes";
+const CFG="https://rohertrag-worker.can-11b.workers.dev/config";
+let CUR=null,OPEN=null;
+const $=id=>document.getElementById(id);
+const nf=n=>Math.round(n||0).toLocaleString("de-DE");
+const eur=n=>"€"+nf(n);
+const pc=x=>(100*(x||0)).toLocaleString("de-DE",{minimumFractionDigits:1,maximumFractionDigits:1})+" %";
+const pc0=x=>Math.round(100*(x||0))+" %";
+const pad=n=>String(n).padStart(2,"0");
+const esc=s=>String(s||"").replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+const nowMi=new Date().getUTCMonth();
+function tile(cls,nm,val,desc){return '<div class="tile '+cls+'"><div class=th><span class=nm>'+nm+'</span></div><div class=val>'+val+'</div><div class=desc>'+(desc||"")+'</div></div>';}
+function render(){
+ if(!CUR)return;
+ if(CUR.error){$("table").innerHTML='<div class=desc>Fehler: '+esc(CUR.error)+'</div>';return;}
+ $("upl").textContent=pc0(CUR.uplift);
+ const M=CUR.months, elapsed=M.filter(m=>m.ist.has);
+ const planYTD=elapsed.reduce((a,m)=>a+m.plan.umsatz,0), istYTD=elapsed.reduce((a,m)=>a+m.ist.umsatz,0);
+ const mktYTD=elapsed.reduce((a,m)=>a+m.ist.mkt,0);
+ const planFull=M.reduce((a,m)=>a+m.plan.umsatz,0);
+ $("ytdAtt").textContent=planYTD?pc0(istYTD/planYTD):"–";
+ // Kacheln
+ let t="";
+ t+=tile(istYTD>=planYTD?"good":"bad","Ist-Umsatz YTD",eur(istYTD),"Ziel bis dato: "+eur(planYTD));
+ t+=tile("info","Zielerreichung YTD",planYTD?pc0(istYTD/planYTD):"–","Ist ÷ Plan (abgelaufene Monate)");
+ t+=tile("gold","Jahresziel 2026",eur(planFull),"Summe Plan-Umsatz (Uplift "+pc0(CUR.uplift)+")");
+ t+=tile("info","Marketing-Quote YTD",istYTD?pc(mktYTD/istYTD):"–","Ist Meta+Google+IFM ÷ Ist-Umsatz");
+ $("tiles").innerHTML=t;
+ // Tabelle
+ let h='<table><tr><th class=l>Monat</th><th>Plan-Umsatz</th><th>Ist-Umsatz</th><th>Zielerreichung</th><th>Wachstum ’25</th><th>Plan-Mkt</th><th>Ist-Mkt</th><th>Mkt-% Ist</th><th class=l>Notiz</th></tr>';
+ h+=M.map(m=>{
+  const has=m.ist.has, cur=m.mi===nowMi;
+  const att=m.attain, attCls=!has?'':(att>=1?'good':(att>=0.9?'':'bad'));
+  const attBar=has?'<span class=mini><i style="width:'+Math.min(100,Math.round(att*100))+'%;background:'+(att>=1?'var(--green)':att>=0.9?'var(--amber)':'var(--red)')+'"></i></span>':'';
+  const gr=m.growth, grCls=gr>=0.2?'good':(gr>=0?'':'bad');
+  const noteHas=(m.note.why||m.note.loesung);
+  const row='<tr class="'+(cur?'cur':'')+'">'
+   +'<td class=l><b>'+esc(m.name)+'</b>'+(cur?' <span style="font-size:10px;color:var(--amber)">lfd.</span>':'')+'</td>'
+   +'<td>'+eur(m.plan.umsatz)+'</td>'
+   +'<td>'+(has?'<b>'+eur(m.ist.umsatz)+'</b>':'<span style="color:var(--mut)">–</span>')+'</td>'
+   +'<td class="'+attCls+'">'+(has?attBar+pc0(att):'–')+'</td>'
+   +'<td class="'+(has?grCls:'')+'">'+(has?(gr>=0?'+':'')+pc0(gr):'–')+'</td>'
+   +'<td>'+eur(m.plan.mkt)+'</td>'
+   +'<td>'+(has?eur(m.ist.mkt):'–')+'</td>'
+   +'<td>'+(has?pc(m.ist.mktPct):'–')+'</td>'
+   +'<td class=l><button class="notebtn'+(noteHas?' has':'')+'" onclick="toggleNote('+m.mi+')">'+(noteHas?'📝':'+')+'</button>'
+     +(noteHas?'<div class=notetext><div class=why>'+esc(m.note.why)+'</div>'+(m.note.loesung?'<div class=lo>→ '+esc(m.note.loesung)+'</div>':'')+'</div>':'')+'</td>'
+   +'</tr>';
+  let er='';
+  if(OPEN===m.mi){
+   er='<tr class=noterow><td colspan=9><div class=noteedit>'
+    +'<div class=col><label>Current trading — Why?</label><textarea id=nw>'+esc(m.note.why)+'</textarea></div>'
+    +'<div class=col><label>Lösungsansätze</label><textarea id=nl>'+esc(m.note.loesung)+'</textarea></div>'
+    +'<button class=save onclick="saveNote(\''+m.key+'\')">Speichern</button></div>'
+    +'<div id=nmsg style="text-align:left;font-size:11px;color:var(--mut);margin-top:4px"></div></td></tr>';
+  }
+  return row+er;
+ }).join("");
+ h+='</table>';
+ $("table").innerHTML=h;
+ const gen=CUR.generatedAt?new Date(CUR.generatedAt):null;
+ $("stand").innerHTML="Plan = 2025-Ist × (1+Uplift) · Ist live aus Shopify + Meta/Google/GoAffPro"+(gen?" · Stand "+pad(gen.getDate())+"."+pad(gen.getMonth()+1)+". "+pad(gen.getHours())+":"+pad(gen.getMinutes()):"");
+}
+function toggleNote(mi){OPEN=OPEN===mi?null:mi;render();}
+function pwd(){let p=sessionStorage.getItem("fcpw");if(!p){p=prompt("Passwort zum Speichern:");if(p)sessionStorage.setItem("fcpw",p);}return p;}
+function saveNote(key){
+ const why=$("nw").value,loesung=$("nl").value,p=pwd();if(!p)return;
+ $("nmsg").textContent="speichert …";
+ fetch(CFGN,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({password:p,month:key,why,loesung})})
+  .then(r=>r.json()).then(d=>{if(d.error){$("nmsg").textContent="Fehler: "+d.error;if(d.error==="unauthorized")sessionStorage.removeItem("fcpw");return;}
+   const m=CUR.months.find(x=>x.key===key);if(m)m.note=d.note;OPEN=null;render();}).catch(e=>{$("nmsg").textContent="Fehler: "+e;});
+}
+$("uplEdit").onclick=()=>{
+ const v=prompt("Uplift 2026 vs 2025 in % (z. B. 20):",Math.round((CUR.uplift||0)*100));
+ if(v===null)return;const num=parseFloat(String(v).replace(",","."));if(!isFinite(num))return;
+ const p=pwd();if(!p)return;
+ fetch(CFG,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({password:p,config:{uplift:num/100}})})
+  .then(r=>r.json()).then(d=>{if(d.error){alert("Fehler: "+d.error);if(d.error==="unauthorized")sessionStorage.removeItem("fcpw");return;}load();}).catch(e=>alert(e));
+};
+function load(){$("stand").textContent="lädt …";fetch(W+"?z="+Date.now()).then(r=>r.json()).then(d=>{CUR=d;render();}).catch(e=>{$("stand").textContent="Fehler: "+e;});}
+$("legend").innerHTML="<b>Plan</b> = 2025-Ist-Umsatz × (1+Uplift); Plan-Budget je Kanal = Plan-Umsatz × (Kanal-Anteil 2025). <b>Ist</b> = Shopify Netto+Versand (ohne MwSt) & Meta/Google/IFM-Spend je Monat, live. <b>Zielerreichung</b> = Ist-Umsatz ÷ Plan-Umsatz. <b>Wachstum ’25</b> = Ist 2026 vs. Ist 2025. Notizen/Uplift passwortgeschützt. Die Excel-Dateien werden vom Weekly-Task parallel weiter befüllt.";
+load();
+</script></body></html>

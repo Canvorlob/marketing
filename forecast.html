@@ -79,7 +79,7 @@ function render(){
  t+=tile("info","Marketing-Quote YTD",istYTD?pc(mktYTD/istYTD):"–","Ist Meta+Google+IFM ÷ Ist-Umsatz");
  $("tiles").innerHTML=t;
  // Tabelle
- let h='<table><tr><th class=l>Monat</th><th>Plan-Umsatz</th><th>Ist-Umsatz</th><th>Zielerreichung</th><th>Wachstum ’25</th><th>Plan-Mkt</th><th>Ist-Mkt</th><th>Mkt-% Ist</th><th class=l>Notiz</th></tr>';
+ let h='<table><tr><th class=l>Monat</th><th>Plan-Umsatz</th><th>Ist-Umsatz</th><th>Zielerreichung</th><th>Wachstum ’25</th><th>Plan-Mkt</th><th>Plan Mkt-%</th><th>Ist-Mkt</th><th>Ist Mkt-%</th><th class=l>Notiz</th></tr>';
  h+=M.map(m=>{
   const has=m.ist.has, cur=m.mi===nowMi;
   const att=m.attain, attCls=!has?'':(att>=1?'good':(att>=0.9?'':'bad'));
@@ -93,6 +93,7 @@ function render(){
    +'<td class="'+attCls+'">'+(has?attBar+pc0(att):'–')+'</td>'
    +'<td class="'+(has?grCls:'')+'">'+(has?(gr>=0?'+':'')+pc0(gr):'–')+'</td>'
    +'<td>'+eur(m.plan.mkt)+'</td>'
+   +'<td style="color:var(--mut)">'+pc(m.plan.mktPct)+'</td>'
    +'<td>'+(has?eur(m.ist.mkt):'–')+'</td>'
    +'<td>'+(has?pc(m.ist.mktPct):'–')+'</td>'
    +'<td class=l><button class="notebtn'+(noteHas?' has':'')+'" onclick="toggleNote('+m.mi+')">'+(noteHas?'📝':'+')+'</button>'
@@ -100,7 +101,7 @@ function render(){
    +'</tr>';
   let er='';
   if(OPEN===m.mi){
-   er='<tr class=noterow><td colspan=9><div class=noteedit>'
+   er='<tr class=noterow><td colspan=10><div class=noteedit>'
     +'<div class=col><label>Current trading — Why?</label><textarea id=nw>'+esc(m.note.why)+'</textarea></div>'
     +'<div class=col><label>Lösungsansätze</label><textarea id=nl>'+esc(m.note.loesung)+'</textarea></div>'
     +'<button class=save onclick="saveNote(\''+m.key+'\')">Speichern</button></div>'
@@ -108,7 +109,26 @@ function render(){
   }
   return row+er;
  }).join("");
+ // Summenzeile
+ const planMktFull=M.reduce((a,m)=>a+m.plan.mkt,0);
+ const baseElapsed=elapsed.reduce((a,m)=>a+m.base2025.umsatz,0);
+ const grYTD=baseElapsed?(istYTD-baseElapsed)/baseElapsed:0;
+ h+='<tr style="border-top:2px solid var(--dark);font-weight:700;background:#f4f1ea">'
+  +'<td class=l>Summe / Jahr</td>'
+  +'<td>'+eur(planFull)+'</td>'
+  +'<td>'+eur(istYTD)+'</td>'
+  +'<td class="'+(planYTD&&istYTD>=planYTD?'good':'bad')+'">'+(planYTD?pc0(istYTD/planYTD):'–')+'</td>'
+  +'<td class="'+(grYTD>=0.2?'good':grYTD>=0?'':'bad')+'">'+(grYTD>=0?'+':'')+pc0(grYTD)+'</td>'
+  +'<td>'+eur(planMktFull)+'</td>'
+  +'<td style="color:var(--mut)">'+pc(planFull?planMktFull/planFull:0)+'</td>'
+  +'<td>'+eur(mktYTD)+'</td>'
+  +'<td>'+(istYTD?pc(mktYTD/istYTD):'–')+'</td>'
+  +'<td class=l>YTD</td></tr>';
  h+='</table>';
+ h+='<div style="margin-top:12px;padding:12px 15px;background:#fbf7ee;border:1px solid var(--line);border-left:4px solid var(--gold);border-radius:10px;font-size:13.5px">'
+  +'🎯 <b>Jahresziel 2026 (Plan-Umsatz gesamt): '+eur(planFull)+'</b> — bei '+pc0(CUR.uplift)+' Uplift auf 2025. '
+  +'Geplante Marketing-Ausgaben gesamt: <b>'+eur(planMktFull)+'</b> ('+pc(planFull?planMktFull/planFull:0)+' v. Umsatz). '
+  +'Ist bis dato: <b>'+eur(istYTD)+'</b> ('+(planYTD?pc0(istYTD/planYTD):'–')+' des anteiligen Ziels).</div>';
  $("table").innerHTML=h;
  const gen=CUR.generatedAt?new Date(CUR.generatedAt):null;
  $("stand").innerHTML="Plan = 2025-Ist × (1+Uplift) · Ist live aus Shopify + Meta/Google/GoAffPro"+(gen?" · Stand "+pad(gen.getDate())+"."+pad(gen.getMonth()+1)+". "+pad(gen.getHours())+":"+pad(gen.getMinutes()):"");

@@ -136,22 +136,21 @@ function render(){
  $("stand").innerHTML="Plan = 2025-Ist × (1+Uplift) · Ist live aus Shopify + Meta/Google/GoAffPro"+(gen?" · Stand "+pad(gen.getDate())+"."+pad(gen.getMonth()+1)+". "+pad(gen.getHours())+":"+pad(gen.getMinutes()):"");
 }
 function renderChannels(M,elapsed,istYTD){
- const cell=(e,u)=>e>0?('<td>'+eur(e)+'</td><td style="color:var(--mut)">'+(u?pc(e/u):'–')+'</td>'):'<td style="color:var(--mut)">–</td><td style="color:var(--mut)">–</td>';
- let h='<table><tr><th class=l>Monat</th>'
-  +'<th>Meta €</th><th>Meta %</th><th>Google €</th><th>Google %</th><th>Affiliate €</th><th>Affiliate %</th></tr>';
+ // je Kanal: Plan € (grau) | Ist € | Ist %
+ const cell=(plan,ist,u,has)=>'<td style="color:var(--mut)">'+eur(plan)+'</td>'+(has?('<td><b>'+eur(ist)+'</b></td><td style="color:var(--mut)">'+(u?pc(ist/u):'–')+'</td>'):'<td style="color:var(--mut)">–</td><td style="color:var(--mut)">–</td>');
+ let h='<table style="font-size:12.5px"><tr><th class=l rowspan=2>Monat</th><th colspan=3 style="text-align:center;border-left:1px solid var(--line)">Meta</th><th colspan=3 style="text-align:center;border-left:1px solid var(--line)">Google</th><th colspan=3 style="text-align:center;border-left:1px solid var(--line)">Affiliate (IFM)</th></tr>'
+  +'<tr>'+('<th style="border-left:1px solid var(--line)">Plan €</th><th>Ist €</th><th>Ist %</th>').repeat(3)+'</tr>';
  h+=M.map(m=>{
-  if(!m.ist.has)return '<tr><td class=l>'+esc(m.name)+'</td><td colspan=6 style="color:var(--mut)">–</td></tr>';
-  const u=m.ist.umsatz,cur=m.mi===nowMi;
+  const u=m.ist.umsatz,has=m.ist.has,cur=m.mi===nowMi;
   return '<tr class="'+(cur?'cur':'')+'"><td class=l><b>'+esc(m.name)+'</b>'+(cur?' <span style="font-size:10px;color:var(--amber)">lfd.</span>':'')+'</td>'
-   +cell(m.ist.meta,u)+cell(m.ist.goog,u)+cell(m.ist.ifm,u)+'</tr>';
+   +cell(m.plan.meta,m.ist.meta,u,has)+cell(m.plan.goog,m.ist.goog,u,has)+cell(m.plan.ifm,m.ist.ifm,u,has)+'</tr>';
  }).join("");
- // Summe YTD
+ // Summe YTD: Plan = abgelaufene Monate (vergleichbar), Ist = YTD
+ const pM=elapsed.reduce((a,m)=>a+m.plan.meta,0),pG=elapsed.reduce((a,m)=>a+m.plan.goog,0),pI=elapsed.reduce((a,m)=>a+m.plan.ifm,0);
  const sM=elapsed.reduce((a,m)=>a+m.ist.meta,0),sG=elapsed.reduce((a,m)=>a+m.ist.goog,0),sI=elapsed.reduce((a,m)=>a+m.ist.ifm,0);
- h+='<tr style="border-top:2px solid var(--dark);font-weight:700;background:#f4f1ea"><td class=l>Summe / YTD</td>'
-  +'<td>'+eur(sM)+'</td><td style="color:var(--mut)">'+(istYTD?pc(sM/istYTD):'–')+'</td>'
-  +'<td>'+eur(sG)+'</td><td style="color:var(--mut)">'+(istYTD?pc(sG/istYTD):'–')+'</td>'
-  +'<td>'+eur(sI)+'</td><td style="color:var(--mut)">'+(istYTD?pc(sI/istYTD):'–')+'</td></tr>';
- h+='</table>';
+ const sc=(p,s)=>'<td style="color:var(--mut)">'+eur(p)+'</td><td><b>'+eur(s)+'</b></td><td style="color:var(--mut)">'+(istYTD?pc(s/istYTD):'–')+'</td>';
+ h+='<tr style="border-top:2px solid var(--dark);font-weight:700;background:#f4f1ea"><td class=l>Summe / YTD</td>'+sc(pM,sM)+sc(pG,sG)+sc(pI,sI)+'</tr>';
+ h+='</table><div class=desc style="margin-top:8px;color:var(--mut)">Plan € = geplantes Kanal-Budget (Plan-Umsatz × Kanal-Anteil 2025). Ist € = tatsächlicher Spend, Ist % = Anteil am Ist-Umsatz. Summe: Plan der abgelaufenen Monate vs. Ist YTD (vergleichbar).</div>';
  $("chtable").innerHTML=h;
 }
 function toggleNote(mi){OPEN=OPEN===mi?null:mi;render();}

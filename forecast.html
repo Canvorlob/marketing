@@ -45,6 +45,7 @@ tr.cur{background:#fbf7ee}
 </div>
 <div id=stand>lädt …</div>
 <div class=grid id=tiles></div>
+<div id=monthbox></div>
 <div class=sec><h2>Monatsübersicht</h2><div id=table></div></div>
 <div class=sec><h2>Marketing-Aufschlüsselung je Kanal (Ist)</h2><div class=desc style="margin:-4px 0 10px;color:var(--mut)">Woraus sich die Marketing-Quote je Monat ergibt — Meta, Google &amp; Affiliate (IFM) in € und als % vom Umsatz. So siehst du bei Über-/Unterperformance sofort, welcher Kanal wie viel gezogen hat.</div><div id=chtable></div></div>
 <div class=foot id=legend></div>
@@ -79,6 +80,8 @@ function render(){
  t+=tile("gold","Jahresziel 2026",eur(planFull),"Summe Plan-Umsatz (Uplift "+pc0(CUR.uplift)+")");
  t+=tile("info","Marketing-Quote YTD",istYTD?pc(mktYTD/istYTD):"–","Ist Meta+Google+IFM ÷ Ist-Umsatz");
  $("tiles").innerHTML=t;
+ // Resttage-Box laufender Monat (Stand bis gestern)
+ renderMonthBox(M);
  // Tabelle
  let h='<table><tr><th class=l>Monat</th><th>Plan-Umsatz</th><th>Ist-Umsatz</th><th>Zielerreichung</th><th>Wachstum ’25</th><th>Plan-Mkt</th><th>Plan Mkt-%</th><th>Ist-Mkt</th><th>Ist Mkt-%</th><th class=l>Notiz</th></tr>';
  h+=M.map(m=>{
@@ -133,7 +136,7 @@ function render(){
  $("table").innerHTML=h;
  renderChannels(M,elapsed,istYTD);
  const gen=CUR.generatedAt?new Date(CUR.generatedAt):null;
- $("stand").innerHTML="Plan = 2025-Ist × (1+Uplift) · Ist live aus Shopify + Meta/Google/GoAffPro"+(gen?" · Stand "+pad(gen.getDate())+"."+pad(gen.getMonth()+1)+". "+pad(gen.getHours())+":"+pad(gen.getMinutes()):"");
+ $("stand").innerHTML="Plan = 2025-Ist × (1+Uplift) · Ist "+(CUR.throughDate?"bis "+fmtd(CUR.throughDate)+" 23:59":"live")+" (Shopify + Meta/Google/GoAffPro)"+(gen?" · geladen "+pad(gen.getDate())+"."+pad(gen.getMonth()+1)+". "+pad(gen.getHours())+":"+pad(gen.getMinutes()):"");
 }
 function renderChannels(M,elapsed,istYTD){
  // je Kanal: Plan € (grau) | Ist € | Ist %
@@ -152,6 +155,23 @@ function renderChannels(M,elapsed,istYTD){
  h+='<tr style="border-top:2px solid var(--dark);font-weight:700;background:#f4f1ea"><td class=l>Summe / YTD</td>'+sc(pM,sM)+sc(pG,sG)+sc(pI,sI)+'</tr>';
  h+='</table><div class=desc style="margin-top:8px;color:var(--mut)">Plan € = geplantes Kanal-Budget (Plan-Umsatz × Kanal-Anteil 2025). Ist € = tatsächlicher Spend, Ist % = Anteil am Ist-Umsatz. Summe: Plan der abgelaufenen Monate vs. Ist YTD (vergleichbar).</div>';
  $("chtable").innerHTML=h;
+}
+function renderMonthBox(M){
+ const m=M[nowMi]; if(!m){$("monthbox").innerHTML="";return;}
+ const now=new Date(), dim=new Date(now.getFullYear(),now.getMonth()+1,0).getDate(), dom=now.getDate();
+ const daysLeft=dim-dom+1;               // heute + Resttage
+ const restUms=Math.max(0,m.plan.umsatz-m.ist.umsatz);
+ const umsDay=daysLeft>0?restUms/daysLeft:0;
+ const restMkt=Math.max(0,m.plan.mkt-m.ist.mkt);
+ const mktDay=daysLeft>0?restMkt/daysLeft:0;
+ const onTrack=restUms<=0;
+ const h='<div class="sec" style="border-left:4px solid '+(onTrack?'var(--green)':'var(--amber)')+'"><h2>📆 Laufender Monat — '+esc(m.name)+' <span style="font-size:11px;color:var(--mut);font-weight:400;margin-left:6px">Ist bis gestern · noch '+daysLeft+' Tage</span></h2>'
+  +'<div class=grid>'
+  +tile("info","Ist bisher (bis gestern)",eur(m.ist.umsatz),"Plan-Monat "+eur(m.plan.umsatz)+" · "+pc0(m.plan.umsatz?m.ist.umsatz/m.plan.umsatz:0))
+  +tile("gold","Noch nötig (Umsatz)",restUms>0?eur(restUms):"✅ Ziel erreicht",restUms>0?"<b>"+eur(umsDay)+" / Tag</b> für "+daysLeft+" Tage":"")
+  +tile("good","Verfügbares Marketing-Budget",eur(restMkt),"<b>"+eur(mktDay)+" / Tag</b> · Plan "+eur(m.plan.mkt)+" − "+eur(m.ist.mkt)+" verbraucht")
+  +'</div></div>';
+ $("monthbox").innerHTML=h;
 }
 function toggleNote(mi){OPEN=OPEN===mi?null:mi;render();}
 function pwd(){let p=sessionStorage.getItem("fcpw");if(!p){p=prompt("Passwort zum Speichern:");if(p)sessionStorage.setItem("fcpw",p);}return p;}

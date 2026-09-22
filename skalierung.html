@@ -1,0 +1,159 @@
+<!doctype html><html lang=de><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1">
+<title>Skalierung · 7 O'CLOCK</title><style>
+:root{--bg:#faf8f5;--card:#fff;--ink:#2b2b2b;--mut:#8a8378;--line:#e7e2d9;--green:#2f8f57;--red:#c0492b;--amber:#c98a2b;--gold:#b79b6e;--dark:#4a4335;--blue:#2f6f8f}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5}
+.wrap{max-width:1120px;margin:0 auto;padding:20px}
+.brand{font-size:11px;letter-spacing:.14em;color:var(--mut);font-weight:700}
+h1{font-size:23px;margin:2px 0 2px}.sub{color:var(--mut);font-size:13px;margin-bottom:12px}
+.bar{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-bottom:8px}
+.flab{font-size:11px;color:var(--mut);font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-right:2px}
+.bar button{border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 11px;font-size:12.5px;cursor:pointer;font-weight:600;color:var(--ink)}
+.bar button.on{background:#2b2b2b;color:#fff;border-color:#2b2b2b}
+#stand{font-size:12px;color:var(--mut);margin:6px 0 12px}
+.sec{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-top:16px}
+.sec.act{border:2px solid var(--gold);background:linear-gradient(180deg,#fffdf8,#fff)}
+h2{font-size:15px;margin:0 0 10px;display:flex;align-items:center;gap:8px}
+.editb{border:1px solid var(--line);background:#fff;border-radius:7px;padding:3px 10px;font-size:11.5px;cursor:pointer;color:var(--blue);font-weight:700}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
+.tile{background:#faf8f3;border:1px solid var(--line);border-radius:10px;padding:11px 13px}
+.tile .nm{font-size:11px;color:var(--mut);font-weight:600}
+.tile .val{font-size:21px;font-weight:800;color:#1c1c1c;margin-top:3px}
+.tile .d{font-size:11px;color:var(--mut)}
+.pace{padding:9px 13px;border-radius:9px;font-weight:700;font-size:13.5px;margin-top:12px}
+.pace.ok{background:#e6f2ea;color:#1e6b3f}.pace.bad{background:#f6e7e2;color:#a13a22}
+table{width:100%;border-collapse:collapse;font-size:13px}
+td,th{text-align:right;padding:8px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{color:var(--mut);font-weight:600;font-size:10.5px;text-transform:uppercase;letter-spacing:.02em}
+td.l,th.l{text-align:left}
+.amp{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:800}
+.amp.go{background:#e6f2ea;color:#1e6b3f}.amp.hold{background:#fbf0d6;color:#8a6410}.amp.brake{background:#f6e7e2;color:#a13a22}.amp.na{background:#eee;color:#8a8378}
+.good{color:#1e6b3f;font-weight:700}.bad{color:#a13a22;font-weight:700}
+.bar2{height:7px;border-radius:4px;background:#eee;display:inline-block;width:64px;overflow:hidden;vertical-align:middle;margin-right:6px}.bar2>i{display:block;height:100%}
+.foot{color:var(--mut);font-size:11px;margin-top:16px;line-height:1.5}
+.setup{background:#fbf3dd;border:1px solid #e6d09a;border-left:4px solid var(--amber);border-radius:10px;padding:14px 16px;font-size:13px;color:#7a5a10}
+</style></head><body><div class=wrap>
+<div class=brand>7 O'CLOCK · CONTROLLING</div><h1>Skalierung — wo bringt der nächste Euro am meisten?</h1>
+<div class=sub>Budget-Allokation je Kategorie: Umsatzanteil, Marge, Break-even-ROAS vs. Ist-ROAS und ein klares Skalier-Signal. Oben ein Aktions-Tracker (Ziel &amp; Tagesbudget). Live.</div>
+<div class=sec act id=aktion><h2>🎯 Aktion <button class=editb id=aktEdit style="margin-left:auto">Aktion bearbeiten</button></h2><div id=aktbody>lädt …</div></div>
+<div class=sec>
+ <h2>📈 Wo skaliere ich? <span style="margin-left:auto;font-size:11px;color:var(--mut);font-weight:400" id=allocWin></span></h2>
+ <div class=bar><span class=flab>Zeitraum</span><button data-a=7 class=on>7 Tage</button><button data-a=14>14 Tage</button><button data-a=30>30 Tage</button><button id=useAkt>Aktions-Zeitraum</button></div>
+ <div id=alloc>lädt …</div>
+</div>
+<div class=foot id=legend></div>
+</div>
+<script>
+const WCPT="https://rohertrag-worker.can-11b.workers.dev/cockpit.json";
+const WSUM="https://rohertrag-worker.can-11b.workers.dev/summary.json";
+const WAKT="https://rohertrag-worker.can-11b.workers.dev/aktion.json";
+const WAKTSET="https://rohertrag-worker.can-11b.workers.dev/aktion";
+let AKT=null;
+const $=id=>document.getElementById(id);
+const nf=n=>Math.round(n||0).toLocaleString("de-DE");
+const eur=n=>"€"+nf(n);
+const pc=x=>(100*(x||0)).toLocaleString("de-DE",{minimumFractionDigits:1,maximumFractionDigits:1})+" %";
+const x2=x=>(x||0).toLocaleString("de-DE",{minimumFractionDigits:2,maximumFractionDigits:2});
+const pad=n=>String(n).padStart(2,"0");
+const iso=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+const fmtd=s=>{const p=String(s).slice(0,10).split("-");return p[2]+"."+p[1]+"."+p[0];};
+const esc=s=>String(s||"").replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+// ---- Kategorie-Modell (identisch zum Cockpit) ----
+const BEROAS={"Gläser":1.93,"Geschirr":2.50,"Keramikbecher":2.08,"Bettwäsche":2.08,"Vasen":2.70,"Bloom":1.81};
+const CATS=["Geschirr","Gläser","Keramikbecher","Bettwäsche","Vasen","Bloom"];
+function mcat(n){n=(n||"").toLowerCase();if(n.includes("geschirr")||n.includes("niasparset"))return"Geschirr";if(n.includes("bettw"))return"Bettwäsche";if(n.includes("vasen"))return"Vasen";if(n.includes("bloom")||n.includes("blume"))return"Bloom";if(n.includes("wunschset")||n.includes("gläser")||n.includes("glaeser")||n.includes("bundle")||n.includes("bestseller"))return"Gläser";return"Broad";}
+function gCat(n){n=(n||"").toLowerCase();if(n.includes("brand")||n.includes("search"))return null;if(n.includes("sonstiges"))return null;if(n.includes("geschirr"))return"Geschirr";if(n.includes("bettw"))return"Bettwäsche";if(n.includes("tassen")||n.includes("kannen"))return"Keramikbecher";if(n.includes("gläser")||n.includes("glaeser")||n.includes("vorratsgläser"))return"Gläser";if(n.includes("kunstblume")||n.includes("bloom"))return"Bloom";return null;}
+function catrevFrom(pt){const c={};CATS.forEach(k=>c[k]=0);for(const k in pt){const n=(k||"").toLowerCase(),v=pt[k]||0;if(n.includes("geschirr"))c.Geschirr+=v;else if(n.includes("trinkglas")||n.includes("weinglas")||n.includes("karaffe"))c["Gläser"]+=v;else if(n.includes("keramik becher")||n==="tassen"||n.includes("espresso")||n.includes("untertasse"))c.Keramikbecher+=v;else if(n.includes("bettw"))c["Bettwäsche"]+=v;else if(n==="vasen")c.Vasen+=v;else if(n.includes("kunstblume"))c.Bloom+=v;}return c;}
+function win(w){const e=new Date();e.setDate(e.getDate()-1);const s=new Date(e);s.setDate(s.getDate()-(w-1));return[iso(s),iso(e)];}
+// ---------- Aktions-Tracker ----------
+function renderAktion(){
+ const b=$("aktbody");
+ if(!AKT||!AKT.name||!AKT.von||!AKT.bis||!AKT.ziel){b.innerHTML='<div class=setup>Noch keine Aktion definiert. Klick auf <b>„Aktion bearbeiten"</b> und trage Name, Zeitraum, Umsatzziel (netto) und Ziel-MER ein — dann rechnet der Tracker Pace &amp; Tagesbudget automatisch.</div>';$("useAkt").style.display="none";return;}
+ $("useAkt").style.display="";
+ const today=new Date();today.setHours(0,0,0,0);
+ const von=new Date(AKT.von+"T00:00:00"),bis=new Date(AKT.bis+"T00:00:00");
+ const dtot=Math.round((bis-von)/864e5)+1;
+ const eEnd=today<bis?today:bis; const elapsed=Math.max(0,Math.round((eEnd-von)/864e5)+ (today>von?1:0)); const el=Math.min(dtot,Math.max(0,elapsed));
+ const left=Math.max(0,Math.round((bis-today)/864e5)+1);
+ // Ist-Umsatz im Aktionszeitraum bis heute
+ const uEnd=iso(today>bis?bis:today);
+ fetch(WSUM+"?since="+AKT.von+"&until="+uEnd+"&z="+Date.now()).then(r=>r.json()).then(s=>{
+  const ist=(s.days||[]).reduce((a,x)=>a+x.net+x.ship,0);
+  const rest=Math.max(0,AKT.ziel-ist);
+  const needDay=left>0?rest/left:0;
+  const avgDay=el>0?ist/el:0;
+  const allowSpend=AKT.zielMer>0?needDay/AKT.zielMer:0;
+  const onPace=avgDay>=needDay||rest<=0;
+  let h='<div class=grid>';
+  h+='<div class=tile><div class=nm>Aktion</div><div class=val style="font-size:16px">'+esc(AKT.name)+'</div><div class=d>'+fmtd(AKT.von)+' – '+fmtd(AKT.bis)+' · '+dtot+' Tage</div></div>';
+  h+='<div class=tile><div class=nm>Ziel (Netto)</div><div class=val>'+eur(AKT.ziel)+'</div><div class=d>Ø '+eur(AKT.ziel/dtot)+'/Tag nötig</div></div>';
+  h+='<div class=tile><div class=nm>Ist bisher</div><div class=val>'+eur(ist)+'</div><div class=d>'+pc(AKT.ziel?ist/AKT.ziel:0)+' vom Ziel · '+el+' Tage</div></div>';
+  h+='<div class=tile><div class=nm>Noch offen</div><div class=val>'+eur(rest)+'</div><div class=d>'+left+' Tage übrig</div></div>';
+  h+='<div class=tile style="border-color:var(--gold)"><div class=nm>Nötig / Tag (Rest)</div><div class=val>'+eur(needDay)+'</div><div class=d>bisher Ø '+eur(avgDay)+'/Tag</div></div>';
+  h+='<div class=tile style="border-color:var(--blue)"><div class=nm>Erlaubtes Tagesbudget</div><div class=val>'+eur(allowSpend)+'</div><div class=d>bei Ziel-MER '+x2(AKT.zielMer)+'</div></div>';
+  h+='</div>';
+  h+='<div class="pace '+(onPace?'ok':'bad')+'">'+(onPace?'✅ Auf Kurs':'⚠️ Hinter Plan')+' — um das Ziel zu holen, brauchst du ab jetzt '+eur(needDay)+'/Tag (bisher '+eur(avgDay)+'/Tag). Dafür darfst du bei MER '+x2(AKT.zielMer)+' bis '+eur(allowSpend)+'/Tag Adspend einsetzen.</div>';
+  b.innerHTML=h;
+ }).catch(e=>{b.innerHTML='<div class=setup>Fehler beim Laden: '+esc(String(e))+'</div>';});
+}
+// ---------- Allokation ----------
+function renderAlloc(since,until,label){
+ $("allocWin").textContent=fmtd(since)+" – "+fmtd(until)+(label?" ("+label+")":"");
+ $("alloc").innerHTML='<div style="color:var(--mut)">lädt '+(label||"")+' …</div>';
+ fetch(WCPT+"?since="+since+"&until="+until+"&z="+Date.now()).then(r=>r.json()).then(j=>{
+  const pt=j.pt||{}, camps=Array.isArray(j.camps)?j.camps:[], google=Array.isArray(j.google)?j.google:[];
+  const catrev=catrevFrom(pt);
+  const totalRev=Object.values(catrev).reduce((a,b)=>a+b,0)||1;
+  const rows=CATS.map(cat=>{
+   const rev=catrev[cat]||0, be=BEROAS[cat], margin=1.19/be;
+   const mSp=camps.filter(c=>mcat(c.name)===cat).reduce((a,c)=>a+(c.spend||0),0);
+   const mCV=camps.filter(c=>mcat(c.name)===cat).reduce((a,c)=>a+(c.spend||0)*(c.roas||0),0);
+   const gSp=google.filter(g=>gCat(g.name)===cat).reduce((a,g)=>a+(g.cost||0),0);
+   const gCV=google.filter(g=>gCat(g.name)===cat).reduce((a,g)=>a+(g.cv||0),0);
+   const spend=mSp+gSp, cv=mCV+gCV;
+   const roas=spend>50?cv/spend:null;          // erst ab etwas Spend belastbar
+   const ratio=roas!=null?roas/be:null;
+   const db=Math.round(rev*margin-spend);
+   return {cat,rev,share:rev/totalRev,margin,be,spend,roas,ratio,db};
+  }).filter(r=>r.rev>0||r.spend>0);
+  rows.sort((a,b)=>{const ra=a.ratio==null?-1:a.ratio,rb=b.ratio==null?-1:b.ratio;if(rb!==ra)return rb-ra;return b.rev-a.rev;});
+  const maxShare=Math.max(...rows.map(r=>r.share),0.01);
+  let h='<table><tr><th class=l>Kategorie</th><th>Umsatzanteil</th><th>Marge</th><th>Break-even-ROAS</th><th>Ist-ROAS</th><th>ROAS ÷ BE</th><th>DB n. Ads</th><th class=l>Signal</th></tr>';
+  h+=rows.map(r=>{
+   let amp='<span class="amp na">wenig Spend</span>';
+   if(r.ratio!=null){ if(r.ratio>=1.2)amp='<span class="amp go">▲ skalieren</span>';else if(r.ratio>=1.0)amp='<span class="amp hold">■ halten</span>';else amp='<span class="amp brake">▼ bremsen</span>'; }
+   const shbar='<span class=bar2><i style="width:'+Math.round(r.share/maxShare*100)+'%;background:var(--gold)"></i></span>';
+   const roasCls=r.ratio==null?'':(r.ratio>=1.2?'good':r.ratio<1?'bad':'');
+   return '<tr><td class=l><b>'+esc(r.cat)+'</b></td>'
+    +'<td>'+shbar+pc(r.share)+'</td>'
+    +'<td>'+pc(r.margin)+'</td>'
+    +'<td>'+x2(r.be)+'</td>'
+    +'<td class="'+roasCls+'">'+(r.roas!=null?x2(r.roas):'–')+'</td>'
+    +'<td class="'+roasCls+'">'+(r.ratio!=null?x2(r.ratio)+'×':'–')+'</td>'
+    +'<td class="'+(r.db>=0?'good':'bad')+'">'+eur(r.db)+'</td>'
+    +'<td class=l>'+amp+'</td></tr>';
+  }).join("");
+  h+='</table>';
+  h+='<div class=foot style="margin-top:10px">Lesart: <b>Marge</b> = Deckungsbeitrag je € Umsatz (1,19 ÷ Break-even-ROAS). <b>Break-even-ROAS</b> = ab hier trägt sich der Adspend. <b>Ist-ROAS</b> = zugeordneter Conversion-Value ÷ Spend (Meta+Google, nach Kampagnennamen — nur wo zuordenbar). <b>ROAS ÷ BE</b> ≥ 1,2 = Luft nach oben → hier Budget rein; &lt; 1 = über Break-even → bremsen. <b>DB n. Ads</b> = Umsatz × Marge − Spend.</div>';
+  if(j.metaErr||j.gErr)h+='<div class=foot style="color:var(--amber)">Hinweis: '+(j.metaErr?'Meta: '+esc(j.metaErr)+' ':'')+(j.gErr?'Google: '+esc(j.gErr):'')+'</div>';
+  $("alloc").innerHTML=h;
+ }).catch(e=>{$("alloc").innerHTML='<div style="color:var(--red)">Fehler: '+esc(String(e))+'</div>';});
+}
+// ---- Steuerung ----
+function clearZ(){document.querySelectorAll(".bar button[data-a],#useAkt").forEach(y=>y.classList.remove("on"));}
+document.querySelectorAll(".bar button[data-a]").forEach(x=>x.onclick=()=>{clearZ();x.classList.add("on");const[a,b]=win(+x.dataset.a);renderAlloc(a,b,x.textContent);});
+$("useAkt").onclick=()=>{if(!AKT||!AKT.von)return;clearZ();$("useAkt").classList.add("on");const e=new Date();e.setDate(e.getDate()-1);const u=iso(e);renderAlloc(AKT.von,(AKT.bis<u?AKT.bis:u),"Aktion");};
+function pwd(){let p=sessionStorage.getItem("fcpw");if(!p){p=prompt("Passwort:");if(p)sessionStorage.setItem("fcpw",p);}return p;}
+$("aktEdit").onclick=()=>{
+ const name=prompt("Aktionsname:",(AKT&&AKT.name)||"");if(name===null)return;
+ const von=prompt("Von (JJJJ-MM-TT):",(AKT&&AKT.von)||"");if(von===null)return;
+ const bis=prompt("Bis (JJJJ-MM-TT):",(AKT&&AKT.bis)||"");if(bis===null)return;
+ const ziel=prompt("Umsatzziel netto (€):",(AKT&&AKT.ziel)||"");if(ziel===null)return;
+ const zielMer=prompt("Ziel-MER (z. B. 3):",(AKT&&AKT.zielMer)||"3");if(zielMer===null)return;
+ const p=pwd();if(!p)return;
+ fetch(WAKTSET,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({password:p,name,von,bis,ziel:parseFloat(String(ziel).replace(/[^\d.,-]/g,"").replace(",",".")),zielMer:parseFloat(String(zielMer).replace(",","."))})})
+  .then(r=>r.json()).then(d=>{if(d.error){alert("Fehler: "+d.error);if(d.error==="unauthorized")sessionStorage.removeItem("fcpw");return;}AKT=d.cfg;renderAktion();}).catch(e=>alert(e));
+};
+$("legend").innerHTML="Quelle: Shopify (Umsatz/Marge je Kategorie) + Meta/Google (Spend &amp; Conversion-Value je Kampagne, nach Namen zugeordnet). Kategorie-Marge &amp; Break-even-ROAS wie im Rohertrags-Cockpit. Ist-ROAS nur dort belastbar, wo Kampagnen einer Kategorie zuzuordnen sind (sonst „wenig Spend"); für die Allokation zählt v. a. das Zusammenspiel aus Marge, Break-even und Nachfrage. Der Aktions-Tracker rechnet Pace &amp; erlaubtes Tagesbudget aus Ziel, Zeitraum und Ziel-MER.";
+fetch(WAKT+"?z="+Date.now()).then(r=>r.json()).then(a=>{AKT=a;renderAktion();}).catch(()=>{AKT=null;renderAktion();});
+(()=>{const[a,b]=win(7);renderAlloc(a,b,"7 Tage");})();
+</script></body></html>

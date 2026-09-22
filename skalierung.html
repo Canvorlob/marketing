@@ -33,7 +33,7 @@ td.l,th.l{text-align:left}
 .setup{background:#fbf3dd;border:1px solid #e6d09a;border-left:4px solid var(--amber);border-radius:10px;padding:14px 16px;font-size:13px;color:#7a5a10}
 </style></head><body><div class=wrap>
 <div class=brand>7 O'CLOCK · CONTROLLING</div><h1>Skalierung — wo bringt der nächste Euro am meisten?</h1>
-<div class=sub>Budget-Allokation je Kategorie: Umsatzanteil, Marge, Break-even-ROAS vs. Ist-ROAS und ein klares Skalier-Signal. Oben ein Aktions-Tracker (Ziel &amp; Tagesbudget). Live.</div>
+<div class=sub>Meta-Budget-Allokation je Kategorie: Umsatzanteil, Marge, Break-even-ROAS vs. Ist-ROAS und ein klares Skalier-Signal. Oben ein Aktions-Tracker (Ziel &amp; Tagesbudget). Live. (Google ist ausgelagert.)</div>
 <div class=sec act id=aktion><h2>🎯 Aktion <button class=editb id=aktEdit style="margin-left:auto">Aktion bearbeiten</button></h2><div id=aktbody>lädt …</div></div>
 <div class=sec>
  <h2>📈 Wo skaliere ich? <span style="margin-left:auto;font-size:11px;color:var(--mut);font-weight:400" id=allocWin></span></h2>
@@ -57,12 +57,18 @@ const pad=n=>String(n).padStart(2,"0");
 const iso=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
 const fmtd=s=>{const p=String(s).slice(0,10).split("-");return p[2]+"."+p[1]+"."+p[0];};
 const esc=s=>String(s||"").replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
-// ---- Kategorie-Modell (identisch zum Cockpit) ----
-const BEROAS={"Gläser":1.93,"Geschirr":2.50,"Keramikbecher":2.08,"Bettwäsche":2.08,"Vasen":2.70,"Bloom":1.81};
-const CATS=["Geschirr","Gläser","Keramikbecher","Bettwäsche","Vasen","Bloom"];
-function mcat(n){n=(n||"").toLowerCase();if(n.includes("geschirr")||n.includes("niasparset"))return"Geschirr";if(n.includes("bettw"))return"Bettwäsche";if(n.includes("vasen"))return"Vasen";if(n.includes("bloom")||n.includes("blume"))return"Bloom";if(n.includes("wunschset")||n.includes("gläser")||n.includes("glaeser")||n.includes("bundle")||n.includes("bestseller"))return"Gläser";return"Broad";}
-function gCat(n){n=(n||"").toLowerCase();if(n.includes("brand")||n.includes("search"))return null;if(n.includes("sonstiges"))return null;if(n.includes("geschirr"))return"Geschirr";if(n.includes("bettw"))return"Bettwäsche";if(n.includes("tassen")||n.includes("kannen"))return"Keramikbecher";if(n.includes("gläser")||n.includes("glaeser")||n.includes("vorratsgläser"))return"Gläser";if(n.includes("kunstblume")||n.includes("bloom"))return"Bloom";return null;}
-function catrevFrom(pt){const c={};CATS.forEach(k=>c[k]=0);for(const k in pt){const n=(k||"").toLowerCase(),v=pt[k]||0;if(n.includes("geschirr"))c.Geschirr+=v;else if(n.includes("trinkglas")||n.includes("weinglas")||n.includes("karaffe"))c["Gläser"]+=v;else if(n.includes("keramik becher")||n==="tassen"||n.includes("espresso")||n.includes("untertasse"))c.Keramikbecher+=v;else if(n.includes("bettw"))c["Bettwäsche"]+=v;else if(n==="vasen")c.Vasen+=v;else if(n.includes("kunstblume"))c.Bloom+=v;}return c;}
+// ---- Meta-only-Kategorie-Modell (Kategorie = Suffix im Kampagnennamen) ----
+const BEROAS={"Geschirr":2.50,"Gläser":1.93,"Bettwäsche":2.08,"Bloom":1.81};
+const BLEND_BE=2.20;                 // kategorieübergreifend (Portfolio-Marge ~54,1 %)
+const PRODCATS=["Geschirr","Gläser","Bettwäsche","Bloom"]; // beworbene Produkt-Kategorien
+const BUCKETS=["Aktion","Letzte Chance","Broad"];          // kampagnenübergreifende Typen
+const LABEL={Bloom:"Blumen (Bloom)"};
+function metaCat(name){const n=(name||"").toLowerCase();const segs=n.split("_").filter(Boolean);const tail=segs.slice(-2);const has=k=>tail.some(s=>s.includes(k));
+ if(n.includes("letztechance")||n.includes("letzte chance"))return"Letzte Chance";
+ if(has("geschirr"))return"Geschirr"; if(has("gläser")||has("glaeser"))return"Gläser";
+ if(has("bettw"))return"Bettwäsche"; if(has("blume")||has("bloom"))return"Bloom";
+ if(has("aktion")||n.includes("4years"))return"Aktion"; return"Broad";}
+function catrevFrom(pt){const c={};PRODCATS.forEach(k=>c[k]=0);for(const k in pt){const n=(k||"").toLowerCase(),v=pt[k]||0;if(n.includes("geschirr"))c.Geschirr+=v;else if(n.includes("trinkglas")||n.includes("weinglas")||n.includes("karaffe")||n.includes("glas"))c["Gläser"]+=v;else if(n.includes("bettw"))c["Bettwäsche"]+=v;else if(n.includes("kunstblume"))c.Bloom+=v;}return c;}
 function win(w){const e=new Date();e.setDate(e.getDate()-1);const s=new Date(e);s.setDate(s.getDate()-(w-1));return[iso(s),iso(e)];}
 // ---------- Aktions-Tracker ----------
 function renderAktion(){
@@ -100,41 +106,37 @@ function renderAlloc(since,until,label){
  $("allocWin").textContent=fmtd(since)+" – "+fmtd(until)+(label?" ("+label+")":"");
  $("alloc").innerHTML='<div style="color:var(--mut)">lädt '+(label||"")+' …</div>';
  fetch(WCPT+"?since="+since+"&until="+until+"&z="+Date.now()).then(r=>r.json()).then(j=>{
-  const pt=j.pt||{}, camps=Array.isArray(j.camps)?j.camps:[], google=Array.isArray(j.google)?j.google:[];
+  const pt=j.pt||{}, camps=Array.isArray(j.camps)?j.camps:[];
   const catrev=catrevFrom(pt);
   const totalRev=Object.values(catrev).reduce((a,b)=>a+b,0)||1;
-  const rows=CATS.map(cat=>{
-   const rev=catrev[cat]||0, be=BEROAS[cat], margin=1.19/be;
-   const mSp=camps.filter(c=>mcat(c.name)===cat).reduce((a,c)=>a+(c.spend||0),0);
-   const mCV=camps.filter(c=>mcat(c.name)===cat).reduce((a,c)=>a+(c.spend||0)*(c.roas||0),0);
-   const gSp=google.filter(g=>gCat(g.name)===cat).reduce((a,g)=>a+(g.cost||0),0);
-   const gCV=google.filter(g=>gCat(g.name)===cat).reduce((a,g)=>a+(g.cv||0),0);
-   const spend=mSp+gSp, cv=mCV+gCV;
-   const roas=spend>50?cv/spend:null;          // erst ab etwas Spend belastbar
-   const ratio=roas!=null?roas/be:null;
-   const db=Math.round(rev*margin-spend);
-   return {cat,rev,share:rev/totalRev,margin,be,spend,roas,ratio,db};
-  }).filter(r=>r.rev>0||r.spend>0);
-  rows.sort((a,b)=>{const ra=a.ratio==null?-1:a.ratio,rb=b.ratio==null?-1:b.ratio;if(rb!==ra)return rb-ra;return b.rev-a.rev;});
-  const maxShare=Math.max(...rows.map(r=>r.share),0.01);
-  let h='<table><tr><th class=l>Kategorie</th><th>Umsatzanteil</th><th>Marge</th><th>Break-even-ROAS</th><th>Ist-ROAS</th><th>ROAS ÷ BE</th><th>DB n. Ads</th><th class=l>Signal</th></tr>';
-  h+=rows.map(r=>{
+  // Meta-Spend & CV je Tag (Kategorie-Suffix)
+  const agg={}; camps.forEach(c=>{const t=metaCat(c.name);const a=agg[t]||(agg[t]={sp:0,cv:0});a.sp+=(c.spend||0);a.cv+=(c.spend||0)*(c.roas||0);});
+  const totalSpend=Object.values(agg).reduce((a,x)=>a+x.sp,0);
+  function mkRow(tag,isProd){const g=agg[tag]||{sp:0,cv:0};const be=isProd?BEROAS[tag]:BLEND_BE;const margin=1.19/be;
+   const spend=g.sp,roas=spend>50?g.cv/spend:null,ratio=roas!=null?roas/be:null;
+   const rev=isProd?(catrev[tag]||0):null;const share=isProd?rev/totalRev:null;const db=isProd?Math.round(rev*margin-spend):null;
+   return {tag,label:LABEL[tag]||tag,isProd,rev,share,margin,be,spend,roas,ratio,db};}
+  const prod=PRODCATS.map(t=>mkRow(t,true)).filter(r=>r.rev>0||r.spend>0);
+  prod.sort((a,b)=>{const ra=a.ratio==null?-1:a.ratio,rb=b.ratio==null?-1:b.ratio;if(rb!==ra)return rb-ra;return b.rev-a.rev;});
+  const buckets=BUCKETS.map(t=>mkRow(t,false)).filter(r=>r.spend>0);
+  const maxShare=Math.max(...prod.map(r=>r.share||0),0.01);
+  const rowHtml=(r)=>{
    let amp='<span class="amp na">wenig Spend</span>';
    if(r.ratio!=null){ if(r.ratio>=1.2)amp='<span class="amp go">▲ skalieren</span>';else if(r.ratio>=1.0)amp='<span class="amp hold">■ halten</span>';else amp='<span class="amp brake">▼ bremsen</span>'; }
-   const shbar='<span class=bar2><i style="width:'+Math.round(r.share/maxShare*100)+'%;background:var(--gold)"></i></span>';
    const roasCls=r.ratio==null?'':(r.ratio>=1.2?'good':r.ratio<1?'bad':'');
-   return '<tr><td class=l><b>'+esc(r.cat)+'</b></td>'
-    +'<td>'+shbar+pc(r.share)+'</td>'
-    +'<td>'+pc(r.margin)+'</td>'
-    +'<td>'+x2(r.be)+'</td>'
+   const shcell=r.isProd?('<span class=bar2><i style="width:'+Math.round((r.share||0)/maxShare*100)+'%;background:var(--gold)"></i></span>'+pc(r.share)):'<span style="color:var(--mut)">übergreifend</span>';
+   return '<tr><td class=l><b>'+esc(r.label)+'</b></td>'
+    +'<td>'+shcell+'</td><td>'+eur(r.spend)+'</td><td>'+pc(r.margin)+'</td><td>'+x2(r.be)+'</td>'
     +'<td class="'+roasCls+'">'+(r.roas!=null?x2(r.roas):'–')+'</td>'
     +'<td class="'+roasCls+'">'+(r.ratio!=null?x2(r.ratio)+'×':'–')+'</td>'
-    +'<td class="'+(r.db>=0?'good':'bad')+'">'+eur(r.db)+'</td>'
-    +'<td class=l>'+amp+'</td></tr>';
-  }).join("");
+    +'<td class="'+(r.db!=null?(r.db>=0?'good':'bad'):'')+'">'+(r.db!=null?eur(r.db):'–')+'</td>'
+    +'<td class=l>'+amp+'</td></tr>';};
+  let h='<table><tr><th class=l>Kategorie</th><th>Umsatzanteil</th><th>Meta-Spend</th><th>Marge</th><th>BE-ROAS</th><th>Ist-ROAS</th><th>ROAS ÷ BE</th><th>DB n. Ads</th><th class=l>Signal</th></tr>';
+  h+=prod.map(rowHtml).join("");
+  if(buckets.length){h+='<tr><td class=l colspan=9 style="padding-top:10px;color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.03em">Kampagnen-Typen (kategorieübergreifend)</td></tr>'+buckets.map(rowHtml).join("");}
   h+='</table>';
-  h+='<div class=foot style="margin-top:10px">Lesart: <b>Marge</b> = Deckungsbeitrag je € Umsatz (1,19 ÷ Break-even-ROAS). <b>Break-even-ROAS</b> = ab hier trägt sich der Adspend. <b>Ist-ROAS</b> = zugeordneter Conversion-Value ÷ Spend (Meta+Google, nach Kampagnennamen — nur wo zuordenbar). <b>ROAS ÷ BE</b> ≥ 1,2 = Luft nach oben → hier Budget rein; &lt; 1 = über Break-even → bremsen. <b>DB n. Ads</b> = Umsatz × Marge − Spend.</div>';
-  if(j.metaErr||j.gErr)h+='<div class=foot style="color:var(--amber)">Hinweis: '+(j.metaErr?'Meta: '+esc(j.metaErr)+' ':'')+(j.gErr?'Google: '+esc(j.gErr):'')+'</div>';
+  h+='<div class=foot style="margin-top:10px">Nur <b>Meta</b> (Google ist ausgelagert). Kategorie = <b>Suffix im Kampagnennamen</b> (…_Geschirr, …_Gläser, …_Bettwäsche, …_Blumen, …_Aktion, …_LetzteChance). <b>Marge</b> = DB je € Umsatz (1,19 ÷ BE-ROAS). <b>Ist-ROAS</b> = Meta purchase_roas (Spend-gewichtet). <b>ROAS ÷ BE</b> ≥ 1,2 = Luft → Budget rein; &lt; 1 = bremsen. <b>DB n. Ads</b> = Kategorie-Umsatz × Marge − Meta-Spend (nur für Produkt-Kategorien; Aktion/Letzte Chance/Broad sind übergreifend → keine saubere Umsatz-/DB-Zuordnung, Steuerung dort über ROAS ÷ BE).</div>';
+  if(j.metaErr)h+='<div class=foot style="color:var(--amber)">Meta-Hinweis: '+esc(j.metaErr)+'</div>';
   $("alloc").innerHTML=h;
  }).catch(e=>{$("alloc").innerHTML='<div style="color:var(--red)">Fehler: '+esc(String(e))+'</div>';});
 }
@@ -153,7 +155,7 @@ $("aktEdit").onclick=()=>{
  fetch(WAKTSET,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({password:p,name,von,bis,ziel:parseFloat(String(ziel).replace(/[^\d.,-]/g,"").replace(",",".")),zielMer:parseFloat(String(zielMer).replace(",","."))})})
   .then(r=>r.json()).then(d=>{if(d.error){alert("Fehler: "+d.error);if(d.error==="unauthorized")sessionStorage.removeItem("fcpw");return;}AKT=d.cfg;renderAktion();}).catch(e=>alert(e));
 };
-$("legend").innerHTML="Quelle: Shopify (Umsatz/Marge je Kategorie) + Meta/Google (Spend &amp; Conversion-Value je Kampagne, nach Namen zugeordnet). Kategorie-Marge &amp; Break-even-ROAS wie im Rohertrags-Cockpit. Ist-ROAS nur dort belastbar, wo Kampagnen einer Kategorie zuzuordnen sind (sonst „wenig Spend“); für die Allokation zählt v. a. das Zusammenspiel aus Marge, Break-even und Nachfrage. Der Aktions-Tracker rechnet Pace &amp; erlaubtes Tagesbudget aus Ziel, Zeitraum und Ziel-MER.";
+$("legend").innerHTML="Quelle: Shopify (Umsatz/Marge je Kategorie) + <b>Meta</b> (Spend &amp; purchase_roas je Kampagne, Kategorie = Namens-Suffix). Google ausgelagert, hier nicht enthalten. Kategorie-Marge &amp; Break-even-ROAS wie im Rohertrags-Cockpit. Der Aktions-Tracker rechnet Pace &amp; erlaubtes Tagesbudget aus Ziel, Zeitraum und Ziel-MER.";
 fetch(WAKT+"?z="+Date.now()).then(r=>r.json()).then(a=>{AKT=a;renderAktion();}).catch(()=>{AKT=null;renderAktion();});
 (()=>{const[a,b]=win(7);renderAlloc(a,b,"7 Tage");})();
 </script></body></html>

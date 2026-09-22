@@ -46,6 +46,7 @@ tr.cur{background:#fbf7ee}
 <div id=stand>lädt …</div>
 <div class=grid id=tiles></div>
 <div class=sec><h2>Monatsübersicht</h2><div id=table></div></div>
+<div class=sec><h2>Marketing-Aufschlüsselung je Kanal (Ist)</h2><div class=desc style="margin:-4px 0 10px;color:var(--mut)">Woraus sich die Marketing-Quote je Monat ergibt — Meta, Google &amp; Affiliate (IFM) in € und als % vom Umsatz. So siehst du bei Über-/Unterperformance sofort, welcher Kanal wie viel gezogen hat.</div><div id=chtable></div></div>
 <div class=foot id=legend></div>
 </div>
 <script>
@@ -130,8 +131,28 @@ function render(){
   +'Geplante Marketing-Ausgaben gesamt: <b>'+eur(planMktFull)+'</b> ('+pc(planFull?planMktFull/planFull:0)+' v. Umsatz). '
   +'Ist bis dato: <b>'+eur(istYTD)+'</b> ('+(planYTD?pc0(istYTD/planYTD):'–')+' des anteiligen Ziels).</div>';
  $("table").innerHTML=h;
+ renderChannels(M,elapsed,istYTD);
  const gen=CUR.generatedAt?new Date(CUR.generatedAt):null;
  $("stand").innerHTML="Plan = 2025-Ist × (1+Uplift) · Ist live aus Shopify + Meta/Google/GoAffPro"+(gen?" · Stand "+pad(gen.getDate())+"."+pad(gen.getMonth()+1)+". "+pad(gen.getHours())+":"+pad(gen.getMinutes()):"");
+}
+function renderChannels(M,elapsed,istYTD){
+ const cell=(e,u)=>e>0?('<td>'+eur(e)+'</td><td style="color:var(--mut)">'+(u?pc(e/u):'–')+'</td>'):'<td style="color:var(--mut)">–</td><td style="color:var(--mut)">–</td>';
+ let h='<table><tr><th class=l>Monat</th>'
+  +'<th>Meta €</th><th>Meta %</th><th>Google €</th><th>Google %</th><th>Affiliate €</th><th>Affiliate %</th></tr>';
+ h+=M.map(m=>{
+  if(!m.ist.has)return '<tr><td class=l>'+esc(m.name)+'</td><td colspan=6 style="color:var(--mut)">–</td></tr>';
+  const u=m.ist.umsatz,cur=m.mi===nowMi;
+  return '<tr class="'+(cur?'cur':'')+'"><td class=l><b>'+esc(m.name)+'</b>'+(cur?' <span style="font-size:10px;color:var(--amber)">lfd.</span>':'')+'</td>'
+   +cell(m.ist.meta,u)+cell(m.ist.goog,u)+cell(m.ist.ifm,u)+'</tr>';
+ }).join("");
+ // Summe YTD
+ const sM=elapsed.reduce((a,m)=>a+m.ist.meta,0),sG=elapsed.reduce((a,m)=>a+m.ist.goog,0),sI=elapsed.reduce((a,m)=>a+m.ist.ifm,0);
+ h+='<tr style="border-top:2px solid var(--dark);font-weight:700;background:#f4f1ea"><td class=l>Summe / YTD</td>'
+  +'<td>'+eur(sM)+'</td><td style="color:var(--mut)">'+(istYTD?pc(sM/istYTD):'–')+'</td>'
+  +'<td>'+eur(sG)+'</td><td style="color:var(--mut)">'+(istYTD?pc(sG/istYTD):'–')+'</td>'
+  +'<td>'+eur(sI)+'</td><td style="color:var(--mut)">'+(istYTD?pc(sI/istYTD):'–')+'</td></tr>';
+ h+='</table>';
+ $("chtable").innerHTML=h;
 }
 function toggleNote(mi){OPEN=OPEN===mi?null:mi;render();}
 function pwd(){let p=sessionStorage.getItem("fcpw");if(!p){p=prompt("Passwort zum Speichern:");if(p)sessionStorage.setItem("fcpw",p);}return p;}

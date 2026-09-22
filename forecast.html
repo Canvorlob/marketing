@@ -61,6 +61,7 @@ const eur=n=>"€"+nf(n);
 const pc=x=>(100*(x||0)).toLocaleString("de-DE",{minimumFractionDigits:1,maximumFractionDigits:1})+" %";
 const pc0=x=>Math.round(100*(x||0))+" %";
 const pad=n=>String(n).padStart(2,"0");
+const fmtd=s=>{const p=String(s).slice(0,10).split("-");return p[2]+"."+p[1]+"."+p[0];};
 const esc=s=>String(s||"").replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
 const nowMi=new Date().getUTCMonth();
 function tile(cls,nm,val,desc){return '<div class="tile '+cls+'"><div class=th><span class=nm>'+nm+'</span></div><div class=val>'+val+'</div><div class=desc>'+(desc||"")+'</div></div>';}

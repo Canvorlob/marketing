@@ -154,7 +154,7 @@ function render(){
   (DATA.stale?" · <span style='color:var(--amber)'>wird aktualisiert…</span>":"");
 }
 function kpi(t,v,col){return "<div class=kpi><div class=t>"+t+"</div><div class=v"+(col?" style='color:"+col+"'":"")+">"+v+"</div></div>";}
-function linkLabel(t){return t==="ig"?"▶ Auf Instagram ansehen":t==="fb"?"▶ Auf Facebook ansehen":t==="mp4"?"▶ Video abspielen":t==="preview"?"🔎 Creative in Meta öffnen":"▶ Creative ansehen";}
+function linkLabel(t){return t==="ig"?"▶ Auf Instagram ansehen":t==="fb"?"▶ Auf Facebook ansehen":t==="mp4"?"▶ Video abspielen":t==="img"?"🔎 Bild in groß öffnen":t==="preview"?"🔎 Creative in Meta öffnen":"▶ Creative ansehen";}
 function roasClass(r,B){if(r>=B)return"gk";if(r>=B*0.85)return"ok";return"rk";}
 function cardHTML(a,rank,B){
  const winc=isWinner(a,B)?"win":(a.roas>0&&a.roas<B*0.7?"lose":"");

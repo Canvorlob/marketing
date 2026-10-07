@@ -27,6 +27,11 @@ h1{font-size:23px;margin:2px 0 2px}.sub{color:var(--mut);font-size:13px;margin-b
 .thumbwrap img{width:100%;height:100%;object-fit:cover;image-rendering:auto}
 .noimg{color:var(--mut);font-size:11px;text-align:center;padding:10px}
 .fmt{position:absolute;top:8px;left:8px;background:rgba(43,43,43,.82);color:#fff}
+.thumblink{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-decoration:none;cursor:pointer}
+.playbtn{font-size:30px;color:#fff;background:rgba(0,0,0,.5);width:58px;height:58px;border-radius:50%;display:flex;align-items:center;justify-content:center;padding-left:5px;transition:background .15s}
+.thumblink:hover .playbtn{background:rgba(0,0,0,.72)}
+.crlink{display:inline-block;margin-top:9px;font-size:12px;font-weight:700;color:#2f6f8f;text-decoration:none}
+.crlink:hover{text-decoration:underline}.crlink.off{color:#a79f93;font-weight:600}
 .rank{position:absolute;top:8px;right:8px;background:rgba(255,255,255,.92);color:var(--dark);border:1px solid var(--line)}
 .tag{position:absolute;bottom:8px;left:8px}
 .tag.g{background:var(--green);color:#fff}.tag.rent{background:#d9ead0;color:#2f6b3a}.tag.r{background:var(--red);color:#fff}.tag.n{background:#efeae1;color:var(--dark)}
@@ -149,6 +154,7 @@ function render(){
   (DATA.stale?" · <span style='color:var(--amber)'>wird aktualisiert…</span>":"");
 }
 function kpi(t,v,col){return "<div class=kpi><div class=t>"+t+"</div><div class=v"+(col?" style='color:"+col+"'":"")+">"+v+"</div></div>";}
+function linkLabel(t){return t==="ig"?"▶ Auf Instagram ansehen":t==="fb"?"▶ Auf Facebook ansehen":t==="mp4"?"▶ Video abspielen":t==="preview"?"🔎 Creative in Meta öffnen":"▶ Creative ansehen";}
 function roasClass(r,B){if(r>=B)return"gk";if(r>=B*0.85)return"ok";return"rk";}
 function cardHTML(a,rank,B){
  const winc=isWinner(a,B)?"win":(a.roas>0&&a.roas<B*0.7?"lose":"");
@@ -157,6 +163,7 @@ function cardHTML(a,rank,B){
  const hook=(a.hook==null)?"<b>–</b>":"<b>"+de1(a.hook)+" %</b>";
  return "<div class='ad "+winc+"'>"+
   "<div class=thumbwrap>"+img+
+   (a.link?"<a class=thumblink href=\""+esc(a.link)+"\" target=_blank rel=noopener title=\""+linkLabel(a.linkType)+"\">"+(a.fmt==="video"?"<span class=playbtn>▶</span>":"")+"</a>":"")+
    "<span class='badge fmt'>"+(a.fmt==="video"?"▶ Video":"◼ Bild")+"</span>"+
    "<span class='badge rank'>#"+rank+"</span>"+tag+
   "</div>"+
@@ -174,6 +181,7 @@ function cardHTML(a,rank,B){
     "<span class=mini>Hook "+hook+"</span>"+
     (a.fmt==="video"&&a.compl!=null?"<span class=mini>Durchges. <b>"+de1(a.compl)+" %</b></span>":"")+
    "</div>"+
+   (a.link?"<a class=crlink href=\""+esc(a.link)+"\" target=_blank rel=noopener>"+linkLabel(a.linkType)+"</a>":"<span class='crlink off'>Creative-Link lädt…</span>")+
   "</div>"+
  "</div>";
 }

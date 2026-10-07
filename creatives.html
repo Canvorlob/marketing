@@ -29,7 +29,7 @@ h1{font-size:23px;margin:2px 0 2px}.sub{color:var(--mut);font-size:13px;margin-b
 .fmt{position:absolute;top:8px;left:8px;background:rgba(43,43,43,.82);color:#fff}
 .rank{position:absolute;top:8px;right:8px;background:rgba(255,255,255,.92);color:var(--dark);border:1px solid var(--line)}
 .tag{position:absolute;bottom:8px;left:8px}
-.tag.g{background:var(--green);color:#fff}.tag.r{background:var(--red);color:#fff}.tag.n{background:#efeae1;color:var(--dark)}
+.tag.g{background:var(--green);color:#fff}.tag.rent{background:#d9ead0;color:#2f6b3a}.tag.r{background:var(--red);color:#fff}.tag.n{background:#efeae1;color:var(--dark)}
 .body{padding:11px 13px 13px}
 .nm{font-weight:700;font-size:13px;line-height:1.3;word-break:break-word}
 .cmp{font-size:10.5px;color:var(--mut);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -84,7 +84,7 @@ a{color:var(--blue)}
 <div class=grid id=grid></div>
 <div id=empty style="display:none">Keine Ads im gewählten Zeitraum/Filter.</div>
 
-<div class=note><b>Wie lesen?</b> <b>ROAS</b> grün = über Break-even (rentabel), rot = darunter. <b>Gewinner-Score</b> belohnt hohen ROAS <i>und</i> echtes Budget (kleine Zufallstreffer werden gedämpft). <b>Hook-Rate</b> = 3-Sek-Videoaufrufe ÷ Impressionen (Daumenstopp) — nur bei Videos. <b>CTR</b> = Klickrate. Break-even-ROAS oben anpassbar (Standard 2,20 = Portfolio). Zahlen sind Meta-attribuiert (tendenziell etwas zu hoch), aber für den <i>Vergleich der Creatives untereinander</i> genau richtig.</div>
+<div class=note><b>Wie lesen?</b> <b class="badge tag g" style="font-size:10px">Gewinner</b> = strenge Hürde: ROAS ≥ Break-even × 1,5 <i>und</i> ≥ 100 € Spend <i>und</i> ≥ 3 Käufe — also erwiesen skalierbar, nicht nur knapp profitabel oder ein Einzeltreffer. <b class="badge tag rent" style="font-size:10px">rentabel</b> = über Break-even, aber (noch) nicht Gewinner-Niveau. <b>ROAS</b> grün = über Break-even, rot = darunter. <b>Gewinner-Score</b> belohnt hohen ROAS <i>und</i> echtes Budget (kleine Zufallstreffer werden gedämpft). <b>Hook-Rate</b> = 3-Sek-Videoaufrufe ÷ Impressionen (Daumenstopp) — nur bei Videos. <b>CTR</b> = Klickrate. Break-even-ROAS oben anpassbar (Standard 2,20 = Portfolio). Zahlen sind Meta-attribuiert (tendenziell etwas zu hoch), aber für den <i>Vergleich der Creatives untereinander</i> genau richtig.</div>
 
 <div class=foot>Datenquelle Meta Marketing API · Seite aktualisiert sich bei jedem Öffnen (Cache ~15 Min) · 7 O'CLOCK Controlling</div>
 </div>
@@ -117,6 +117,9 @@ function load(since,until){
 function scoreOf(a,B){ // Gewinner-Score: Effizienz × Budget-Vertrauen (dämpft Kleinst-Spend-Flukes)
  const eff=(a.roas||0)/B; const conf=1-Math.exp(-(a.spend||0)/150); return eff*conf;
 }
+// Gewinner-Kriterien (verschärft): ROAS >= Break-even x 1,5 UND >= 100 € Spend UND >= 3 Käufe
+const WIN_FACTOR=1.5, WIN_MINSPEND=100, WIN_MINPURCH=3;
+function isWinner(a,B){return a.roas>=B*WIN_FACTOR && a.spend>=WIN_MINSPEND && (a.purch||0)>=WIN_MINPURCH;}
 function render(){
  if(!DATA||!DATA.ads){$("stand").textContent="keine Daten";return;}
  const B=be();
@@ -126,11 +129,11 @@ function render(){
  const base=DATA.ads.filter(a=>a.spend>=minsp && (!q || ((a.campaign||"").toLowerCase().includes(q) || (a.name||"").toLowerCase().includes(q))));
  let ads=base.slice();
  if(fmt!=="all")ads=ads.filter(a=>a.fmt===fmt);
- if(onlywin)ads=ads.filter(a=>a.roas>=B);
+ if(onlywin)ads=ads.filter(a=>isWinner(a,B));
  const keyf={spend:a=>a.spend,roas:a=>a.roas,rev:a=>a.rev,purch:a=>a.purch,ctr:a=>a.ctr,hook:a=>(a.hook==null?-1:a.hook),winner:a=>scoreOf(a,B)};
  ads.sort((x,y)=>keyf[sort](y)-keyf[sort](x));
  // Summary (auf Basis-Set, also inkl. Suche)
- let ts=0,tr=0,tp=0,win=0; base.forEach(a=>{ts+=a.spend;tr+=a.rev;tp+=a.purch;if(a.roas>=B)win++;});
+ let ts=0,tr=0,tp=0,win=0; base.forEach(a=>{ts+=a.spend;tr+=a.rev;tp+=a.purch;if(isWinner(a,B))win++;});
  const bro=ts?tr/ts:0;
  $("cards").innerHTML=
   kpi((q?"Ad-Spend (Suche)":"Ad-Spend"),eur(ts))+kpi("Umsatz (Meta)",eur(tr))+
@@ -148,8 +151,8 @@ function render(){
 function kpi(t,v,col){return "<div class=kpi><div class=t>"+t+"</div><div class=v"+(col?" style='color:"+col+"'":"")+">"+v+"</div></div>";}
 function roasClass(r,B){if(r>=B)return"gk";if(r>=B*0.85)return"ok";return"rk";}
 function cardHTML(a,rank,B){
- const winc=a.roas>=B?"win":(a.roas>0&&a.roas<B*0.7?"lose":"");
- const tag=a.roas>=B?"<span class='badge tag g'>Gewinner</span>":(a.roas>0?(a.roas<B*0.7?"<span class='badge tag r'>unter BE</span>":"<span class='badge tag n'>grenzwertig</span>"):"<span class='badge tag n'>kein Verkauf</span>");
+ const winc=isWinner(a,B)?"win":(a.roas>0&&a.roas<B*0.7?"lose":"");
+ const tag=isWinner(a,B)?"<span class='badge tag g'>Gewinner</span>":(a.roas>=B?"<span class='badge tag rent'>rentabel</span>":(a.roas>0?(a.roas<B*0.7?"<span class='badge tag r'>unter BE</span>":"<span class='badge tag n'>grenzwertig</span>"):"<span class='badge tag n'>kein Verkauf</span>"));
  const img="<img loading=lazy src=\""+THUMB+encodeURIComponent(a.id)+"\" alt=\"\" onerror=\"this.style.display='none';this.parentNode.querySelector('.noimg').style.display='block'\"><div class=noimg style='display:none'>"+esc(a.name)+"</div>";
  const hook=(a.hook==null)?"<b>–</b>":"<b>"+de1(a.hook)+" %</b>";
  return "<div class='ad "+winc+"'>"+

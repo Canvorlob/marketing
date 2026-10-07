@@ -76,6 +76,8 @@ a{color:var(--blue)}
  <label class=chk style="margin-left:8px"><input type=checkbox id=onlywin> nur Gewinner</label>
  <span class=flab style="margin-left:8px">Break-even ROAS</span>
  <input id=be type=number step=0.05 style="width:74px" value=2.20>
+ <span class=flab style="margin-left:8px">Suche</span>
+ <input id=q type=search placeholder="Kampagne / Ad, z. B. Black Week" style="width:190px">
 </div>
 <div id=stand>lädt …</div>
 <div class=cards id=cards></div>
@@ -119,18 +121,21 @@ function render(){
  if(!DATA||!DATA.ads){$("stand").textContent="keine Daten";return;}
  const B=be();
  const minsp=Number($("minsp").value), fmt=$("fmt").value, sort=$("sort").value, onlywin=$("onlywin").checked;
- let ads=DATA.ads.filter(a=>a.spend>=minsp);
+ const q=($("q").value||"").trim().toLowerCase();
+ // Basis-Set: Min-Spend + Suche (Kampagne oder Ad-Name) — gilt auch für die KPI-Kacheln
+ const base=DATA.ads.filter(a=>a.spend>=minsp && (!q || ((a.campaign||"").toLowerCase().includes(q) || (a.name||"").toLowerCase().includes(q))));
+ let ads=base.slice();
  if(fmt!=="all")ads=ads.filter(a=>a.fmt===fmt);
  if(onlywin)ads=ads.filter(a=>a.roas>=B);
  const keyf={spend:a=>a.spend,roas:a=>a.roas,rev:a=>a.rev,purch:a=>a.purch,ctr:a=>a.ctr,hook:a=>(a.hook==null?-1:a.hook),winner:a=>scoreOf(a,B)};
  ads.sort((x,y)=>keyf[sort](y)-keyf[sort](x));
- // Summary
- let ts=0,tr=0,tp=0,win=0; DATA.ads.filter(a=>a.spend>=minsp).forEach(a=>{ts+=a.spend;tr+=a.rev;tp+=a.purch;if(a.roas>=B)win++;});
+ // Summary (auf Basis-Set, also inkl. Suche)
+ let ts=0,tr=0,tp=0,win=0; base.forEach(a=>{ts+=a.spend;tr+=a.rev;tp+=a.purch;if(a.roas>=B)win++;});
  const bro=ts?tr/ts:0;
  $("cards").innerHTML=
-  kpi("Ad-Spend",eur(ts))+kpi("Umsatz (Meta)",eur(tr))+
+  kpi((q?"Ad-Spend (Suche)":"Ad-Spend"),eur(ts))+kpi("Umsatz (Meta)",eur(tr))+
   kpi("Blended ROAS",de2(bro),bro>=B?"var(--green)":"var(--red)")+
-  kpi("Gewinner-Ads",win+" / "+DATA.ads.filter(a=>a.spend>=minsp).length,"var(--green)");
+  kpi("Gewinner-Ads",win+" / "+base.length,"var(--green)");
  // Grid
  const g=$("grid");g.innerHTML="";
  if(!ads.length){$("empty").style.display="block";}
@@ -176,7 +181,7 @@ document.querySelectorAll(".bar button[data-r]").forEach(b=>b.onclick=()=>{
  RANGE={r:b.dataset.r};const[s,u]=rangeDates(b.dataset.r);load(s,u);
 });
 $("dgo").onclick=()=>{const a=$("d1").value,b=$("d2").value;if(!a||!b)return;document.querySelectorAll(".bar button[data-r]").forEach(x=>x.classList.remove("on"));load(a,b);};
-["sort","fmt","minsp","onlywin","be"].forEach(id=>$(id).addEventListener("input",()=>{if(DATA)render();try{localStorage.setItem("cc_"+id,id==="onlywin"?($(id).checked?"1":"0"):$(id).value);}catch(e){}}));
+["sort","fmt","minsp","onlywin","be","q"].forEach(id=>$(id).addEventListener("input",()=>{if(DATA)render();try{localStorage.setItem("cc_"+id,id==="onlywin"?($(id).checked?"1":"0"):$(id).value);}catch(e){}}));
 // restore prefs
 try{["sort","fmt","minsp","be"].forEach(id=>{const v=localStorage.getItem("cc_"+id);if(v!=null)$(id).value=v;});const ow=localStorage.getItem("cc_onlywin");if(ow==="1")$("onlywin").checked=true;}catch(e){}
 // initial
